@@ -1,0 +1,121 @@
+[project]
+name = "calcium-imaging-automation"
+authors = [{name = "Laura Porta", email= "ucqflpo@ucl.ac.uk"}]
+description = "Automating calcium imaging analysis"
+readme = "README.md"
+requires-python = ">=3.9.0"
+dynamic = ["version"]
+
+dependencies = []
+
+license = {text = "BSD-3-Clause"}
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: BSD License",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation"
+"Bug Tracker" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation/issues"
+"Documentation" = "https://neuroinformatics-unit.github.io/calcium-imaging-automation"
+
+"Source Code" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation"
+"User Support" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "coverage",
+  "tox",
+  "mypy",
+  "pre-commit",
+  "ruff",
+  "setuptools_scm",
+]
+
+[build-system]
+requires = [
+    "setuptools>=45",
+    "wheel",
+    "setuptools_scm[toml]>=6.2",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["calcium_imaging_automation*"]
+exclude = ["tests", "docs*"]
+
+
+[tool.pytest.ini_options]
+addopts = "--cov=calcium_imaging_automation"
+filterwarnings = [
+    "error",
+]
+
+[tool.setuptools_scm]
+
+[tool.check-manifest]
+ignore = [
+  ".yaml",
+  "tox.ini",
+  "tests/",
+  "tests/test_unit/",
+  "tests/test_integration/",
+  "docs/",
+  "docs/source/",
+]
+
+
+[tool.ruff]
+line-length = 79
+exclude = ["__init__.py", "build", ".eggs"]
+lint.select = [
+  "E",   # pycodestyle errors
+  "F",   # Pyflakes
+  "I",   # isort
+  # You can see what all the rules do here: https://docs.astral.sh/ruff/rules/
+  # Some additional ruff rules that might be useful (uncomment to enable)
+  #"UP",  # pyupgrade
+  #"B",   # flake8 bugbear
+  #"SIM", # flake8 simplify
+  #"C90", # McCabe complexity
+]
+fix = true
+
+[tool.ruff.format]
+docstring-code-format = true # Also format code in docstrings (e.g. examples)
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{39,310,311}
+isolated_build = True
+
+[gh-actions]
+python =
+    3.9: py39
+    3.10: py310
+    3.11: py311
+
+[testenv]
+extras =
+    dev
+commands =
+    pytest -v --color=yes --cov=calcium_imaging_automation --cov-report=xml
+"""
+
+
+[tool.codespell]
+skip = '.git'
+check-hidden = true
