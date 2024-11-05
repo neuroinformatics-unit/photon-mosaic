@@ -11,6 +11,7 @@ def main(
     output_path: Path,
     filetypes_of_interest: list,
     folder_read_pattern: str,
+    file_read_pattern: str,
 ):
     """
     Draft usage of the pipeline, now consisting of read and write operations.
@@ -23,7 +24,10 @@ def main(
     )
 
     reader = ReadAllPathsInFolder(
-        raw_data_path, filetypes_of_interest, folder_read_pattern
+        raw_data_path,
+        filetypes_of_interest,
+        folder_read_pattern,
+        file_read_pattern,
     )
     logging.info(f"Found {len(reader.datasets_paths)} datasets.")
     logging.info(f"Dataset names: {reader.dataset_names}")
@@ -59,6 +63,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--folder_read_pattern",
         type=str,
+        help="Glob pattern for reading folder.",
+        default="*",
+    )
+    parser.add_argument(
+        "--file_read_pattern",
+        type=str,
         help="Glob pattern for reading files.",
         default="*",
     )
@@ -68,5 +78,12 @@ if __name__ == "__main__":
     output_path = args.output_path
     file_types = args.filetypes
     folder_read_pattern = args.folder_read_pattern
+    file_read_pattern = args.file_read_pattern
 
-    main(raw_data_path, output_path, file_types, folder_read_pattern)
+    main(
+        raw_data_path,
+        output_path,
+        file_types,
+        folder_read_pattern,
+        file_read_pattern,
+    )
