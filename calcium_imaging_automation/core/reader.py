@@ -35,7 +35,7 @@ class ReadAllPathsInFolder:
             for filetype in self.filetypes_of_interest
         }
 
-    def max_session_number(self, filetype="tif", max_allowed=5) -> int:
+    def max_session_number(self, filetype="tif", max_allowed=1) -> int:
         total_tif_number = [
             self.total_objects_by_filetype(dataset_path).get(filetype, 0)
             for dataset_path in self.datasets_paths
