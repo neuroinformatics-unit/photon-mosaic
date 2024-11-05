@@ -13,7 +13,9 @@ class ReadAllPathsInFolder:
         self.folder_read_pattern = folder_read_pattern
 
         self.datasets_paths = self.get_folders_first_layer(raw_data_folder)
-        self.dataset_names = [dataset_path.name for dataset_path in self.datasets_paths]
+        self.dataset_names = [
+            dataset_path.name for dataset_path in self.datasets_paths
+        ]
 
     def get_folders_first_layer(self, file_path: Path) -> List[Path]:
         return list(file_path.glob(self.folder_read_pattern))
