@@ -8,9 +8,11 @@ class ReadAllPathsInFolder:
         raw_data_folder: Path,
         filetypes_of_interest: List[str],
         folder_read_pattern: str,
+        file_read_pattern: str,
     ):
         self.filetypes_of_interest = filetypes_of_interest
         self.folder_read_pattern = folder_read_pattern
+        self.file_read_pattern = file_read_pattern
 
         self.datasets_paths = self.get_folders_first_layer(raw_data_folder)
         self.dataset_names = [
