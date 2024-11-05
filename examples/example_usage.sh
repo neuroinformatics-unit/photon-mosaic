@@ -1,5 +1,5 @@
 #! /bin/bash
 python ./examples/example_usage.py \
-    /Volumes/winstor/swc/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/ \
-    /Users/laura/local_data/calcimaut/ \
+    /nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/ \
+    /ceph/margrie/laura/cimaut/ \
     --folder_read_pattern '2*' \

@@ -15,8 +15,9 @@ def main(
     """
     Draft usage of the pipeline, now consisting of read and write operations.
     """
+    (output_path / "logs").mkdir(exist_ok=True)
     logging.basicConfig(
-        filename=output_path / "logs" / "pipeline.log",
+        filename=str(output_path / "logs" / "pipeline.log"),
         level=logging.INFO,
         format="%(asctime)s - %(message)s",
     )
