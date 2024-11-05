@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 from pathlib import Path
 
@@ -17,7 +18,12 @@ def main(
     """
     (output_path / "logs").mkdir(exist_ok=True)
     logging.basicConfig(
-        filename=str(output_path / "logs" / "pipeline.log"),
+        # save also time anda date
+        filename=str(
+            output_path
+            / "logs"
+            / f"{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+        ),
         level=logging.INFO,
         format="%(asctime)s - %(message)s",
     )
