@@ -2,6 +2,7 @@ import argparse
 import datetime
 import logging
 from pathlib import Path
+from typing import List
 
 from calcium_imaging_automation.core.reader import ReadAllPathsInFolder
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
@@ -11,7 +12,7 @@ def main(
     raw_data_path: Path,
     output_path: Path,
     folder_read_pattern: str,
-    file_read_pattern: str,
+    file_read_pattern: List[str],
 ):
     """
     Draft usage of the pipeline, now consisting of read and write operations.
@@ -36,9 +37,12 @@ def main(
     logging.info(f"Found {len(reader.datasets_paths)} datasets.")
     logging.info(f"Dataset names: {reader.dataset_names}")
 
+
     writer = DatashuttleWrapper(output_path)
 
     number_of_tiffs = reader.max_session_number(filetype="tif")
+    logging.info(f"Max of tiffs found: {number_of_tiffs}")
+
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
 
     # [Placeholder for data processing]
@@ -65,9 +69,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--file_read_pattern",
-        type=list,
-        help="Glob pattern for reading files.",
-        default=["*.tif", "*.bin"],
+        type=str,
+        help="List of glob patterns for reading files.",
+        action="append",
     )
 
     args = parser.parse_args()
