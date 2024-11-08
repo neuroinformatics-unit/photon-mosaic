@@ -3,6 +3,8 @@ import datetime
 import logging
 from pathlib import Path
 from typing import List
+import wandb
+import numpy as np
 
 from calcium_imaging_automation.core.reader import ReadAllPathsInFolder
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
@@ -17,6 +19,7 @@ def main(
     """
     Draft usage of the pipeline, now consisting of read and write operations.
     """
+    # --- Setup ---
     (output_path / "logs").mkdir(exist_ok=True)
     logging.basicConfig(
         # save also time anda date
@@ -29,6 +32,11 @@ def main(
         format="%(asctime)s - %(message)s",
     )
 
+    wandb.init(project="example_usage")
+    run_id = wandb.run.id
+
+
+    # --- Read folders and files ---
     reader = ReadAllPathsInFolder(
         raw_data_path,
         folder_read_pattern,
@@ -37,16 +45,33 @@ def main(
     logging.info(f"Found {len(reader.datasets_paths)} datasets.")
     logging.info(f"Dataset names: {reader.dataset_names}")
 
-
-    writer = DatashuttleWrapper(output_path)
-
     number_of_tiffs = reader.max_session_number(filetype="tif")
     logging.info(f"Max of tiffs found: {number_of_tiffs}")
 
+
+    # --- Write folders and files ---
+    writer = DatashuttleWrapper(output_path)
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
 
-    # [Placeholder for data processing]
 
+    for dataset in reader.datasets_paths:
+        dataset = dataset.stem
+        for session in range(1, number_of_tiffs + 1):
+            logging.info(f"Processing dataset {dataset} session {session}...")
+
+            # mock processing
+            data = np.random.rand(100, 100)
+            metric_measured = np.random.rand()
+
+            wandb.log({
+                "dataset": dataset,
+                "session": session,
+                "metric_measured": metric_measured,
+                "image": wandb.Image(data),
+                "run_id": run_id
+            })
+          
+    wandb.finish()     
     logging.info("Pipeline finished.")
 
 
