@@ -1,14 +1,17 @@
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
+import numpy as np
 from datashuttle.configs.config_class import Configs
 from datashuttle.utils import folders
+from PIL import Image
 
 
 class DatashuttleWrapper:
     def __init__(self, output_path: Path) -> None:
         # This is supposed to run in the cluster and have direct access
         # to the central storages
+        self.output_path = output_path
         self.datashuttle_cfg = Configs(
             project_name=output_path.name,
             file_path=output_path,
@@ -20,7 +23,8 @@ class DatashuttleWrapper:
         )
 
     def create_folders(self, dataset_names: List[str], session_number) -> None:
-        folders.create_folder_trees(
+        # all_paths is a dictionary with keys: sub, ses
+        self.all_paths: Dict[str, List[Path]] = folders.create_folder_trees(
             cfg=self.datashuttle_cfg,
             top_level_folder="derivatives",
             sub_names=[
@@ -30,3 +34,21 @@ class DatashuttleWrapper:
             ses_names=[f"ses-{i}" for i in range(session_number)],
             datatype="funcimg",
         )
+
+    def get_dataset_path(self, dataset_name: str) -> Path:
+        print((self.output_path / "derivatives"))
+        return next(
+            (self.output_path / "derivatives").glob(f"*{dataset_name}*"), None
+        )
+
+    def save_image(
+        self,
+        image: np.ndarray,
+        run_id: int,
+        dataset_name: str,
+        session_number: int,
+        filename: str,
+    ) -> None:
+        path = self.get_dataset_path(dataset_name)
+        image = Image.fromarray(image)
+        image.save(path / f"ses-{session_number}" / f"{filename}-{run_id}")

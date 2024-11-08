@@ -6,4 +6,3 @@ python examples/example_usage.py \
     --folder_read_pattern '2*' \
     --file_read_pattern 'rotation_00001.tif' \
     --file_read_pattern '*.bin' \
-    

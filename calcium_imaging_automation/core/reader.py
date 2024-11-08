@@ -20,12 +20,16 @@ class ReadAllPathsInFolder:
     def get_folders_first_layer(self, file_path: Path) -> List[Path]:
         return list(file_path.glob(self.folder_read_pattern))
 
-    def get_files_paths_by_format(self, folder: Path, filetype="tif") -> List[Path]:
+    def get_files_paths_by_format(
+        self, folder: Path, filetype="tif"
+    ) -> List[Path]:
         return list(folder.rglob(filetype))
-    
+
     def total_objects_by_format(self, folder: Path) -> dict:
         return {
-            filetype.split(".")[-1]: len(self.get_files_paths_by_format(folder, filetype))
+            filetype.split(".")[-1]: len(
+                self.get_files_paths_by_format(folder, filetype)
+            )
             for filetype in self.file_read_pattern
         }
 

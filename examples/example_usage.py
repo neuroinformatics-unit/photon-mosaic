@@ -3,9 +3,10 @@ import datetime
 import logging
 from pathlib import Path
 from typing import List
-import wandb
+
 import numpy as np
 
+import wandb
 from calcium_imaging_automation.core.reader import ReadAllPathsInFolder
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
 
@@ -35,7 +36,6 @@ def main(
     wandb.init(project="example_usage")
     run_id = wandb.run.id
 
-
     # --- Read folders and files ---
     reader = ReadAllPathsInFolder(
         raw_data_path,
@@ -48,11 +48,9 @@ def main(
     number_of_tiffs = reader.max_session_number(filetype="tif")
     logging.info(f"Max of tiffs found: {number_of_tiffs}")
 
-
     # --- Write folders and files ---
     writer = DatashuttleWrapper(output_path)
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
-
 
     for dataset in reader.datasets_paths:
         dataset = dataset.stem
@@ -63,15 +61,25 @@ def main(
             data = np.random.rand(100, 100)
             metric_measured = np.random.rand()
 
-            wandb.log({
-                "dataset": dataset,
-                "session": session,
-                "metric_measured": metric_measured,
-                "image": wandb.Image(data),
-                "run_id": run_id
-            })
-          
-    wandb.finish()     
+            wandb.log(
+                {
+                    "dataset": dataset,
+                    "session": session,
+                    "metric_measured": metric_measured,
+                    "run_id": run_id,
+                }
+            )
+
+            # save image in session folder
+            writer.save_image(
+                image=data,
+                run_id=run_id,
+                dataset_name=dataset,
+                session_number=session,
+                filename="image",
+            )
+
+    wandb.finish()
     logging.info("Pipeline finished.")
 
 
