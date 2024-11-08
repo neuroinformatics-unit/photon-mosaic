@@ -6,11 +6,9 @@ class ReadAllPathsInFolder:
     def __init__(
         self,
         raw_data_folder: Path,
-        filetypes_of_interest: List[str],
         folder_read_pattern: str,
-        file_read_pattern: str,
+        file_read_pattern: list,
     ):
-        self.filetypes_of_interest = filetypes_of_interest
         self.folder_read_pattern = folder_read_pattern
         self.file_read_pattern = file_read_pattern
 
@@ -25,19 +23,19 @@ class ReadAllPathsInFolder:
     def get_files_paths(self, folder: Path) -> List[Path]:
         return [
             file
-            for filetype in self.filetypes_of_interest
-            for file in folder.rglob(f"*.{filetype}")
+            for pattern in self.folder_read_pattern
+            for file in folder.rglob(pattern)
         ]
 
-    def total_objects_by_filetype(self, folder: Path) -> dict:
+    def total_objects_by_format(self, folder: Path) -> dict:
         return {
             filetype: len(self.get_files_paths(folder))
-            for filetype in self.filetypes_of_interest
+            for filetype in self.folder_read_pattern.split(".")[-1]
         }
 
     def max_session_number(self, filetype="tif", max_allowed=1) -> int:
         total_tif_number = [
-            self.total_objects_by_filetype(dataset_path).get(filetype, 0)
+            self.total_objects_by_format(dataset_path).get(filetype, 0)
             for dataset_path in self.datasets_paths
         ]
 
