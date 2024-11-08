@@ -9,7 +9,6 @@ from calcium_imaging_automation.core.writer import DatashuttleWrapper
 def main(
     raw_data_path: Path,
     output_path: Path,
-    filetypes_of_interest: list,
     folder_read_pattern: str,
     file_read_pattern: str,
 ):
@@ -25,7 +24,6 @@ def main(
 
     reader = ReadAllPathsInFolder(
         raw_data_path,
-        filetypes_of_interest,
         folder_read_pattern,
         file_read_pattern,
     )
@@ -54,13 +52,6 @@ if __name__ == "__main__":
         "output_path", type=Path, help="Path to the output data."
     )
     parser.add_argument(
-        "--filetypes",
-        type=list,
-        nargs="+",
-        help="Filetypes of interest.",
-        default=["tif", "bin"],
-    )
-    parser.add_argument(
         "--folder_read_pattern",
         type=str,
         help="Glob pattern for reading folder.",
@@ -68,22 +59,20 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--file_read_pattern",
-        type=str,
+        type=list,
         help="Glob pattern for reading files.",
-        default="*",
+        default=["*.tif", "*.bin"],
     )
 
     args = parser.parse_args()
     raw_data_path = args.raw_data_path
     output_path = args.output_path
-    file_types = args.filetypes
     folder_read_pattern = args.folder_read_pattern
     file_read_pattern = args.file_read_pattern
 
     main(
         raw_data_path,
         output_path,
-        file_types,
         folder_read_pattern,
         file_read_pattern,
     )
