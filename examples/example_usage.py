@@ -17,13 +17,9 @@ def main(
     folder_read_pattern: str,
     file_read_pattern: List[str],
 ):
-    """
-    Draft usage of the pipeline, now consisting of read and write operations.
-    """
     # --- Setup experiment-wide logging to file ---
     (output_path / "logs").mkdir(exist_ok=True)
     logging.basicConfig(
-        # Save also time and date
         filename=str(
             output_path
             / "logs"
@@ -32,6 +28,11 @@ def main(
         level=logging.INFO,
         format="%(asctime)s - %(message)s",
     )
+
+    # --- Setup MLflow tracking ---
+    mlflow_tracking_dir = output_path / "derivatives" / "mlflow"
+    mlflow.set_tracking_uri(str(mlflow_tracking_dir))
+    mlflow.set_experiment("calcium_imaging_pipeline")
 
     # --- Read folders and files ---
     reader = ReadAllPathsInFolder(
@@ -51,10 +52,9 @@ def main(
 
     for dataset in reader.datasets_paths:
         dataset_name = dataset.stem
-        for session in range(1, number_of_tiffs + 1):
-            with (
-                mlflow.start_run()
-            ):  # Start a new MLflow run for each dataset-session
+        for session in range(0, number_of_tiffs):
+            # Start a new MLflow run for each dataset-session
+            with mlflow.start_run():
                 # Log session-specific parameters
                 mlflow.log_param("dataset_name", dataset_name)
                 mlflow.log_param("session_number", session)
@@ -75,7 +75,7 @@ def main(
                 mlflow.log_metric("metric_measured", metric_measured)
 
                 # Save image in session folder
-                writer.save_image(
+                image_path = writer.save_image(
                     image=data,
                     run_id=session,
                     dataset_name=dataset_name,
@@ -83,7 +83,22 @@ def main(
                     filename="image",
                 )
 
-                # Log that the run is complete for this session
+                # Log the image as an artifact in MLflow
+                mlflow.log_artifact(
+                    image_path,
+                    artifact_path=f"{dataset_name}/session_{session}",
+                )
+
+                logging.info(
+                    f"MLflow run_id: {mlflow.active_run().info.run_id}"
+                )
+                logging.info(
+                    "MLflow experiment_id: "
+                    + f"{mlflow.active_run().info.experiment_id}"
+                )
+                logging.info(
+                    f"MLflow tracking_uri: {mlflow.get_tracking_uri()}"
+                )
                 logging.info(
                     f"Completed MLflow run for dataset {dataset_name} "
                     + f"session {session}"

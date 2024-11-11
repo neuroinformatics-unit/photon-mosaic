@@ -47,10 +47,15 @@ class DatashuttleWrapper:
         dataset_name: str,
         session_number: int,
         filename: str,
-    ) -> None:
+    ) -> Path:
         path = self.get_dataset_path(dataset_name)
         image = Image.fromarray(image).convert("L")
+        image_path = (
+            path / f"ses-{session_number}" / f"{filename}-{run_id}.png"
+        )
         image.save(
-            path / f"ses-{session_number}" / f"{filename}-{run_id}.png",
+            image_path,
             mode="PNG",
         )
+
+        return image_path
