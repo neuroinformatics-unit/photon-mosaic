@@ -4,9 +4,9 @@ exclude .pre-commit-config.yaml
 
 recursive-include calcium_imaging_automation *.py
 recursive-include examples *.py
-recursive-include examples *.sh
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude docs *
 recursive-exclude tests *
+recursive-exclude examples *.sh
