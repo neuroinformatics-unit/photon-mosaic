@@ -7,7 +7,7 @@ from typing import List
 import mlflow
 import numpy as np
 
-from calcium_imaging_automation.core.reader import ReadAllPathsInFolder
+from calcium_imaging_automation.core.reader import ReadAquiredData
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
 
 
@@ -35,7 +35,7 @@ def main(
     mlflow.set_experiment("calcium_imaging_pipeline")
 
     # --- Read folders and files ---
-    reader = ReadAllPathsInFolder(
+    reader = ReadAquiredData(
         raw_data_path,
         folder_read_pattern,
         file_read_pattern,
