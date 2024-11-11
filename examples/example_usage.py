@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 from typing import List
 
+import mlflow
 import numpy as np
 
-import wandb
 from calcium_imaging_automation.core.reader import ReadAllPathsInFolder
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
 
@@ -20,10 +20,10 @@ def main(
     """
     Draft usage of the pipeline, now consisting of read and write operations.
     """
-    # --- Setup ---
+    # --- Setup experiment-wide logging to file ---
     (output_path / "logs").mkdir(exist_ok=True)
     logging.basicConfig(
-        # save also time anda date
+        # Save also time and date
         filename=str(
             output_path
             / "logs"
@@ -32,9 +32,6 @@ def main(
         level=logging.INFO,
         format="%(asctime)s - %(message)s",
     )
-
-    wandb.init(project="example_usage")
-    run_id = wandb.run.id
 
     # --- Read folders and files ---
     reader = ReadAllPathsInFolder(
@@ -53,33 +50,45 @@ def main(
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
 
     for dataset in reader.datasets_paths:
-        dataset = dataset.stem
+        dataset_name = dataset.stem
         for session in range(1, number_of_tiffs + 1):
-            logging.info(f"Processing dataset {dataset} session {session}...")
+            with (
+                mlflow.start_run()
+            ):  # Start a new MLflow run for each dataset-session
+                # Log session-specific parameters
+                mlflow.log_param("dataset_name", dataset_name)
+                mlflow.log_param("session_number", session)
+                mlflow.log_param("raw_data_path", str(raw_data_path))
+                mlflow.log_param("output_path", str(output_path))
+                mlflow.log_param("folder_read_pattern", folder_read_pattern)
+                mlflow.log_param("file_read_pattern", file_read_pattern)
 
-            # mock processing
-            data = np.random.rand(100, 100)
-            metric_measured = np.random.rand()
+                logging.info(
+                    f"Processing dataset {dataset_name} session {session}..."
+                )
 
-            wandb.log(
-                {
-                    "dataset": dataset,
-                    "session": session,
-                    "metric_measured": metric_measured,
-                    "run_id": run_id,
-                }
-            )
+                # Mock processing
+                data = np.random.rand(100, 100)
+                metric_measured = np.random.rand()
 
-            # save image in session folder
-            writer.save_image(
-                image=data,
-                run_id=run_id,
-                dataset_name=dataset,
-                session_number=session,
-                filename="image",
-            )
+                # Log metric with MLflow
+                mlflow.log_metric("metric_measured", metric_measured)
 
-    wandb.finish()
+                # Save image in session folder
+                writer.save_image(
+                    image=data,
+                    run_id=session,
+                    dataset_name=dataset_name,
+                    session_number=session,
+                    filename="image",
+                )
+
+                # Log that the run is complete for this session
+                logging.info(
+                    f"Completed MLflow run for dataset {dataset_name} "
+                    + f"session {session}"
+                )
+
     logging.info("Pipeline finished.")
 
 
