@@ -36,9 +36,8 @@ class DatashuttleWrapper:
         )
 
     def get_dataset_path(self, dataset_name: str) -> Path:
-        print((self.output_path / "derivatives"))
         return next(
-            (self.output_path / "derivatives").glob(f"*{dataset_name}*"), None
+            (self.output_path / "derivatives").glob(f"*{dataset_name}*")
         )
 
     def save_image(
@@ -50,5 +49,8 @@ class DatashuttleWrapper:
         filename: str,
     ) -> None:
         path = self.get_dataset_path(dataset_name)
-        image = Image.fromarray(image)
-        image.save(path / f"ses-{session_number}" / f"{filename}-{run_id}")
+        image = Image.fromarray(image).convert("L")
+        image.save(
+            path / f"ses-{session_number}" / f"{filename}-{run_id}.png",
+            mode="PNG",
+        )
