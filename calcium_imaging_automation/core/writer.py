@@ -43,7 +43,6 @@ class DatashuttleWrapper:
     def save_image(
         self,
         image: np.ndarray,
-        run_id: int,
         dataset_name: str,
         session_number: int,
         filename: str,
@@ -51,7 +50,7 @@ class DatashuttleWrapper:
         path = self.get_dataset_path(dataset_name)
         image = Image.fromarray(image).convert("L")
         image_path = (
-            path / f"ses-{session_number}" / f"{filename}-{run_id}.png"
+            path / f"ses-{session_number}" / f"{filename}.png"
         )
         image.save(
             image_path,
