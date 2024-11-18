@@ -49,9 +49,7 @@ class DatashuttleWrapper:
     ) -> Path:
         path = self.get_dataset_path(dataset_name)
         image = Image.fromarray(image).convert("L")
-        image_path = (
-            path / f"ses-{session_number}" / f"{filename}.png"
-        )
+        image_path = path / f"ses-{session_number}" / "funcimg" / f"{filename}"
         image.save(
             image_path,
             mode="PNG",

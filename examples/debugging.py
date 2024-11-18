@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from example_usage import main
+from calcium_imaging_automation.core.pipeline import pipeline
 
-main(
+pipeline(
     raw_data_path=Path(
         "/nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/"
     ),
