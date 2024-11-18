@@ -8,6 +8,9 @@ dynamic = ["version"]
 
 dependencies = [
   "datashuttle",
+  "setuptools_scm",
+  "mlflow",
+  "numpy",
 ]
 
 license = {text = "BSD-3-Clause"}
