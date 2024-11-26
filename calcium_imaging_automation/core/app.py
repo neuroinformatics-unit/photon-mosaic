@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from calcium_imaging_automation.core.pipeline import pipeline
+from calcium_imaging_automation.core.pipeline import mlflow_orchestrator
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -32,13 +32,19 @@ if __name__ == "__main__":
         help="Name of the experiment.",
         default="pipeline_test",
     )
+    parser.add_argument(
+        "--compute_metric",
+        type=Path,
+        help="Path to the suite2p ops file.",
+    )
 
     args = parser.parse_args()
 
-    pipeline(
+    mlflow_orchestrator(
         args.raw_data_path,
         args.output_path,
         args.folder_read_pattern,
         args.file_read_pattern,
         args.experiment_name,
+        args.compute_metric,
     )

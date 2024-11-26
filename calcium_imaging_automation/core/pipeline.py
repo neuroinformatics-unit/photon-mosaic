@@ -1,26 +1,33 @@
 import datetime
 import logging
+import time
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
 import mlflow
-import numpy as np
 import setuptools_scm
+import submitit
+from submitit import AutoExecutor
 
 from calcium_imaging_automation.core.reader import ReadAquiredData
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
 
 
-def pipeline(
+def mlflow_orchestrator(
     raw_data_path: Path,
     output_path: Path,
     folder_read_pattern: str,
     file_read_pattern: List[str],
+    preprocessing_function: Callable,
+    compute_metric: Callable,
     experiment_name: str = "pipeline_test",
 ):
     # --- Setup logging and MLflow ---
     logging_setup(output_path)
     mlflow_setup(output_path)
+
+    #  mkdir for submitit logs submitit / timestamp
+    (output_path / "submitit").mkdir(exist_ok=True)
 
     # --- Read folders and files ---
     reader = ReadAquiredData(
@@ -39,66 +46,95 @@ def pipeline(
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
 
     # --- Start processing ---
-    for dataset in reader.datasets_paths:
-        dataset_name = dataset.stem
+    results, errors = launch_job_array(
+        datasets=reader.datasets_paths,
+        output_path=output_path,
+        analysis_pipeline=analysis_pipeline,
+        writer=writer,
+        preprocessing_function=preprocessing_function,
+        compute_metric=compute_metric,
+    )
 
-        for session in range(0, number_of_tiffs):
-            mlflow_set_experiment(experiment_name, dataset_name, session)
+    # --- Log all results with MLflow ---
+    for dataset, result, error in zip(reader.dataset_names, results, errors):
+        mlflow_set_experiment(experiment_name, dataset, 0)
 
-            # Generate mock data
-            data = np.random.rand(100, 100)
+        with mlflow.start_run():
+            mlflow_parent_run_logs(
+                dataset,
+                0,
+                raw_data_path,
+                output_path,
+                folder_read_pattern,
+                file_read_pattern,
+            )
 
-            # Start a new MLflow experiment for each dataset-session
-            with mlflow.start_run():  # this is the parent run
-                mlflow_parent_run_logs(
-                    dataset_name,
-                    session,
-                    raw_data_path,
-                    output_path,
-                    folder_read_pattern,
-                    file_read_pattern,
-                )
+            #  log error if any
+            if error:
+                mlflow.log_param("error", error)
 
-                logging.info(
-                    f"Starting MLflow experiment for dataset {dataset_name} "
-                    + f"session {session}..."
-                )
+            if result:
+                mlflow.log_metric("stability", result)
 
-                # Mock processing for different runs within the experiment
-                for i in range(0, 10):  # n runs with varying parameters
-                    # Start a child run under the main dataset-session run
-                    with mlflow.start_run(nested=True):
-                        # Mock metric calculation
-                        metric_measured = np.mean(data) * i
-
-                        # Log the generated data as an artifact if desired
-                        # Here, simulate an image or data file save path
-                        image_path = writer.save_image(
-                            image=data,
-                            dataset_name=dataset_name,
-                            session_number=session,
-                            filename=f"image_{mlflow.active_run().info.run_id}.png",
-                        )
-
-                        mlflow_log_run(
-                            i,
-                            dataset_name,
-                            session,
-                            metric_measured,
-                            image_path,
-                        )
-
-                        logging.info(
-                            f"Completed MLflow run iteration {i} for dataset "
-                            + f"{dataset_name} session {session}"
-                        )
-
-                logging.info(
-                    f"Completed MLflow experiment for dataset {dataset_name}"
-                    + f" session {session}"
-                )
+            mlflow.end_run()
 
     logging.info("Pipeline finished.")
+
+
+def launch_job_array(
+    datasets,
+    output_path,
+    analysis_pipeline,
+    writer,
+    preprocessing_function,
+    compute_metric,
+):
+    executor = AutoExecutor(folder=output_path / "submitit")
+    executor.update_parameters(
+        timeout_min=30,
+        slurm_partition="fast",
+        cpus_per_task=1,
+        tasks_per_node=1,
+        slurm_mem="16G",
+        slurm_array_parallelism=20,
+    )
+
+    logging.info(f"Running {len(datasets)} jobs.")
+    jobs = executor.map_array(
+        analysis_pipeline,
+        datasets,
+        [writer.get_dataset_path(dataset.stem) for dataset in datasets],
+        [preprocessing_function] * len(datasets),
+        [compute_metric] * len(datasets),
+    )
+
+    results = []
+    errors = []
+    for job in jobs:
+        while not job.done():
+            time.sleep(10)
+        try:
+            results.append(job.result())
+            errors.append(None)
+        except submitit.core.utils.FailedJobError as e:
+            logging.error(f"Job {job.job_id} failed: {e}")
+            results.append(None)
+            errors.append(job.stderr())
+
+    return results, errors
+
+
+def analysis_pipeline(
+    dataset, output_path_dataset, preprocessing_function, compute_metric
+):
+    import os
+
+    os.system("module load miniconda")
+    os.system("source activate /nfs/nhome/live/lporta/.conda/envs/cimat")
+    output_path_dataset = output_path_dataset / "ses-0/funcimg/"
+    data = preprocessing_function(dataset, output_path_dataset)
+    metric_measured = compute_metric(data)
+    return metric_measured
 
 
 def logging_setup(output_path: Path):
@@ -156,7 +192,7 @@ def mlflow_log_run(
     dataset_name: str,
     session: int,
     metric_measured: float,
-    image_path: Path,
+    # image_path: Path,
 ):
     # give specific name to the run
     mlflow.set_tag("mlflow.runName", f"param_{i}")
@@ -165,11 +201,11 @@ def mlflow_log_run(
     mlflow.log_param("data_size", f"{i * 10}x100")
     mlflow.log_param("run_iteration", i)
     mlflow.log_param("run_id", mlflow.active_run().info.run_id)
-    mlflow.log_metric("metric_measured", metric_measured)
+    mlflow.log_metric("stability", metric_measured)
 
-    mlflow.log_artifact(
-        # where I am storing the image according to Neuroblueprint
-        # I think it gets copied in the mlflow data structure
-        image_path,
-        artifact_path=f"{dataset_name}/session_{session}/run_{i}",
-    )
+    # mlflow.log_artifact(
+    #     # where I am storing the image according to Neuroblueprint
+    #     # I think it gets copied in the mlflow data structure
+    #     image_path,
+    #     artifact_path=f"{dataset_name}/session_{session}/run_{i}",
+    # )
