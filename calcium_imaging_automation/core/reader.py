@@ -101,7 +101,7 @@ class ReadAquiredData:
             for filetype in self.file_read_pattern
         }
 
-    def max_session_number(self, filetype="tif", max_allowed=5) -> int:
+    def max_session_number(self, filetype="tif", max_allowed=1) -> int:
         """
         Get the maximum number of sessions for each dataset based on the total
         number of files found in the dataset folders. By default, it searches
