@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from calcium_imaging_automation.core.pipeline import mlflow_orchestrator
+from calcium_imaging_automation.core.pipeline import orchestrator
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    mlflow_orchestrator(
+    orchestrator(
         args.raw_data_path,
         args.output_path,
         args.folder_read_pattern,

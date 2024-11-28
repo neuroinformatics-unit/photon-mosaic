@@ -9,7 +9,6 @@ dynamic = ["version"]
 dependencies = [
   "datashuttle",
   "setuptools_scm",
-  "mlflow",
   "numpy",
   "submitit",
 ]
