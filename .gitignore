@@ -84,3 +84,6 @@ venv/
 
 # custom scripts
 examples/*.sh
+
+# snakemake
+.snakemake/*
