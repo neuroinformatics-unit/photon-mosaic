@@ -21,5 +21,11 @@ rule preprocess:
         "preprocess_output_{index}.txt"
     params:
         index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=16000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
     script:
         "calcium_imaging_automation/core/rules/preprocess.py"
