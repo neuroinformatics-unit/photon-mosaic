@@ -2,6 +2,8 @@ import argparse
 import shutil
 from pathlib import Path
 
+import pandas as pd
+
 from calcium_imaging_automation.core.reader import ReadAquiredData
 from calcium_imaging_automation.core.writer import DatashuttleWrapper
 
@@ -14,6 +16,7 @@ def setup(raw_data_path, folder_read_pattern, file_read_pattern, output_path):
         print("No derivatives folder found")
 
     print(f"Reading data from {raw_data_path}")
+
     reader = ReadAquiredData(
         raw_data_path,
         folder_read_pattern,
@@ -25,9 +28,19 @@ def setup(raw_data_path, folder_read_pattern, file_read_pattern, output_path):
     print(f"Max of tiffs found: {number_of_tiffs}")
 
     writer = DatashuttleWrapper(output_path)
-    print(f"Dataset names: {reader.dataset_names}")
     writer.create_folders(reader.dataset_names, session_number=number_of_tiffs)
     print("Folders created")
+
+    datasets = pd.DataFrame(
+        {
+            "read_dataset_path": reader.datasets_paths,
+            "write_dataset_path": [
+                writer.get_dataset_path(dt.stem)
+                for dt in reader.datasets_paths
+            ],
+        }
+    )
+    datasets.to_csv("datasets.csv", index=True, index_label="index")
 
 
 if __name__ == "__main__":
