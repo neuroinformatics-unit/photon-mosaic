@@ -10,8 +10,6 @@ try:
     write_dataset_path = Path(snakemake.input[1])
     output = snakemake.output[0]
 
-    # os.system("module load miniconda")
-    # os.system("source activate /nfs/nhome/live/lporta/.conda/envs/cimat")
     output_path_dataset = write_dataset_path / "ses-0/funcimg/"
 
     data = derotate(read_dataset_path, output_path_dataset)
