@@ -1,6 +1,6 @@
 include LICENSE
 include README.md
-include Snakefile
+include workflow/Snakefile
 exclude .pre-commit-config.yaml
 
 recursive-include calcium_imaging_automation *.py
