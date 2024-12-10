@@ -1,35 +1,47 @@
-rule setup:
+# Base paths
+raw_data_base = "/nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/"
+processed_data_base = "/ceph/margrie/laura/cimaut/derivatives"
+
+# Dynamically discover folders matching the "2*" pattern
+datasets = glob_wildcards(f"{raw_data_base}{{dataset}}").dataset
+datasets = [ds for ds in datasets if ds.startswith("2")]
+datasets = [ds.split("/")[0] for ds in datasets]
+datasets = list(set(datasets))
+datasets.sort()
+
+#  for the output
+datasets_no_underscore = [ds.replace("_", "") for ds in datasets]
+
+#  Final state of the pipeline
+#  Are all the outputs files present?
+rule all:
     input:
-        "/nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/",
-        "/ceph/margrie/laura/cimaut/",
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+            ],
+            zip,
+            index=range(len(datasets)),
+            datasets_no_underscore=datasets_no_underscore,
+        )
+
+rule preprocess:
+    input:
+        raw=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/",
+        # Dynamically match input files using patterns
+        # bin=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/aux_stim/*rotation_*001.bin",
+        # tif=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/imaging/rotation_*001.tif",
+    output:
+        tiff=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+        csv=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
     params:
-        folder_read_pattern="2*",
-        file_read_pattern=["rotation_00001.tif", "*.bin"],
-    output: "datasets.csv"
-    run:
-        "calcium_imaging_automation/core/rules/setup.py"
-        
-# import pandas as pd
-
-# paths = pd.read_csv("datasets.csv")
-
-# rule all:
-#     input:
-#         expand("preprocess_output_{index}.txt", index=paths["index"])
-
-# rule preprocess:
-#     input:
-#         lambda wildcards: paths.loc[int(wildcards.index), "read_dataset_path"],
-#         lambda wildcards: paths.loc[int(wildcards.index), "write_dataset_path"],
-#     output:
-#         "preprocess_output_{index}.txt"
-#     params:
-#         index=lambda wildcards: wildcards.index
-#     resources:
-#         partition="fast",
-#         mem_mb=16000,
-#         cpu_per_task=1,
-#         tasks=1,
-#         nodes=1,
-#     script:
-#         "calcium_imaging_automation/core/rules/preprocess.py"
+        index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=16000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../calcium_imaging_automation/core/rules/preprocess.py"

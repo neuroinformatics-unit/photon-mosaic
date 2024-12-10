@@ -13,13 +13,8 @@ To extract dataset names
 snakemake --cores 1 setup_output.txt
 ```
 
-
-To run preprocessing with slurm, use the following command for one dataset:
+Run all jobs in the pipeline:
 ```bash
-snakemake --executor slurm --jobs 20 --latency-wait 10 preprocess_output_0.txt
+snakemake --executor slurm --jobs 20 --latency-wait 10 all
 ```
-For an array of datasets:
-```bash
-snakemake --executor slurm --jobs 20 --latency-wait 10 preprocess_output_{0..N}.txt
-```
-Replace N with the number of datasets you have in the `datasets.csv` file.
+Add `-np --printshellcmds` for a dry run with commands printed to the terminal.
