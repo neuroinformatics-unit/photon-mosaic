@@ -81,3 +81,12 @@ venv/
 
 # written by setuptools_scm
 **/_version.py
+
+# custom scripts
+examples/*.sh
+
+# snakemake
+.snakemake/*
+
+# datavzrd
+workflow/results/

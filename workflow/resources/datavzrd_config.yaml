@@ -1,0 +1,22 @@
+datasets:
+  summary:
+    path: workflow/results/data/summary.csv
+    separator: ","
+
+views:
+  summary_view:
+    dataset: summary
+    render-table:
+      columns:
+        Dataset:
+          plot:
+            ticks:
+              scale: linear
+        Metric:
+          plot:
+            ticks:
+              scale: linear
+        Error:
+          plot:
+            ticks:
+              scale: linear

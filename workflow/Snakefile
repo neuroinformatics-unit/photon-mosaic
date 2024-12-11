@@ -1,0 +1,72 @@
+# Base paths
+raw_data_base = "/nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/"
+processed_data_base = "/ceph/margrie/laura/cimaut/derivatives"
+
+# Dynamically discover folders matching the "2*" pattern
+datasets = glob_wildcards(f"{raw_data_base}{{dataset}}").dataset
+datasets = [ds for ds in datasets if ds.startswith("2")]
+datasets = [ds.split("/")[0] for ds in datasets]
+datasets = list(set(datasets))
+datasets.sort()
+
+#  for the output
+datasets_no_underscore = [ds.replace("_", "") for ds in datasets]
+
+#  -----------------------------------------------------
+#  Final state of the pipeline
+#  Are all the outputs files present?
+rule all:
+    input:
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt",
+            ],
+            zip,
+            index=range(len(datasets)),
+            datasets_no_underscore=datasets_no_underscore,
+        ),
+
+#  -----------------------------------------------------
+#  Preprocess
+rule preprocess:
+    input:
+        raw=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/",
+    output:
+        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt"),
+        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt"),
+        tiff=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+        csv=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+    params:
+        index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=16000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../calcium_imaging_automation/core/rules/preprocess.py"
+
+#  -----------------------------------------------------
+#  Summarize data for datavzrd report
+rule summarize_data:
+    input:
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{dataset}}/ses-0/funcimg/metric.txt",
+                f"{processed_data_base}/sub-{{index}}_{{dataset}}/ses-0/funcimg/error.txt",
+            ],
+            zip,
+            index=range(len(datasets)),
+            dataset=datasets_no_underscore,
+        )
+    output:
+        "workflow/results/data/summary.csv"
+    params:
+        datasets=datasets_no_underscore,
+        base_path=processed_data_base
+    script:
+        "../calcium_imaging_automation/core/rules/summarize_data.py"
