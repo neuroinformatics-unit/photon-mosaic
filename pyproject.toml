@@ -8,8 +8,10 @@ dynamic = ["version"]
 
 dependencies = [
   "numpy",
+  "pandas",
   "snakemake",
   "snakemake-executor-plugin-slurm",
+  "datavzrd",
 ]
 
 license = {text = "BSD-3-Clause"}

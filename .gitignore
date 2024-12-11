@@ -87,3 +87,6 @@ examples/*.sh
 
 # snakemake
 .snakemake/*
+
+# datavzrd
+workflow/results/

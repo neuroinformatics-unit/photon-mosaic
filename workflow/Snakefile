@@ -12,6 +12,7 @@ datasets.sort()
 #  for the output
 datasets_no_underscore = [ds.replace("_", "") for ds in datasets]
 
+#  -----------------------------------------------------
 #  Final state of the pipeline
 #  Are all the outputs files present?
 rule all:
@@ -20,19 +21,22 @@ rule all:
             [
                 f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
                 f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt",
             ],
             zip,
             index=range(len(datasets)),
             datasets_no_underscore=datasets_no_underscore,
-        )
+        ),
 
+#  -----------------------------------------------------
+#  Preprocess
 rule preprocess:
     input:
         raw=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/",
-        # Dynamically match input files using patterns
-        # bin=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/aux_stim/*rotation_*001.bin",
-        # tif=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/imaging/rotation_*001.tif",
     output:
+        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt"),
+        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt"),
         tiff=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
         csv=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
     params:
@@ -45,3 +49,24 @@ rule preprocess:
         nodes=1,
     script:
         "../calcium_imaging_automation/core/rules/preprocess.py"
+
+#  -----------------------------------------------------
+#  Summarize data for datavzrd report
+rule summarize_data:
+    input:
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{dataset}}/ses-0/funcimg/metric.txt",
+                f"{processed_data_base}/sub-{{index}}_{{dataset}}/ses-0/funcimg/error.txt",
+            ],
+            zip,
+            index=range(len(datasets)),
+            dataset=datasets_no_underscore,
+        )
+    output:
+        "workflow/results/data/summary.csv"
+    params:
+        datasets=datasets_no_underscore,
+        base_path=processed_data_base
+    script:
+        "../calcium_imaging_automation/core/rules/summarize_data.py"

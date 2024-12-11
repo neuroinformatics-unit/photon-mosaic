@@ -1,3 +1,4 @@
+import traceback
 from pathlib import Path
 
 from derotation.analysis.metrics import stability_of_most_detected_blob
@@ -13,8 +14,12 @@ try:
     data = derotate(read_dataset_path, output_path_dataset)
     metric_measured = stability_of_most_detected_blob(data)
     with open(output_path_dataset / "metric.txt", "w") as f:
-        f.write(f"dataset: {read_dataset_path.stem} metric: {metric_measured}")
-except Exception as e:
-    print(e.args)
+        f.write(f"stability_of_most_detected_blob: {metric_measured}")
+    # make empty error file
     with open(output_path_dataset / "error.txt", "w") as f:
-        f.write(str(e.args))
+        f.write("")
+except Exception:
+    with open(output_path_dataset / "error.txt", "w") as f:
+        f.write(traceback.format_exc())
+    with open(output_path_dataset / "metric.txt", "w") as f:
+        f.write(f"dataset: {read_dataset_path.stem} metric: NaN")

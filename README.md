@@ -8,13 +8,19 @@ With support for local or cluster-based parallelization, CIMAT provides visualiz
 
 
 ### Run workflow with Snakemake
-To extract dataset names
-```bash
-snakemake --cores 1 setup_output.txt
-```
-
 Run all jobs in the pipeline:
 ```bash
 snakemake --executor slurm --jobs 20 --latency-wait 10 all
 ```
 Add `-np --printshellcmds` for a dry run with commands printed to the terminal.
+
+### See interactive report with datavzrd
+Build the csv:
+```bash
+snakemake --cores 1 workflow/results/data/summary.csv
+```
+Create the report:
+```bash
+datavzrd workflow/resources/datavzrd_config.yaml --output workflow/results/datavzrd
+```
+Then open the report (`index.html`) in a browser.
