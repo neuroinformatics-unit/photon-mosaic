@@ -1,7 +1,6 @@
 import traceback
 from pathlib import Path
 
-from derotation.analysis.metrics import stability_of_most_detected_blob
 from derotation.derotate_batch import derotate
 from snakemake.script import snakemake
 
@@ -9,17 +8,19 @@ from snakemake.script import snakemake
 read_dataset_path = Path(snakemake.input[0])
 output_tif = Path(snakemake.output[0])
 
-output_path_dataset = output_tif.parent.parent
+output_path_dataset = output_tif.parent
 try:
-    data = derotate(read_dataset_path, output_path_dataset)
-    metric_measured = stability_of_most_detected_blob(data)
-    with open(output_path_dataset / "metric.txt", "w") as f:
-        f.write(f"stability_of_most_detected_blob: {metric_measured}")
+    metrics = derotate(read_dataset_path, output_path_dataset)
+    #  save metrics as csv (matrix is already a pandas dataframe)
+    metrics.to_csv(output_path_dataset / "derotation_metrics.csv", index=False)
+
     # make empty error file
     with open(output_path_dataset / "error.txt", "w") as f:
         f.write("")
 except Exception:
     with open(output_path_dataset / "error.txt", "w") as f:
         f.write(traceback.format_exc())
-    with open(output_path_dataset / "metric.txt", "w") as f:
-        f.write(f"dataset: {read_dataset_path.stem} metric: NaN")
+
+    # make empty metrics file
+    with open(output_path_dataset / "derotation_metrics.csv", "w") as f:
+        f.write("")

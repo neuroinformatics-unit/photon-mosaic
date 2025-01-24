@@ -10,7 +10,7 @@ With support for local or cluster-based parallelization, CIMAT provides visualiz
 ### Run workflow with Snakemake
 Run all jobs in the pipeline:
 ```bash
-snakemake --executor slurm --jobs 20 --latency-wait 10 all
+snakemake --executor slurm --jobs 20 --latency-wait 10 all --forcerun preprocess --rerun-incomplete
 ```
 Add `-np --printshellcmds` for a dry run with commands printed to the terminal.
 
@@ -24,3 +24,13 @@ Create the report:
 datavzrd workflow/resources/datavzrd_config.yaml --output workflow/results/datavzrd
 ```
 Then open the report (`index.html`) in a browser.
+
+specific dataset, rerun:
+```bash
+snakemake --executor slurm --jobs 20 --latency-wait 10     /ceph/margrie/laura/cimaut/derivatives/sub-1_230802CAA1120182/ses-0/funcimg/derotation/derotated_full.tif     --forcerun preprocess --rerun-incomplete
+```
+
+summary plot:
+```bash
+snakemake --cores 1 --latency-wait 10 workflow/results/data/stability_metric.png
+```

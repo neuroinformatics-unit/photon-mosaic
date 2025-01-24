@@ -12,6 +12,9 @@ datasets.sort()
 #  for the output
 datasets_no_underscore = [ds.replace("_", "") for ds in datasets]
 
+valid_indices = [0, 1, 6, 7, 8, 9, 11, 13, 15, 16, 18]
+subsample_datasets = [datasets_no_underscore[i] for i in valid_indices]
+
 #  -----------------------------------------------------
 #  Final state of the pipeline
 #  Are all the outputs files present?
@@ -19,15 +22,20 @@ rule all:
     input:
         expand(
             [
-                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
-                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
-                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt",
-                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt",
+                # f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+                # f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+                # f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation_metrics.csv",
+                # f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt",
+                # f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/plane0/stat.npy",
+                f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/traces/dff_example_100.png",
             ],
             zip,
-            index=range(len(datasets)),
-            datasets_no_underscore=datasets_no_underscore,
+            # index=range(len(datasets)),
+            index=valid_indices,
+            # datasets_no_underscore=datasets_no_underscore,
+            datasets_no_underscore=subsample_datasets,
         ),
+        # f"{processed_data_base}/stability_metric.png",
 
 #  -----------------------------------------------------
 #  Preprocess
@@ -35,10 +43,30 @@ rule preprocess:
     input:
         raw=lambda wildcards: f"{raw_data_base}{datasets[int(wildcards.index)]}/",
     output:
-        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/metric.txt"),
-        report(f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt"),
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation_metrics.csv",
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/error.txt",
         tiff=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
         csv=f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.csv",
+    params:
+        index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=32000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../calcium_imaging_automation/core/rules/preprocess.py"
+
+# -----------------------------------------------------
+# Suite2p
+rule suite2p:
+    input:
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/derotation/derotated_full.tif",
+        f"/ceph/margrie/laura/cimaut/3p_non_rigid_ops.npy",
+    output:
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/plane0/stat.npy",
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/suite2p/plane0/data.bin",
     params:
         index=lambda wildcards: wildcards.index
     resources:
@@ -48,7 +76,41 @@ rule preprocess:
         tasks=1,
         nodes=1,
     script:
-        "../calcium_imaging_automation/core/rules/preprocess.py"
+        "../calcium_imaging_automation/core/rules/suite2p_run.py"
+
+# -----------------------------------------------------
+# Collect suite2p data and make plots
+rule postprocess:
+    output:
+        # f"{processed_data_base}/stability_metric.png",
+        "workflow/results/data/stability_metric.png",
+    params:
+        datasets=datasets_no_underscore,
+        base_path=processed_data_base
+    resources:
+        partition="fast",
+        mem_mb=8000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../calcium_imaging_automation/core/rules/postprocess.py"
+
+rule plot_traces:
+    input:
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/funcimg/plane0/F.npy"
+    output:
+        f"{processed_data_base}/sub-{{index}}_{{datasets_no_underscore}}/ses-0/traces/dff_example_100.png",
+    params:
+        index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=16000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../calcium_imaging_automation/core/rules/plot_data.py"
 
 #  -----------------------------------------------------
 #  Summarize data for datavzrd report
