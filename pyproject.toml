@@ -6,7 +6,11 @@ readme = "README.md"
 requires-python = ">=3.9.0"
 dynamic = ["version"]
 
-dependencies = []
+dependencies = [
+  "snakemake",
+  "numpy",
+  "snakemake-executor-plugin-slurm"
+]
 
 license = {text = "BSD-3-Clause"}
 
