@@ -1,9 +1,9 @@
-#  Here you can explicitely change suite2p options
+#  Here you can explicitly change suite2p options
+
 import numpy as np
-from pathlib import Path
+
 
 def get_edited_options(input_path, ops_file, dataset_folder):
-        
     # load ops
     ops = np.load(ops_file, allow_pickle=True).item()
 

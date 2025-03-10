@@ -2,9 +2,9 @@ import datetime
 import traceback
 from pathlib import Path
 
-import numpy as np
 from snakemake.script import snakemake
 from suite2p import run_s2p
+
 from photon_mosaic.rules.s2p_options import get_edited_options
 
 # Retrieve parameters and inputs from Snakemake

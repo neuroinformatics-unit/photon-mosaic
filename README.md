@@ -79,4 +79,3 @@ Contributions are welcome! If you have suggestions or questions, please open an 
 - [Custom Suite2p Fork](https://github.com/neuroinformatics-unit/suite2p.git)
 - [Slurm for Snakemake](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html)
 - [NeuroBlueprint Standard](https://neuroblueprint.neuroinformatics.dev/latest/index.html)
-

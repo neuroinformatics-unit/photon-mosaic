@@ -48,4 +48,3 @@ rule suite2p:
         nodes=1,
     script:
         "../photon-mosaic/rules/suite2p_run.py"
-
