@@ -1,0 +1,51 @@
+from pathlib import Path
+
+# Base paths
+raw_data_base = "base/path/to/raw/data"
+processed_data_base = "base/path/to/processed/data"
+
+#  gather all the folder names in the raw data base
+datasets = [f.name for f in Path(raw_data_base).iterdir() if f.is_dir()]
+
+#  for every folder, find where the tif files are
+tiff_paths = {
+    dataset: list(Path(raw_data_base, dataset).rglob("*.tif"))
+    for dataset in datasets
+}
+
+# suite2p options file
+suite2p_ops = "path/to/suite2p/ops/file"
+
+#  -----------------------------------------------------
+#  Final state of the pipeline
+rule all:
+    input:
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
+            ],
+            zip,
+            index=range(len(datasets)),
+            datasets=datasets,
+        ),
+
+# -----------------------------------------------------
+# Suite2p
+rule suite2p:
+    input:
+        tiff_paths[f"{datasets}"],
+        suite2p_ops,
+    output:
+        f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/plane0/stat.npy",
+        f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin",
+    params:
+        index=lambda wildcards: wildcards.index
+    resources:
+        partition="fast",
+        mem_mb=16000,
+        cpu_per_task=1,
+        tasks=1,
+        nodes=1,
+    script:
+        "../photon-mosaic/rules/suite2p_run.py"
+
