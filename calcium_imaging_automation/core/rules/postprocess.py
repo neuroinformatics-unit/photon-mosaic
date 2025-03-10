@@ -3,11 +3,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from derotation.analysis.full_derotation_pipeline import FullPipeline
-from derotation.analysis.metrics import stability_of_most_detected_blob
+from derotation.analysis.metrics import ptd_of_most_detected_blob
 from matplotlib import pyplot as plt
 from snakemake.script import snakemake
+
+from derotation.analysis.mean_images import calculate_mean_images
+
 
 datasets = snakemake.params.datasets
 processed_data_base = snakemake.params.base_path
@@ -15,7 +17,7 @@ processed_data_base = snakemake.params.base_path
 csv_path = Path(snakemake.output[0]).with_suffix(".csv")
 img_path = Path(snakemake.output[0])
 
-if not img_path.exists():
+if not csv_path.exists():
     datasets_paths = []
     for idx, dataset in enumerate(datasets):
         datasets_paths.append(
@@ -48,23 +50,19 @@ if not img_path.exists():
         derotated_full_csv_paths.append(derotated_full_csv_path)
 
     all_metrics_df = pd.DataFrame(
-        columns=["dataset", "analysis_type", "metric", "value"]
+        columns=["dataset", "ptd_pre_suite2p", "ptd_post_suite2p", "#_is_cell"]
     )
-    analysis_types = [
-        "no_adj",
-        "adj_track",
-        "adj_largest",
-        "adj_track_shifted",
-    ]
 
-    for path_to_bin_file, metric_path, derotated_full_csv_path in zip(
-        movie_bin_paths, metric_paths, derotated_full_csv_paths
+    for path_to_bin_file, metric_path, derotated_full_csv_path, is_cell_path in zip(
+        movie_bin_paths, metric_paths, derotated_full_csv_paths, is_cell_paths
     ):
         print(
             f"Processing dataset: {path_to_bin_file.parent.parent.parent.parent.parent.name}..."
         )
         try:
-            metric = pd.read_csv(metric_path)
+            with open(metric_path, "r") as f:
+                line = f.readlines()
+                ptd_pre_suite2p = float(line[0].split(":")[1].strip())
 
             path_to_bin_file = Path(path_to_bin_file)
 
@@ -81,18 +79,13 @@ if not img_path.exists():
             plt.savefig(path_to_bin_file.parent / "first_frame_registered.png")
             plt.close()
 
-            derotator = FullPipeline.__new__(FullPipeline)
-
             angles = rotation_df["rotation_angle"].values
             if len(angles) > len(registered):
                 angles = angles[: len(registered)]
             elif len(angles) < len(registered):
                 angles = np.pad(angles, (0, len(registered) - len(angles)))
 
-            derotator.rot_deg_frame = angles
-            mean_images = derotator.calculate_mean_images(
-                registered, round_decimals=0
-            )
+            mean_images = calculate_mean_images(registered, angles, round_decimals=0)
 
             #  show first mean image
             plt.imshow(mean_images[0])
@@ -101,52 +94,30 @@ if not img_path.exists():
 
             path_plots = path_to_bin_file.parent
             try:
-                ptd, std = stability_of_most_detected_blob(
-                    (mean_images, path_plots),
-                    # blob_log_kwargs={"min_sigma": 0, "max_sigma": 20, "threshold": 0.5, "overlap": 0},
-                    # clip=False
-                )
-                print(f"ptd: {ptd}, std: {std}")
+                ptd = ptd_of_most_detected_blob(mean_images, plot=True, debug_plots_folder=path_plots) 
+                print(f"ptd: {ptd}")
             except Exception as e:
                 print(e)
                 print(traceback.format_exc())
                 ptd = np.nan
-                std = np.nan
 
-            for i, analysis_type in enumerate(analysis_types):
-                row_ptd = {
-                    "dataset": path_to_bin_file.parent.parent.parent.parent.parent.name,
-                    "analysis_type": analysis_type,
-                    "metric": "ptd",
-                    "value": metric["ptd"][i],
-                }
-                row_std = {
-                    "dataset": path_to_bin_file.parent.parent.parent.parent.parent.name,
-                    "analysis_type": analysis_type,
-                    "metric": "std",
-                    "value": metric["std"][i],
-                }
-                all_metrics_df = pd.concat(
-                    [all_metrics_df, pd.DataFrame([row_ptd, row_std])],
-                    ignore_index=True,
-                )
-            #  add post_suite2p metrics
-            row_ptd = {
+            is_cell = np.load(is_cell_path)[:, 0]
+            n_is_cell = int(sum(is_cell))
+
+            row = {
                 "dataset": path_to_bin_file.parent.parent.parent.parent.parent.name,
-                "analysis_type": "post_suite2p",
-                "metric": "ptd",
-                "value": ptd,
+                "ptd_pre_suite2p": ptd_pre_suite2p,
+                "ptd_post_suite2p": ptd,
+                "#_is_cell": n_is_cell,
             }
-            row_std = {
-                "dataset": path_to_bin_file.parent.parent.parent.parent.parent.name,
-                "analysis_type": "post_suite2p",
-                "metric": "std",
-                "value": std,
-            }
+
+            print(f"This row: {row}")
+            
             all_metrics_df = pd.concat(
-                [all_metrics_df, pd.DataFrame([row_ptd, row_std])],
-                ignore_index=True,
+                [all_metrics_df, pd.DataFrame([row])], ignore_index=True
             )
+
+
         except Exception as e:
             print(e)
             print("Error in dataset")
@@ -158,164 +129,74 @@ if not img_path.exists():
 else:
     all_metrics_df = pd.read_csv(csv_path)
 
-sns.set_theme(style="whitegrid")
-sns.set_context("paper")
-sns.set_palette("pastel")
+# Melt the dataframe to long format
+df_long = all_metrics_df.melt(id_vars=["dataset"], value_vars=["ptd_pre_suite2p", "ptd_post_suite2p"],
+                  var_name="Condition", value_name="PTD Value")
 
-fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+# Rename conditions for better readability
+df_long["Condition"] = df_long["Condition"].replace({"ptd_pre_suite2p": "Pre", "ptd_post_suite2p": "Post"})
 
-sns.pointplot(
-    x="analysis_type",
-    y="value",
-    hue="dataset",
-    data=all_metrics_df[all_metrics_df["metric"] == "ptd"],
-    ax=axs[0],
-)
+# Plot the data
+plt.figure(figsize=(12, 6))
+for dataset in all_metrics_df["dataset"]:
+    subset = df_long[df_long["dataset"] == dataset]
+    plt.plot(subset["Condition"], subset["PTD Value"], marker="o", linestyle="-", label=dataset)
 
-sns.pointplot(
-    x="analysis_type",
-    y="value",
-    hue="dataset",
-    data=all_metrics_df[all_metrics_df["metric"] == "std"],
-    ax=axs[1],
-)
+plt.xlabel("Condition")
+plt.ylabel("PTD Value")
+plt.title("Pre vs Post PTD Values per Dataset")
+plt.xticks(["Pre", "Post"])
+plt.grid(True)
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Dataset", fontsize=8)
 
-axs[0].set_title("PTD")
-axs[1].set_title("STD")
-
-plt.tight_layout()
 plt.savefig(img_path)
-plt.close()
+print(f'Image saved at {img_path}')
 
-# make another similar plot with these analysis types:
-# 1. no_adj
-# 2. the min between "no_adj", "adj_track", "adj_largest", "adj_track_shifted" (to be calculated)
-# 3. post_suite2p
 
-fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+cleaned_data = [
+    {'Subject': '230801CAA1120181', 'Category': 1},
+    {'Subject': '230802CAA1120182', 'Category': 1},
+    {'Subject': '230803CAA1119915', 'Category': 2},
+    {'Subject': '230803CAA1120181', 'Category': 1},
+    {'Subject': '230804CAA1119917', 'Category': 2},
+    {'Subject': '230818CAA1120210', 'Category': 2},
+    {'Subject': '230822CAA1120509', 'Category': 1},
+    {'Subject': '230823CAA1120181', 'Category': 1},
+    {'Subject': '230824CAA1119915', 'Category': 2},
+    {'Subject': '230825CAA1120182', 'Category': 1},
+    {'Subject': '230907CAA1120210', 'Category': 2},
+    {'Subject': '230907CAA1120509', 'Category': 1},
+    # {'Subject': '230907CAA1120509', 'Category': 1},
+    {'Subject': '230912CAA1119915', 'Category': 2},
+    {'Subject': '230912CAA1120051', 'Category': 3},
+    {'Subject': '230913CAA1120182', 'Category': 1},
+    {'Subject': '230913CAA1120395', 'Category': 4},
+    {'Subject': '230914CAA1120181', 'Category': 1},
+    {'Subject': '230914CAA1120210', 'Category': 2},
+    {'Subject': '230915CAA1120509', 'Category': 2},
+    # {'Subject': '230915CAA1120509', 'Category': 2},
+]
 
-data = pd.DataFrame(columns=["dataset", "analysis_type", "metric", "value"])
-for dataset in all_metrics_df["dataset"].unique():
-    dataset_df = all_metrics_df[all_metrics_df["dataset"] == dataset]
-    #  no_adj
-    no_adj_value = dataset_df[
-        (dataset_df["analysis_type"] == "no_adj")
-        & (dataset_df["metric"] == "ptd")
-    ]["value"].values[0]
-    row = {
-        "dataset": dataset,
-        "analysis_type": "no_adj",
-        "metric": "ptd",
-        "value": no_adj_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
-    #  min but not for post_suite2p
-    min_value = dataset_df[
-        (dataset_df["analysis_type"] != "post_suite2p")
-        & (dataset_df["metric"] == "ptd")
-    ]["value"].min()
-    row = {
-        "dataset": dataset,
-        "analysis_type": "min",
-        "metric": "ptd",
-        "value": min_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
-    #  post_suite2p
-    post_suite2p_value = dataset_df[
-        (dataset_df["analysis_type"] == "post_suite2p")
-        & (dataset_df["metric"] == "ptd")
-    ]["value"].values[0]
-    row = {
-        "dataset": dataset,
-        "analysis_type": "post_suite2p",
-        "metric": "ptd",
-        "value": post_suite2p_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
+# 1 = callosal projecting neurons
+# 2 = corticothalamic projecting neurons
+# 3 = PV interneurons
+# 4 = SST interneurons
 
-#  save dataset
-data.to_csv(csv_path.with_name("min_analysis_types_min_ptd.csv"), index=False)
+# remove sub_## from the all_metrics_df['dataset'] column
+all_metrics_df['dataset'] = all_metrics_df['dataset'].apply(lambda x: x.split('_')[1])
 
-sns.pointplot(
-    x="analysis_type",
-    y="value",
-    hue="dataset",
-    data=data[data["metric"] == "ptd"],
-    ax=axs[0],
+# now create a new column with the category by joining the two dataframes
+all_metrics_df['Category'] = all_metrics_df['dataset'].map(
+    pd.DataFrame(cleaned_data).set_index('Subject')['Category']
 )
 
+grouped = all_metrics_df.groupby('Category').apply(lambda x: pd.Series({
+    'n_datasets': len(x),
+    'n_is_cell': x['#_is_cell'].sum()
+}))
 
-axs[0].set_ylabel("Point to point distance (r)")
-axs[0].set_xlabel("Derotation adjustment")
-axs[0].set_xticklabels(["No", "Yes", "Post Suite2p"])
-
-data = pd.DataFrame(columns=["dataset", "analysis_type", "metric", "value"])
-
-for dataset in all_metrics_df["dataset"].unique():
-    dataset_df = all_metrics_df[all_metrics_df["dataset"] == dataset]
-    #  no_adj
-    no_adj_value = dataset_df[
-        (dataset_df["analysis_type"] == "no_adj")
-        & (dataset_df["metric"] == "std")
-    ]["value"].values[0]
-    row = {
-        "dataset": dataset,
-        "analysis_type": "no_adj",
-        "metric": "std",
-        "value": no_adj_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
-    #  min but not for post_suite2p
-    min_value = dataset_df[
-        (dataset_df["analysis_type"] != "post_suite2p")
-        & (dataset_df["metric"] == "std")
-    ]["value"].min()
-    row = {
-        "dataset": dataset,
-        "analysis_type": "min",
-        "metric": "std",
-        "value": min_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
-    #  post_suite2p
-    post_suite2p_value = dataset_df[
-        (dataset_df["analysis_type"] == "post_suite2p")
-        & (dataset_df["metric"] == "std")
-    ]["value"].values[0]
-    row = {
-        "dataset": dataset,
-        "analysis_type": "post_suite2p",
-        "metric": "std",
-        "value": post_suite2p_value,
-    }
-    data = pd.concat([data, pd.DataFrame([row])], ignore_index=True)
-
-#  save dataset
-data.to_csv(csv_path.with_name("min_analysis_types_min_std.csv"), index=False)
-
-sns.pointplot(
-    x="analysis_type",
-    y="value",
-    hue="dataset",
-    data=data[data["metric"] == "std"],
-    ax=axs[1],
-)
-
-axs[1].set_ylabel("XY standard deviation (s)")
-axs[1].set_xlabel("Derotation adjustment")
-axs[1].set_xticklabels(["No", "Yes", "Post Suite2p"])
-
-#  remove legend
-axs[0].get_legend().remove()
-axs[1].get_legend().remove()
-
-axs[0].set_title("PTD")
-axs[1].set_title("STD")
-
-#  despine
-sns.despine()
-
-plt.tight_layout()
-plt.savefig(img_path.with_name("min_analysis_types.png"))
-plt.savefig(img_path.with_name("min_analysis_types.pdf"))
+#  print by specifying neuron type
+print(grouped)
+print(f"Callasal projecting neurons: {grouped.loc[0]}")
+print(f"Corticothalamic projecting neurons: {grouped.loc[1]}")
+print(f"SST interneurons: {grouped.loc[2]}")

@@ -1,5 +1,5 @@
 # Base paths
-raw_data_base = "/nfs/winstor/margrie/SimonWeiler/RawData/Invivo_imaging/3photon_rotation/shared/"
+raw_data_base = "/ceph/margrie/laura/raw_data/simon/3photon_rotation/shared/"
 processed_data_base = "/ceph/margrie/laura/cimaut/derivatives"
 
 # Dynamically discover folders matching the "2*" pattern
@@ -12,7 +12,13 @@ datasets.sort()
 #  for the output
 datasets_no_underscore = [ds.replace("_", "") for ds in datasets]
 
-valid_indices = [0, 1, 6, 7, 8, 9, 11, 13, 15, 16, 18]
+valid_indices = list(range(len(datasets)))
+#  remove: 19, 17, 15, 5
+valid_indices.remove(19)
+valid_indices.remove(17)
+valid_indices.remove(15)
+valid_indices.remove(5)
+
 subsample_datasets = [datasets_no_underscore[i] for i in valid_indices]
 
 #  -----------------------------------------------------
@@ -31,8 +37,8 @@ rule all:
             ],
             zip,
             # index=range(len(datasets)),
-            index=valid_indices,
             # datasets_no_underscore=datasets_no_underscore,
+            index=valid_indices,
             datasets_no_underscore=subsample_datasets,
         ),
         # f"{processed_data_base}/stability_metric.png",

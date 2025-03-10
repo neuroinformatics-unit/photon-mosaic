@@ -2,11 +2,19 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 from snakemake.script import snakemake
+from scipy.stats import ttest_rel
+import itertools
+
 
 print("Plotting data...")
+
+
+
+window_size_stats = 15
+window_size_plot = 60
+
 
 
 # datasets = snakemake.params.datasets
@@ -17,12 +25,24 @@ print(f"Processing file: {f_path}")
 dataset_path = f_path.parent.parent.parent.parent
 dataset = dataset_path.name
 f_neu_path = f_path.parent / "Fneu.npy"
+is_cell_path = f_path.parent / "iscell.npy"
 derotated_full_csv_path = (
     dataset_path / "ses-0" / "funcimg" / "derotation" / "derotated_full.csv"
 )
 saving_path = Path(dataset_path) / "ses-0" / "traces"
-saving_path.mkdir(exist_ok=True)
 
+
+
+#  delete pre-existing files
+for item in saving_path.glob("*"):
+    if item.is_file():
+        item.unlink()
+    if item.is_dir():
+        for file in item.glob("*"):
+            file.unlink()
+        item.rmdir()
+
+saving_path.mkdir(exist_ok=True)
 print(f"Dataset path: {dataset_path}")
 print(f"Dataset: {dataset}")
 print(f"Derotated full csv path: {derotated_full_csv_path}")
@@ -32,284 +52,181 @@ print(f"Saving path: {saving_path}")
 
 f = np.load(f_path)
 fneu = np.load(f_neu_path)
-rotated_frames = pd.read_csv(derotated_full_csv_path)
 f_corrected = f - 0.7 * fneu
 
-
-F_df = pd.DataFrame(f_corrected).T
-
-print(f"Shape of F_df: {F_df.shape}")
-print(F_df.head())
-
-full_dataframe = pd.concat([F_df, rotated_frames], axis=1)
-
-# --------------------------------------------------------
-# Prepare the dataset
-
-# find where do rotations start
-rotation_on = np.diff(full_dataframe["rotation_count"])
+#  filter by is_cell
+classifications = np.load(is_cell_path)
+is_cell = classifications[:, 0]
+rois_selection = np.where(is_cell)[0] 
+f_corrected = f_corrected[rois_selection]
+f_corrected = f_corrected.T
 
 
-def find_zero_chunks(arr):
-    zero_chunks = []
-    start = None
+rotation_info = pd.read_csv(derotated_full_csv_path)
+print("Pivot table of rotation info")
+print(rotation_info.pivot_table(values='rotation_count', index='speed', columns='direction', aggfunc=lambda x: len(x.unique())))
 
-    for i in range(len(arr)):
-        if arr[i] == 0 and start is None:
-            start = i
-        elif arr[i] != 0 and start is not None:
-            zero_chunks.append((start, i - 1))
-            start = None
+df_fluorescence = pd.DataFrame(f_corrected, columns=[i for i in range(f_corrected.shape[1])])
 
-    # Check if the array ends with a chunk of zeros
-    if start is not None:
-        zero_chunks.append((start, len(arr) - 1))
+roi_n = df_fluorescence.shape[1]
 
-    return zero_chunks
+# join df_fluorescence with rotation_info
+df_fluorescence = df_fluorescence.join(rotation_info)
 
+#  discard column called "frame" and "clock"
+df_fluorescence = df_fluorescence.loc[:, ~df_fluorescence.columns.isin(["clock"])]
 
-starts_ends = find_zero_chunks(rotation_on)
-
-frames_before_rotation = 15
-# frames_after_rotation = 10
-
-total_len = 100
-
-full_dataframe["rotation_frames"] = np.zeros(len(full_dataframe))
-for i, (start, end) in enumerate(starts_ends):
-    frame_array = np.arange(total_len)
-    column_index_of_rotation_frames = full_dataframe.columns.get_loc(
-        "rotation_frames"
-    )
-    full_dataframe.iloc[
-        start - frames_before_rotation : total_len
-        + start
-        - frames_before_rotation,
-        column_index_of_rotation_frames,
-    ] = frame_array
-
-    #  extend this value of speed and direction to all this range
-    this_speed = full_dataframe.loc[start, "speed"]
-    this_direction = full_dataframe.loc[start, "direction"]
-
-    full_dataframe.iloc[
-        start - frames_before_rotation : total_len
-        + start
-        - frames_before_rotation,
-        full_dataframe.columns.get_loc("speed"),
-    ] = this_speed
-    full_dataframe.iloc[
-        start - frames_before_rotation : total_len
-        + start
-        - frames_before_rotation,
-        full_dataframe.columns.get_loc("direction"),
-    ] = this_direction
+#  melt columns that have a number in the name
+df_fluorescence = df_fluorescence.melt(
+    id_vars=["rotation_angle", "direction", "speed", "rotation_count", "frame"],
+    var_name="roi_n", value_name="roi_fluorescence")
 
 
-#  directtion, change -1 to CCW and 1 to CW
-full_dataframe["direction"] = np.where(
-    full_dataframe["direction"] == -1, "CCW", "CW"
+frame_rate = 6.74
+time = np.linspace(0, len(f_corrected) / frame_rate, len(f_corrected))
+
+#%%
+data = pd.DataFrame(
+    columns=["time", "frame", "roi_n", "roi_fluorescence", "speed", "direction", "repetition", "is_start", "is_end"]
 )
 
-# print(f"Full dataframe shape: {full_dataframe.shape}")
-# print(full_dataframe.head())
+#  repeat time as many times as there are rois
+data["time"] = np.repeat(time, roi_n)
+data["frame"] = df_fluorescence["frame"]
+data["roi_n"] = [num for num in rois_selection for _ in range(len(time))] 
+data["roi_fluorescence"] = df_fluorescence["roi_fluorescence"]
 
-# #  angle based calculation of ΔF/F
-# #  first calculate F0, as the 20th quantile for each angle.
-# #  consider angles every 5 degrees, from 0 to 355
-# full_dataframe["aproximated_rotation_angle"] = (
-#     full_dataframe["rotation_angle"] // 5 * 5
-# )
+#  set start and end to all false
+data["is_start"] = False
+data["is_end"] = False
 
-# print("Unique angles:")
-# print(full_dataframe["aproximated_rotation_angle"].unique())
+#%%
 
-# f0_as_20th_quantile_per_angle = np.zeros((360, f_corrected.shape[0]))
-# for angle in range(360):
-#     for roi in range(f_corrected.shape[0]):
-#         angle_indices = full_dataframe["aproximated_rotation_angle"] == angle
-#         print(f"Angle: {angle}, ROI: {roi}")
-#         print(f"Angle indices: {angle_indices}")
-#         #  check for nans / missing values in angle_indices
-#         if angle_indices.isnull().values.any():
-#             f0_as_20th_quantile_per_angle[angle, roi] = np.nan
-#         else:
-#             f0_as_20th_quantile_per_angle[angle, roi] = np.quantile(
-#                 f_corrected[roi][angle_indices], 0.2
-#             )
-# print("Shape of f0_as_20th_quantile_per_angle:")
-# print(f0_as_20th_quantile_per_angle.shape)
-# print(f0_as_20th_quantile_per_angle)
+#  where is rotation happening?
+filter = (rotation_info["rotation_count"] > 0) | (rotation_info["rotation_count"] < 0)
+rotation_info = rotation_info[filter]
+starts = rotation_info.groupby("rotation_count").first()
+ends = rotation_info.groupby("rotation_count").last()
 
-# #  calculate ΔF/F
-# for roi in range(f_corrected.T.shape[0]):
-#     full_dataframe[roi] = (
-#         f_corrected.T[roi] - f0_as_20th_quantile_per_angle[
-#             full_dataframe["rotation_angle"], roi
-#         ]
-#     ) / f0_as_20th_quantile_per_angle[
-#         full_dataframe["rotation_angle"], roi
-#     ]
-
-# print("Full dataframe with ΔF/F:")
-# print(full_dataframe.head())
-
-rois_selection = range(F_df.shape[1])
-
-# --------------------------------------------------------
-# Plot single traces
+data.loc[data["frame"].isin(starts["frame"]), "is_start"] = True
+data.loc[data["frame"].isin(ends["frame"]), "is_end"] = True
+data["speed"] = df_fluorescence["speed"]
+data["direction"] = df_fluorescence["direction"]
+data["repetition"] = df_fluorescence["rotation_count"]
 
 # %%
-selected_range = (400, 2000)
 
-for roi in rois_selection:
-    roi_selected = full_dataframe.loc[
-        :, [roi, "rotation_count", "speed", "direction"]
-    ]
 
-    fig, ax = plt.subplots(figsize=(27, 5))
-    ax.plot(roi_selected.loc[selected_range[0] : selected_range[1], roi])
-    ax.set(xlabel="Frames", ylabel="Neuropil corrected (a.u.)")  # "ΔF/F")
+# Initialize the new column with NaNs
+data["mean"] = np.nan
 
-    rotation_on = (
-        np.diff(
-            roi_selected.loc[
-                selected_range[0] : selected_range[1], "rotation_count"
-            ]
-        )
-        == 0
+# Compute means for 'is_start' and 'is_end' in one line each
+data.loc[data["is_start"] == 1, "mean"] = data.index[
+    data["is_start"] == 1
+    ].map(
+        lambda i: data.loc[max(0, i-window_size_plot):i-1, "roi_fluorescence"].mean()
+    )
+data.loc[data["is_end"] == 1, "mean"] = data.index[
+    data["is_end"] == 1
+    ].map(
+        lambda i: data.loc[i+1:i+window_size_plot, "roi_fluorescence"].mean()
     )
 
-    # add label at the beginning of every block of rotations
-    #  if the previous was true, do not write the label
-    for i, rotation in enumerate(rotation_on):
-        if rotation and not rotation_on[i - 1]:
-            ax.text(
-                i + selected_range[0] + 3,
-                -1100,
-                f"{int(roi_selected.loc[i + 5 + selected_range[0], 'speed'])}º/s\n{roi_selected.loc[i + 5 + selected_range[0], 'direction']}",
-                fontsize=10,
+
+# Function to extract fluorescence before 'is_start' and after 'is_end'
+def extract_windows(df):
+    before = df.loc[df["is_start"] == 1, "mean"]
+    after = df.loc[df["is_end"] == 1, "mean"]
+    return before, after
+
+# Perform t-test within each group
+def compute_ttest(group):
+    before, after = extract_windows(group)
+
+    if len(before) > 1 and len(after) > 1:  # Ensure there are enough samples
+        t_stat, p_value = ttest_rel(after, before, alternative="greater")
+    else:
+        t_stat, p_value = np.nan, np.nan  # Not enough samples for test
+    return pd.Series({"t_stat": t_stat, "p_value": p_value, "significant": p_value < 0.05})
+
+#%%
+# Group by 'roi_n', 'speed', 'direction' and apply t-test
+results_all_groups = data.groupby(["roi_n", "speed", "direction"]).apply(compute_ttest)
+results_cw_vs_ccw = data.groupby(["roi_n", "direction"]).apply(compute_ttest)
+
+print(results_all_groups[results_all_groups["significant"] == True])
+print(results_cw_vs_ccw[results_cw_vs_ccw["significant"] == True])
+
+results_all_groups.to_csv(saving_path / "paired_t_test.csv")
+results_cw_vs_ccw.to_csv(saving_path / "paired_t_test_cw_vs_ccw.csv")
+
+# %%
+# Now let's plot the results
+for roi in data.roi_n.unique():
+    print(f"Plotting ROI {roi}")
+    fig, ax = plt.subplots(2, 4, figsize=(20, 10))
+    
+    product = itertools.product(data.direction.unique(), sorted(data.speed.unique()))
+    product = [i for i in product if not np.isnan(i[0]) and not np.isnan(i[1])]
+    for i, (direction, speed) in enumerate(product):
+        
+        ax[i // 4, i % 4].set_title(f"Speed: {speed}, Direction: {'CW' if direction == 1 else 'CCW'}")
+        ax[i // 4, i % 4].set_xlabel("Frame")
+        ax[i // 4, i % 4].set_ylabel("Fluorescence")
+
+        subset = data[
+            (data["roi_n"] == roi) &
+            (data["speed"] == speed) &
+            (data["direction"] == direction)
+        ]
+        single_reps = []
+        for rep in subset[subset["is_start"] == 1].repetition.unique():
+            
+            idx_start = subset.loc[
+                (subset["repetition"] == rep) & (subset["is_start"] == 1), "frame"
+            ].index.item() - window_size_plot
+            idx_end = subset.loc[
+                (subset["repetition"] == rep) & (subset["is_end"] == 1), "frame"
+            ].index.item() + window_size_plot
+            
+            ax[i // 4, i % 4].plot(
+                data.iloc[idx_start:idx_end]["roi_fluorescence"].values,
+                color="gray",
             )
+            single_reps.append(data.iloc[idx_start:idx_end]["roi_fluorescence"].values.tolist())
 
-    #  add gray squares when the rotation is happening using the starst_ends
-    for start, end in starts_ends:
-        if start > selected_range[0] and end < selected_range[1]:
-            ax.axvspan(start, end, color="gray", alpha=0.2)
+        #  single_reps have different lengths, so we need to pad them with NaNs
+        max_len = max(len(i) for i in single_reps)
+        single_reps = [i + [np.nan] * (max_len - len(i)) for i in single_reps]
+        single_reps = np.array(single_reps)
 
-    fps = 6.74
-    # change xticks to seconds
-    xticks = ax.get_xticks()
-    ax.set_xticks(xticks)
-    ax.set_xticklabels((xticks / fps).astype(int))
-    #  change x label
-    ax.set(xlabel="Seconds", ylabel="Neuropil corrected (a.u.)")  # "ΔF/F")
-
-    ax.set_xlim(selected_range)
-    # ax.set_ylim(-10, 10)
-
-    # leave some gap between the axis and the plot
-    plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-
-    # remove top and right spines
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-
-    plt.savefig(saving_path / f"dff_example_{roi}.pdf")
-    plt.savefig(saving_path / f"dff_example_{roi}.png")
-    plt.close()
-
-
-# --------------------------------------------------------
-# Plot averages
-
-custom_palette = sns.color_palette("dark:#5A9_r", 4)
-
-for roi in rois_selection:
-    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-    for i, direction in enumerate(["CW", "CCW"]):
-        sns.lineplot(
-            x="rotation_frames",
-            y=roi,
-            data=full_dataframe[(full_dataframe["direction"] == direction)],
-            hue="speed",
-            palette=custom_palette,
-            ax=ax[i],
+        #  also plot the mean
+        filter = (data["roi_n"] == roi) & (data["speed"] == speed) & (data["direction"] == direction)
+        ax[i // 4, i % 4].plot(
+            np.mean(single_reps, axis=0),
+            label="Mean",
+            color="red" if results_all_groups.loc[(roi, speed, direction), "significant"] else "blue"
         )
-        ax[i].set_title(f"Direction: {direction}")
-        ax[i].legend(title="Speed")
+
+        #  draw vertical lines at start and end based on window_size
+        ax[i // 4, i % 4].axvline(window_size_plot, color="black", linestyle="--")
+        ax[i // 4, i % 4].axvline(max_len - window_size_plot, color="black", linestyle="--")
 
         #  remove top and right spines
-        ax[i].spines["top"].set_visible(False)
-        ax[i].spines["right"].set_visible(False)
+        ax[i // 4, i % 4].spines["top"].set_visible(False)
+        ax[i // 4, i % 4].spines["right"].set_visible(False)
 
-        # add vertical lines to show the start of the rotation
-        #  start is always at 11, end at total len - 10
-        ax[i].axvline(x=frames_before_rotation, color="gray", linestyle="--")
+        #  write p-value if significant
+        p_value = results_all_groups.loc[(roi, speed, direction), "p_value"]
+        if p_value < 0.05:
+            ax[i // 4, i % 4].text(0.8, 0.9, f"p-value: {p_value:.3f}", transform
+                =ax[i // 4, i % 4].transAxes, color="red")
+            
 
-        #  change x axis to seconds
-        fps = 6.74
-        xticks = ax[i].get_xticks()
-        ax[i].set_xticks(xticks)
-        ax[i].set_xticklabels(np.round(xticks / fps, 1))
-        #  change x label
-        ax[i].set(
-            xlabel="Seconds", ylabel="Neuropil corrected (a.u.)"
-        )  # "ΔF/F")
+        
+    plt.suptitle(f"ROI {roi}")
+    plt.tight_layout()
 
-    plt.savefig(saving_path / f"roi_{roi}_direction_speed.pdf")
-    plt.savefig(saving_path / f"roi_{roi}_direction_speed.png")
-    plt.close()
+    plt.savefig(saving_path / f"roi_{roi}.png")
+    plt.close(fig)
 
-    #  make also another plot showing all traces (not averaged - no std)
-
-    fig, ax = plt.subplots(figsize=(20, 10))
-    for i, direction in enumerate(["CW", "CCW"]):
-        # sns.relplot(
-        #     x="rotation_frames",
-        #     y=roi,
-        #     data=full_dataframe[(full_dataframe["direction"] == direction)],
-        #     hue="speed",
-        #     palette=custom_palette,
-        #     kind="line",
-        #     estimator=None,
-        #     style="direction",
-        #     ax=ax,
-        # )
-        #  plot single traces using matplotlib
-        for speed in full_dataframe["speed"].unique():
-            ax.plot(
-                full_dataframe[
-                    (full_dataframe["direction"] == direction)
-                    & (full_dataframe["speed"] == speed)
-                ]["rotation_frames"],
-                full_dataframe[
-                    (full_dataframe["direction"] == direction)
-                    & (full_dataframe["speed"] == speed)
-                ][roi],
-                label=f"{speed}º/s",
-                # color=custom_palette[speed],
-            )
-
-        ax.set_title(f"Direction: {direction}")
-        ax.legend(title="Speed")
-
-        #  remove top and right spines
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-
-        # add vertical lines to show the start of the rotation
-        #  start is always at 11, end at total len - 10
-        ax.axvline(x=frames_before_rotation, color="gray", linestyle="--")
-
-        #  change x axis to seconds
-        fps = 6.74
-        xticks = ax.get_xticks()
-        ax.set_xticks(xticks)
-        ax.set_xticklabels(np.round(xticks / fps, 1))
-        #  change x label
-        ax.set(xlabel="Seconds", ylabel="Neuropil corrected (a.u.)")  # "ΔF/F")
-
-    plt.savefig(saving_path / f"roi_{roi}_direction_speed_all.pdf")
-    plt.savefig(saving_path / f"roi_{roi}_direction_speed_all.png")
-
-    plt.close()
