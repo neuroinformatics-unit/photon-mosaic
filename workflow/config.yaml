@@ -1,0 +1,9 @@
+raw_data_base: "base/path/to/raw/data"
+processed_data_base: "base/path/to/processed/data"
+suite2p_ops:
+  fs: 7.5
+  nplanes: 2
+  tau: 0.8
+  nonrigid: true
+  diameter: 10
+use_slurm: true

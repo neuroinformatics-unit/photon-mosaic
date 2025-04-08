@@ -1,10 +1,11 @@
 include LICENSE
 include README.md
 include workflow/Snakefile
-
-exclude .pre-commit-config.yaml
+include workflow/config.yaml
 
 recursive-include photon_mosaic *.py
+
+exclude .pre-commit-config.yaml
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]

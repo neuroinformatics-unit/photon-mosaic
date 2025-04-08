@@ -5,16 +5,19 @@ from pathlib import Path
 from snakemake.script import snakemake
 from suite2p import run_s2p
 
-from photon_mosaic.rules.s2p_options import get_edited_options
+from photon_mosaic.s2p_options import get_edited_options
 
 # Retrieve parameters and inputs from Snakemake
 input_path = Path(snakemake.input[0])
 ops_file = snakemake.input[1]
 dataset_folder = Path(input_path).parent.parent
 
-ops = get_edited_options(input_path, ops_file, dataset_folder)
+ops = get_edited_options(
+    input_path=snakemake.input[0],
+    save_folder=Path(snakemake.output[0]).parent,
+    user_ops_dict=snakemake.config.get("suite2p_ops", {}),
+)
 
-db = {"data_path": input_path}
 try:
     #  run suite2p
     ops_end = run_s2p(ops=ops)
