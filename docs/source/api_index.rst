@@ -4,7 +4,7 @@ API
 math
 ----
 
-.. currentmodule:: calcium_imaging_automation.math
+.. currentmodule:: photon_mosaic.math
 
 .. autosummary::
     :toctree: api_generated
@@ -16,7 +16,7 @@ math
 greetings
 ---------
 
-.. currentmodule:: calcium_imaging_automation.greetings
+.. currentmodule:: photon_mosaic.greetings
 
 .. autosummary::
     :toctree: api_generated

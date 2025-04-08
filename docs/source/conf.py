@@ -20,7 +20,7 @@ autodoc_mock_imports = []
 # use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../.."))
 
-project = "calcium-imaging-automation"
+project = "photon-mosaic"
 copyright = "2022, Laura Porta"
 author = "Laura Porta"
 try:
@@ -86,7 +86,7 @@ exclude_patterns = [
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_theme = "pydata_sphinx_theme"
-html_title = "calcium-imaging-automation"
+html_title = "photon-mosaic"
 
 # Customize the theme
 html_theme_options = {
@@ -95,7 +95,7 @@ html_theme_options = {
             # Label for this link
             "name": "GitHub",
             # URL where the link will redirect
-            "url": "https://github.com/neuroinformatics-unit/calcium-imaging-automation",  # required
+            "url": "https://github.com/neuroinformatics-unit/photon-mosaic",  # required
             # Icon class (if "type": "fontawesome"),
             # or path to local image (if "type": "local")
             "icon": "fa-brands fa-github",

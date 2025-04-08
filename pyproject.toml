@@ -1,5 +1,5 @@
 [project]
-name = "calcium-imaging-automation"
+name = "photon-mosaic"
 authors = [{name = "Laura Porta", email= "ucqflpo@ucl.ac.uk"}]
 description = "Automating calcium imaging analysis"
 readme = "README.md"
@@ -26,12 +26,12 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation"
-"Bug Tracker" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation/issues"
-"Documentation" = "https://neuroinformatics-unit.github.io/calcium-imaging-automation"
+"Homepage" = "https://github.com/neuroinformatics-unit/photon-mosaic"
+"Bug Tracker" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
+"Documentation" = "https://neuroinformatics-unit.github.io/photon-mosaic"
 
-"Source Code" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation"
-"User Support" = "https://github.com/neuroinformatics-unit/calcium-imaging-automation/issues"
+"Source Code" = "https://github.com/neuroinformatics-unit/photon-mosaic"
+"User Support" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -57,12 +57,12 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["calcium_imaging_automation*"]
+include = ["photon_mosaic*"]
 exclude = ["tests", "docs*"]
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=calcium_imaging_automation"
+addopts = "--cov=photon_mosaic"
 filterwarnings = [
     "error",
 ]
@@ -116,7 +116,7 @@ python =
 extras =
     dev
 commands =
-    pytest -v --color=yes --cov=calcium_imaging_automation --cov-report=xml
+    pytest -v --color=yes --cov=photon_mosaic --cov-report=xml
 """
 
 
