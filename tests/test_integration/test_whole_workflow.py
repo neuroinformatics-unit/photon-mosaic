@@ -65,7 +65,7 @@ def test_snakemake_execution(snake_test_env):
             "snakemake",
             "--cores",
             "1",
-            "--verbose",  
+            "--verbose",
             "--printshellcmds",
             "--keep-going",
             "-s",
