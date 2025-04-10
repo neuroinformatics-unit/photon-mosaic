@@ -1,46 +1,33 @@
-import datetime
 import traceback
 from pathlib import Path
 
-from snakemake.script import snakemake
 from suite2p import run_s2p
 
 from photon_mosaic.s2p_options import get_edited_options
 
-# Retrieve parameters and inputs from Snakemake
-input_path = Path(snakemake.input[0])
-ops_file = snakemake.input[1]
-dataset_folder = Path(input_path).parent.parent
 
-ops = get_edited_options(
-    input_path=snakemake.input[0],
-    save_folder=Path(snakemake.output[0]).parent,
-    user_ops_dict=snakemake.config.get("suite2p_ops", {}),
-)
+def run_suite2p(tiff_file, stat_path, bin_path, dataset_folder, user_ops_dict):
+    save_folder = Path(stat_path).parent
+    dataset_folder = Path(dataset_folder)
+    ops = get_edited_options(
+        input_path=dataset_folder,
+        save_folder=save_folder,
+        user_ops_dict=user_ops_dict,
+    )
+    try:
+        ops_end = run_s2p(ops=ops)
 
-try:
-    #  run suite2p
-    ops_end = run_s2p(ops=ops)
+        # save metrics, as before
+        with open(dataset_folder / "suite2p_metrics.txt", "w") as f:
+            f.write("registration metrics:\n")
+            for key in ["regDX", "regPC", "tPC"]:
+                f.write(f"{key}: {ops_end.get(key, 'NaN')}\n")
 
-    #  get registration metrics from ops
-    metrics = {
-        "regDX": ops_end.get("regDX", "NaN"),
-        "regPC": ops_end.get("regPC", "NaN"),
-        "tPC": ops_end.get("tPC", "NaN"),
-    }
+        # ensure output placeholders exist
+        Path(stat_path).touch()
+        Path(bin_path).touch()
 
-    #  append in the metrics file the new metrics
-    with open(dataset_folder / "suite2p_metrics.txt", "w") as f:
-        f.write("registration metrics: \n")
-        for key, value in metrics.items():
-            f.write(f"{key}: {value}\n")
-    # make empty error file
-    with open(dataset_folder / "error.txt", "a") as f:
-        f.write("")
-except Exception:
-    with open(dataset_folder / "error.txt", "a") as f:
-        #  add timestamp to the error file
-        f.write(f"Error at {datetime.datetime.now()}\n")
-        f.write(traceback.format_exc())
-    with open(dataset_folder / "suite2p_metrics.txt", "w") as f:
-        f.write("registration metrics: NaN\n")
+    except Exception as e:
+        with open(dataset_folder / "error.txt", "a") as f:
+            f.write(f"Error: {e}\n")
+            f.write(traceback.format_exc())

@@ -57,3 +57,41 @@ def test_snakemake_dry_run(snake_test_env):
     assert (
         result.returncode == 0
     ), f"Snakemake dry-run failed:\n{result.stderr}"
+
+
+def test_snakemake_execution(snake_test_env):
+    result = subprocess.run(
+        [
+            "snakemake",
+            "--cores",
+            "1",
+            "--verbose",  
+            "--printshellcmds",
+            "--keep-going",
+            "-s",
+            str(WORKFLOW_PATH),
+            "--configfile",
+            str(snake_test_env["configfile"]),
+        ],
+        cwd=snake_test_env["workdir"],
+        capture_output=True,
+        text=True,
+    )
+
+    print(result.stdout)
+    assert (
+        result.returncode == 0
+    ), f"Snakemake execution failed:\n{result.stderr}"
+
+    # Check that output files were created
+    output_base = output_base = (
+        snake_test_env["workdir"]
+        / "processed"
+        / "sub-0_001"
+        / "ses-0"
+        / "funcimg"
+        / "suite2p"
+        / "plane0"
+    )
+    assert (output_base / "stat.npy").exists(), "Missing output: stat.npy"
+    assert (output_base / "data.bin").exists(), "Missing output: data.bin"

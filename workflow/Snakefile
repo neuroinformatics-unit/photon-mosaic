@@ -27,14 +27,22 @@ rule all:
 
 rule suite2p:
     input:
-        lambda wildcards: tiff_paths[wildcards.datasets],
+        tiff=lambda wildcards: tiff_paths[wildcards.datasets],
     output:
-        f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
-        f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin",
+        stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
+        bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
     params:
-        index=lambda wildcards: wildcards.index
-    script:
-        "../photon-mosaic/rules/suite2p_run.py"
+        dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
+    run:
+        from photon_mosaic.rules.suite2p_run import run_suite2p
+        run_suite2p(
+            input["tiff"],
+            output["stat"],
+            output["bin"],
+            params["dataset_folder"],
+            config["suite2p_ops"],
+        )
+
 
 if use_slurm:
     rule suite2p:
