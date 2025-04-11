@@ -1,6 +1,6 @@
 # photon-mosaic
 
-**photon-mosaic** is a package in development for the automated analysis of multi-photon calcium imaging datasets. It provides a toolbox of commonly used processing and analysis methods, allowing users to create their own processing pipelines.
+**photon-mosaic** is a package in development for the automated analysis of multi-photon calcium imaging datasets. It is meant to run a parallel analysis of multiple datasets with suite2p with standardized configuration files in the cluster.
 
 ## Installation
 
@@ -13,16 +13,7 @@ conda create -n photon-mosaic python=3.12
 conda activate photon-mosaic
 pip install .
 ```
-
-### Suite2p Dependency
-
-Currently, **photon-mosaic** requires a custom fork of the `suite2p` package. Install it using:
-
-```bash
-pip install git+https://github.com/neuroinformatics-unit/suite2p.git
-```
-
-This is necessary because the official `suite2p` package does not yet support the latest versions of Python and NumPy.
+Currently, **photon-mosaic** is installing a custom fork of the `suite2p` package. This is necessary because the official `suite2p` package does not yet support the latest versions of Python and NumPy.
 
 ## Usage
 
