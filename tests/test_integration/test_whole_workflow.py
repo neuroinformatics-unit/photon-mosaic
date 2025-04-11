@@ -19,13 +19,15 @@ def snake_test_env(tmp_path):
     config = {
         "raw_data_base": str(raw_data),
         "processed_data_base": str(processed_data),
-        "use_slurm": False,
         "suite2p_ops": {
             "fs": 6.0,
             "nplanes": 1,
             "tau": 0.7,
             "nonrigid": True,
             "diameter": 8,
+        },
+        "slurm": {
+            "use_slurm": False,
         },
     }
     config_path = tmp_path / "config.yaml"

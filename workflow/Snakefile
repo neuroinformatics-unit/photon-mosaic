@@ -1,11 +1,12 @@
-configfile: "config.yaml"
+configfile: "workflow/config.yaml"
 
 from pathlib import Path
 
 
 raw_data_base = Path(config["raw_data_base"])
 processed_data_base = Path(config["processed_data_base"])
-use_slurm = config.get("use_slurm", True)
+slurm_config = config.get("slurm", {})
+
 
 # discover datasets
 datasets = [f.name for f in raw_data_base.iterdir() if f.is_dir()]
@@ -33,6 +34,8 @@ rule suite2p:
         bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
     params:
         dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
+    resources:
+        **(slurm_config if slurm_config.get("use_slurm") else {}),
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
         run_suite2p(
@@ -42,13 +45,3 @@ rule suite2p:
             params["dataset_folder"],
             config["suite2p_ops"],
         )
-
-
-if use_slurm:
-    rule suite2p:
-        resources:
-            partition="fast",
-            mem_mb=16000,
-            cpu_per_task=1,
-            tasks=1,
-            nodes=1
