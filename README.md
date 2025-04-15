@@ -1,10 +1,18 @@
-# photon-mosaic
+# `photon-mosaic`
 
-**photon-mosaic** is a package in development for the automated analysis of multi-photon calcium imaging datasets. It is meant to run a parallel analysis of multiple datasets with suite2p with standardized configuration files in the cluster.
+`photon-mosaic` is a Snakemake-based pipeline for the automated and reproducible analysis of multiphoton calcium imaging datasets. It currently integrates [Suite2p](https://suite2p.readthedocs.io/en/latest/) for image registration and signal extraction, with plans to support additional analysis modules in the future.
+
+`photon-mosaic` can leverage SLURM job scheduling, allows standardized and reproducible workflows configurable via a simple YAML config file and produces standardized output folder structures following the [NeuroBlueprint](https://neuroblueprint.neuroinformatics.dev/latest/index.html) specification.
+
+This tool is especially suited for labs that store their data on servers directly connected to an HPC cluster and want to batch-process multiple imaging sessions in parallel.
+
+The current structure sets the stage for future modular integration of preprocessing, neuropil decontamination and deconvolution of choice, and more.
+
+---
 
 ## Installation
 
-To install **photon-mosaic**, clone the repository, create a virtual environment (e.g., using Conda), and install the package:
+Photon-mosaic requires **Python 3.11+** or **3.12** and installs a custom fork of Suite2p for compatibility.
 
 ```bash
 git clone https://github.com/neuroinformatics-unit/photon-mosaic.git
@@ -13,60 +21,100 @@ conda create -n photon-mosaic python=3.12
 conda activate photon-mosaic
 pip install .
 ```
-Currently, **photon-mosaic** is installing a custom fork of the `suite2p` package. This is necessary because the official `suite2p` package does not yet support the latest versions of Python and NumPy.
+Please use [`mamba`](https://mamba.readthedocs.io/en/latest/index.html) and the `conda-forge` channel for a correct installation of dependencies.
 
-## Usage
-
-This package leverages **Snakemake** to create analysis pipelines. A minimal example pipeline is provided to process multiple datasets in parallel using `suite2p`, taking advantage of local cluster resources via the Slurm plugin for Snakemake.
-
-### Configuring the Pipeline
-
-To run the pipeline, edit the **Snakemake file** (`Snakefile`) located in the `workflow/` folder. You need to specify:
-
-- The **raw data folder**, which should contain subfolders named after subjects.
-  - Each subject folder should contain one `.tif` file per experimental session.
-- The **output folder** where processed data will be saved.
-- The **Suite2p options file** location.
-- The **SLURM resources**, including partition, number of cores, and memory allocation.
-
-The output data will be formatted following the **NeuroBlueprint standard**.
-
-### Running the Pipeline
-
-To execute the pipeline, run:
+To install developer tools (e.g., testing and linting):
 
 ```bash
-snakemake --executor slurm --jobs 20 --latency-wait 10 all
+pip install .[dev]
 ```
 
-- `--jobs 20`: Specifies the number of subjects to process in parallel.
-- `--latency-wait 10`: Waits 10 seconds for output files to be created.
-- `all`: Runs the full pipeline defined in the `Snakefile`.
+---
 
-#### Dry Run Mode
+## Configuration
 
-To preview the execution plan without running any processing, use:
+Edit or create your `config.yaml` file like so:
+
+```yaml
+raw_data_base: "/path/to/raw/"
+processed_data_base: "/path/to/processed/"
+
+suite2p_ops:
+  fs: 7.5
+  nplanes: 2
+  tau: 0.8
+  nonrigid: true
+  diameter: 10
+
+slurm:
+  use_slurm: true
+  partition: "cpu"
+  mem_mb: 16000
+  cpu_per_task: 1
+  tasks: 1
+  nodes: 1
+```
+
+If you don’t have access to a cluster or SLURM, set `use_slurm: false` to run locally.
+
+---
+
+## Basic snakemake tutorial
+
+With `snakemake` you can run a workflow that automatically runs the necessary steps to process your data. The workflow is pre-defined in `workflow/Snakefile` and can be customized using the provided configuration file.
+
+It searches for dataset folders in the specified path and searches for tiffs in each of them. Each dataset will be processed in parallel and the results will be saved in the specified output folder called `derivatives`.
+
+### Why use snakemake?
+Snakemake is a powerful workflow management system that allows you to run complex data analysis pipelines in a reproducible and efficient manner. For each defined rule (a rule is a step in the workflow, for instance running suite2p), Snakemake will check if the output files already exist and if they are up to date. If they are not, it will run the rule and create the output files. This way, you can easily rerun only the parts of the workflow that need to be updated, without having to rerun everything from scratch.
+
+**Dry Run**
+A dry run is a simulation of the workflow that shows you what would happen if you ran it, without actually executing any commands. This is useful for checking if everything is set up correctly before running the workflow. What you will see as an output is a DAG, i.e. a directed acyclic graph, that shows the dependencies between the different rules in the workflow. You can also see which files will be created and which rules will be executed. For rules to be linked together, input and output names must match: rule A will be linked to rule B if the output of rule A is the input of rule B.
+
+To preview the workflow without running it:
+```bash
+snakemake --jobs 20 all --dry-run
+```
+`all` is a keyword that tells snakemake to run all the rules in the workflow.
+
+To run the workflow you can skip the `--dry-run` argument and run the command:
+```bash
+snakemake --jobs 20 all
+```
+
+If you wish to force the re-execution of a given rule you can use the `--force-rerun` argument followed by the name of the rule you want to rerun. For example, if you want to rerun the rule `suite2p`, you can use the command:
+```bash
+snakemake --jobs 20 all --force-rerun suite2p
+```
+
+You can also rerun a specific dataset by specifying the output of interest:
+```bash
+snakemake --jobs 20 all --force-rerun /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+```
+This will trigger the rerun of the `suite2p` rule for the dataset `dataset_name` and for plane 0.
+
+Once you have tested the workflow locally, you can use further arguments to submit the jobs to a cluster. If you are using SLURM, you can use the following command:
 
 ```bash
-snakemake --executor slurm --jobs 20 --latency-wait 10 --dry-run all
+snakemake --executor slurm --jobs 20 all
 ```
 
-#### Customizing Suite2p Options
+Other useful arguments are:
+- `--latency-wait`: to wait for a certain amount of time before checking if the output files are ready.
+- `--rerun-incomplete`: to rerun any incomplete jobs.
+- `--unlock`: to unlock the workflow.
 
-Modify the Suite2p configuration in:
-
-```
-photon_mosaic/rules/s2p_options.py
-```
-
+---
 ## Contributing
 
-Contributions are welcome! If you have suggestions or questions, please open an issue on the repository.
+We welcome issues, feature suggestions, and pull requests. If you're using photon-mosaic in your lab and need help adapting it, feel free to open an [issue](https://github.com/neuroinformatics-unit/photon-mosaic/issues).
 
-## References
+---
 
-- [Snakemake Documentation](https://snakemake.readthedocs.io/en/stable/)
-- [Suite2p Documentation](https://suite2p.readthedocs.io/en/latest/)
+## References & Links
+
+- [Snakemake Docs](https://snakemake.readthedocs.io/en/stable/)
+- [Suite2p Docs](https://suite2p.readthedocs.io/en/latest/)
 - [Custom Suite2p Fork](https://github.com/neuroinformatics-unit/suite2p.git)
-- [Slurm for Snakemake](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html)
+- [SLURM Executor Plugin](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html)
 - [NeuroBlueprint Standard](https://neuroblueprint.neuroinformatics.dev/latest/index.html)
