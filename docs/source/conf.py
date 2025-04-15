@@ -21,10 +21,11 @@ autodoc_mock_imports = []
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "photon-mosaic"
-copyright = "2022, Laura Porta"
+copyright = "2025, University College London"
 author = "Laura Porta"
 try:
     release = setuptools_scm.get_version(root="../..", relative_to=__file__)
+    release = release.split(".dev")[0]
 except LookupError:
     # if git is not initialised, still allow local build
     # with a dummy version
@@ -34,16 +35,19 @@ except LookupError:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx.ext.napoleon",
-    "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
-    "sphinx_autodoc_typehints",
+    "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
-    "sphinx_sitemap",
+    "sphinx.ext.napoleon",
     "myst_parser",
-    "nbsphinx",
+    "numpydoc",
+    "numpydoc",
+    "sphinx_autodoc_typehints",
+    "sphinx_design",
+    "sphinxarg.ext",
+    # 'sphinx_gallery.gen_gallery',
 ]
 
 # Configure the myst parser to enable cool markdown features
@@ -71,7 +75,24 @@ templates_path = ["_templates"]
 
 # Automatically generate stub pages for API
 autosummary_generate = True
-autodoc_default_flags = ["members", "inherited-members"]
+numpydoc_class_members_toctree = False  # stops stubs warning
+#toc_object_entries_show_parents = "all"
+html_show_sourcelink = False
+
+#html_sidebars = {  this is not working...
+#  "index": [],
+#  "**": [],
+#}
+
+autodoc_default_options = {
+    'members': True,
+    "member-order": "bysource",
+    'special-members': False,
+    'private-members': False,
+    'inherited-members': False,
+    'undoc-members': True,
+    'exclude-members': "",
+}
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -101,11 +122,26 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
             # The type of image to be used (see below for details)
             "type": "fontawesome",
-        }
+            "use_edit_page_button": False,  # Ensure the edit button doesn't interfere
+            "navigation_with_keys": False,  # Disable keyboard navigation between sections
+            "collapse_navigation": False,  # Ensure full page loads rather than AJAX content swap
+        },
+        {
+            # Label for this link
+            "name": "Zulip (chat)",
+            # URL where the link will redirect
+            "url": "https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fa-solid fa-comments",
+            # The type of image to be used (see below for details)
+            "type": "fontawesome",
+        },
     ],
     "logo": {
         "text": f"{project} v{release}",
     },
+    "footer_start": ["footer_start"],
+    "footer_end": ["footer_end"],
 }
 
 # Redirect the webpage to another URL
@@ -113,10 +149,40 @@ html_theme_options = {
 # The default is the URL of the GitHub pages
 # https://www.sphinx-doc.org/en/master/usage/extensions/githubpages.html
 github_user = "neuroinformatics-unit"
-html_baseurl = f"https://{github_user}.github.io/{project}"
+html_baseurl = f"https://photon-mosaic.neuroinformatics.dev/"
 sitemap_url_scheme = "{link}"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
+html_css_files = [
+    'css/custom.css',
+]
+
+html_favicon = "_static/light-logo-niu.png"
+
+# # Configure Sphinx gallery
+# sphinx_gallery_conf = {
+#     "examples_dirs": ["../../examples"],
+#     "filename_pattern": "/*.py",  # which files to execute before inclusion
+#     "gallery_dirs": ["examples"],  # output directory
+#     "run_stale_examples": True,  # re-run examples on each build
+#     # Integration with Binder, see https://sphinx-gallery.github.io/stable/configuration.html#generate-binder-links-for-gallery-notebooks-experimental
+#     "binder": {
+#         "org": "neuroinformatics-unit",
+#         "repo": "photon-mosaic",
+#         "branch": "gh-pages",
+#         "binderhub_url": "https://mybinder.org",
+#         "dependencies": ["requirements.txt"],
+#     },
+#     "reference_url": {"photon-mosaic": None},
+#     # "default_thumb_file": "source/_static/data_icon.png",  # default thumbnail image
+#     "remove_config_comments": True,
+#     # do not render config params set as # sphinx_gallery_config [= value]
+# }
+
+linkcheck_ignore = [
+    "https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic",
+    "https://www.sciencedirect.com/science/article/pii/S089662731930889X",
+]

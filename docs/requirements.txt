@@ -1,8 +1,13 @@
+-e .
+ipython
 linkify-it-py
 myst-parser
 nbsphinx
+numpydoc
 pydata-sphinx-theme
 setuptools-scm
 sphinx
+sphinx-argparse
 sphinx-autodoc-typehints
-sphinx-sitemap
+sphinx-gallery
+sphinx_design

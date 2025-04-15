@@ -107,7 +107,7 @@ Other useful arguments are:
 ---
 ## Contributing
 
-We welcome issues, feature suggestions, and pull requests. If you're using photon-mosaic in your lab and need help adapting it, feel free to open an [issue](https://github.com/neuroinformatics-unit/photon-mosaic/issues).
+We welcome issues, feature suggestions, and pull requests. Please refer to our contribution guidelines in the documentation for more information.
 
 ---
 

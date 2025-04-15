@@ -1,25 +1,23 @@
-API
-===
+.. _target-api:
 
-math
-----
+API Reference
+=============
 
-.. currentmodule:: photon_mosaic.math
+This section contains automatically generated documentation for the
+`photon-mosaic` package.
 
-.. autosummary::
-    :toctree: api_generated
-    :template: function.rst
+.. toctree::
+   :maxdepth: 2
+   :caption: API Documentation
 
-    add_two_integers
-    subtract_two_integers
+   photon_mosaic.rules.suite2p_run
+   photon_mosaic.s2p_options
 
-greetings
----------
-
-.. currentmodule:: photon_mosaic.greetings
+.. rubric:: Modules
 
 .. autosummary::
-    :toctree: api_generated
-    :template: class.rst
+   :toctree: api
+   :nosignatures:
 
-    Greetings
+   photon_mosaic.rules.suite2p_run
+   photon_mosaic.s2p_options
