@@ -42,6 +42,6 @@ rule suite2p:
             input["tiff"],
             output["stat"],
             output["bin"],
-            params["dataset_folder"],
+            Path(params["dataset_folder"]),
             config["suite2p_ops"],
         )
