@@ -8,8 +8,6 @@ This tool is especially suited for labs that store their data on servers directl
 
 The current structure sets the stage for future modular integration of preprocessing, neuropil decontamination and deconvolution of choice, and more.
 
----
-
 ## Installation
 
 Photon-mosaic requires **Python 3.11+** or **3.12** and installs a custom fork of Suite2p for compatibility.
@@ -28,8 +26,6 @@ To install developer tools (e.g., testing and linting):
 ```bash
 pip install .[dev]
 ```
-
----
 
 ## Configuration
 
@@ -56,8 +52,6 @@ slurm:
 ```
 
 If you don’t have access to a cluster or SLURM, set `use_slurm: false` to run locally.
-
----
 
 ## Basic snakemake tutorial
 
@@ -104,12 +98,9 @@ Other useful arguments are:
 - `--rerun-incomplete`: to rerun any incomplete jobs.
 - `--unlock`: to unlock the workflow.
 
----
 ## Contributing
 
 We welcome issues, feature suggestions, and pull requests. Please refer to our contribution guidelines in the documentation for more information.
-
----
 
 ## References & Links
 
