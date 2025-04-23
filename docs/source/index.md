@@ -2,6 +2,16 @@
 
 ```{include} ../../README.md
 :start-after: '# `photon-mosaic`'
+:end-before: '![photon-mosaic]'
+```
+
+```{figure} _static/photon-mosaic.png
+:alt: photon-mosaic
+:width: 50%
+```
+
+```{include} ../../README.md
+:start-after: 'png)'
 :end-before: '## Installation'
 ```
 
