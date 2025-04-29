@@ -79,11 +79,6 @@ numpydoc_class_members_toctree = False  # stops stubs warning
 #toc_object_entries_show_parents = "all"
 html_show_sourcelink = False
 
-#html_sidebars = {  this is not working...
-#  "index": [],
-#  "**": [],
-#}
-
 autodoc_default_options = {
     'members': True,
     "member-order": "bysource",
