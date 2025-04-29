@@ -125,7 +125,7 @@ html_theme_options = {
             # Label for this link
             "name": "Zulip (chat)",
             # URL where the link will redirect
-            "url": "https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic",  # required
+            "url": "https://neuroinformatics.zulipchat.com/#narrow/channel/500681-photon-mosaic",  # required
             # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
             "icon": "fa-solid fa-comments",
             # The type of image to be used (see below for details)

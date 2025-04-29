@@ -4,7 +4,7 @@ Contributions to ``photon-mosaic`` are very welcome and appreciated. This could 
 fixing a bug, improving the documentation or developing a new feature.
 
 If you're unsure about any part of the contributing process or have any questions, please
-get in touch through our [Zulip chat](https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic).
+get in touch through our [Zulip chat](https://neuroinformatics.zulipchat.com/#narrow/channel/500681-photon-mosaic).
 Otherwise, feel free to dive right in and start contributing by
 [creating a development environment](#creating-a-development-environment)
 and [opening a pull request](#pull-requests).
@@ -48,7 +48,7 @@ A typical PR workflow would be as follows:
 * When you attempt to commit, the [pre-commit hooks](#formatting-and-pre-commit-hooks) will be triggered.
 * `git add` any changes made by the hooks, and commit. More information on dealing with the [pre-commit hooks](#formatting-and-pre-commit-hooks) is available below.
 * Push your changes to GitHub and open a draft pull request.
-* Please don't hesitate to ask any developer for help on draft pull requests at our [Zulip chat](https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic).
+* Please don't hesitate to ask any developer for help on draft pull requests at our [Zulip chat](https://neuroinformatics.zulipchat.com/#narrow/channel/500681-photon-mosaic).
 * If all checks run successfully, mark the pull request as ready for review.
 * Respond to review comments and implement any requested changes.
 * One of the maintainers will approve the PR.
@@ -140,4 +140,4 @@ To edit a page, please:
 - Create a pull request outlining the changes made
 
 If you aren't sure where the changes should be made, please
-[get in touch!](https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic)
+[get in touch!](https://neuroinformatics.zulipchat.com/#narrow/channel/500681-photon-mosaic)
