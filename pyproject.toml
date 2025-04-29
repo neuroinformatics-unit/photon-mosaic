@@ -28,7 +28,7 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/neuroinformatics-unit/photon-mosaic"
 "Bug Tracker" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
-"Documentation" = "https://neuroinformatics-unit.github.io/photon-mosaic"
+"Documentation" = "https://photon-mosaic.neuroinformatics.dev"
 
 "Source Code" = "https://github.com/neuroinformatics-unit/photon-mosaic"
 "User Support" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
