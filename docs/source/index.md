@@ -2,7 +2,7 @@
 
 ```{include} ../../README.md
 :start-after: '# `photon-mosaic`'
-:end-before: '![photon-mosaic]'
+:end-before: '<p align="center">'
 ```
 
 ```{figure} _static/photon-mosaic.png
