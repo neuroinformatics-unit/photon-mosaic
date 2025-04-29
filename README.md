@@ -26,8 +26,7 @@ Please use [`mamba`](https://mamba.readthedocs.io/en/latest/index.html) and the 
 To install developer tools (e.g., testing and linting):
 
 ```bash
-pip install .[dev]
-```
+pip install '.[dev]'
 
 ## Configuration
 
