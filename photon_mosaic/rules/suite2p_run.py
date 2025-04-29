@@ -50,9 +50,11 @@ def run_suite2p(
             for key in ["regDX", "regPC", "tPC"]:
                 f.write(f"{key}: {ops_end.get(key, 'NaN')}\n")
 
-        # ensure output placeholders exist
-        Path(stat_path).touch()
-        Path(bin_path).touch()
+        # check if the output files exist
+        if not Path(stat_path).exists():
+            raise FileNotFoundError(f"File not found: {stat_path}")
+        if not Path(bin_path).exists():
+            raise FileNotFoundError(f"File not found: {bin_path}")
 
     except Exception as e:
         with open(dataset_folder / "error.txt", "a") as f:
