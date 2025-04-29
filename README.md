@@ -103,7 +103,7 @@ Other useful arguments are:
 
 ## Contributing
 
-We welcome issues, feature suggestions, and pull requests. Please refer to our contribution guidelines in the documentation for more information.
+We welcome issues, feature suggestions, and pull requests. Please refer to our [contribution guidelines](https://photon-mosaic.neuroinformatics.dev/user_guide/index.html) in the documentation for more information.
 
 ## References & Links
 
