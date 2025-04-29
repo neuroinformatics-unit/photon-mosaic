@@ -33,7 +33,8 @@ pip install '.[dev]'
 
 ## Configuration
 
-Edit or create your `config.yaml` file like so:
+Edit or create your `config.yaml` file in the `workflow` folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
+Here is an example of a `config.yaml` file:
 
 ```yaml
 raw_data_base: "/path/to/raw/"
@@ -41,7 +42,7 @@ processed_data_base: "/path/to/processed/"
 
 suite2p_ops:
   fs: 7.5
-  nplanes: 2
+  nplanes: 1
   tau: 0.8
   nonrigid: true
   diameter: 10
