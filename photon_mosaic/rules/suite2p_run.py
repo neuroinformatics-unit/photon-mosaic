@@ -34,7 +34,7 @@ def run_suite2p(
         A dictionary containing user-provided options to override
         the default Suite2P options. The default is None.
     """
-    save_folder = Path(stat_path).parent
+    save_folder = Path(stat_path).parents[1]
 
     ops = get_edited_options(
         input_path=dataset_folder,
@@ -42,20 +42,7 @@ def run_suite2p(
         user_ops_dict=user_ops_dict,
     )
     try:
-        ops_end = run_s2p(ops=ops)
-
-        # save metrics, as before
-        with open(save_folder / "suite2p_metrics.txt", "w") as f:
-            f.write("registration metrics:\n")
-            for key in ["regDX", "regPC", "tPC"]:
-                f.write(f"{key}: {ops_end.get(key, 'NaN')}\n")
-
-        # check if the output files exist
-        if not Path(stat_path).exists():
-            raise FileNotFoundError(f"File not found: {stat_path}")
-        if not Path(bin_path).exists():
-            raise FileNotFoundError(f"File not found: {bin_path}")
-
+        run_s2p(ops=ops)
     except Exception as e:
         with open(dataset_folder / "error.txt", "a") as f:
             f.write(f"Error: {e}\n")

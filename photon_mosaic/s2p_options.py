@@ -46,7 +46,7 @@ def get_edited_options(
     # Add required runtime paths
     ops["save_folder"] = str(save_folder)
     ops["save_path0"] = str(save_folder)
-    ops["fast_disk"] = str(save_folder)
+    ops["fast_disk"] = str(save_folder.parent)
     ops["data_path"] = [str(input_path)]
 
     return ops
