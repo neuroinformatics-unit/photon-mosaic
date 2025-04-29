@@ -1,5 +1,5 @@
-raw_data_base: "/Users/lauraporta/Source/github/neuroinformatics-unit/photon-mosaic/tests/data/"
-processed_data_base: "/Users/lauraporta/Source/github/neuroinformatics-unit/photon-mosaic/tests/data/"
+raw_data_base: "path/to/raw/data/"
+processed_data_base: "path/to/processed/data/"
 suite2p_ops:
   fs: 7.5
   nplanes: 2
