@@ -12,7 +12,7 @@ The current structure sets the stage for future modular integration of preproces
 
 ## Installation
 
-Photon-mosaic requires **Python 3.11+** or **3.12** and installs a custom fork of Suite2p for compatibility.
+Photon-mosaic requires **Python 3.11** or **3.12** and installs a custom fork of Suite2p for compatibility.
 
 ```bash
 git clone https://github.com/neuroinformatics-unit/photon-mosaic.git
