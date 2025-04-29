@@ -1,0 +1,47 @@
+configfile: "workflow/config.yaml"
+
+from pathlib import Path
+
+
+raw_data_base = Path(config["raw_data_base"])
+processed_data_base = Path(config["processed_data_base"])
+slurm_config = config.get("slurm", {})
+
+
+# discover datasets
+datasets = [f.name for f in raw_data_base.iterdir() if f.is_dir()]
+tiff_paths = {
+    dataset: list((raw_data_base / dataset).rglob("*.tif?"))
+    for dataset in datasets
+}
+
+rule all:
+    input:
+        expand(
+            [
+                f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
+            ],
+            zip,
+            index=range(len(datasets)),
+            datasets=datasets,
+        )
+
+rule suite2p:
+    input:
+        tiff=lambda wildcards: tiff_paths[wildcards.datasets],
+    output:
+        stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
+        bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
+    params:
+        dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
+    resources:
+        **(slurm_config if slurm_config.get("use_slurm") else {}),
+    run:
+        from photon_mosaic.rules.suite2p_run import run_suite2p
+        run_suite2p(
+            input["tiff"],
+            output["stat"],
+            output["bin"],
+            Path(params["dataset_folder"]),
+            config["suite2p_ops"],
+        )

@@ -1,0 +1,21 @@
+html[data-theme="dark"] img {
+    filter: none;
+}
+
+html[data-theme="dark"] .bd-content img:not(.only-dark) {
+    background: unset;
+}
+
+.img-sponsor {
+    height: 50px;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+}
+
+.things-in-a-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
