@@ -21,7 +21,6 @@ conda create -n photon-mosaic python=3.12
 conda activate photon-mosaic
 pip install .
 ```
-Please use [`mamba`](https://mamba.readthedocs.io/en/latest/index.html) and the `conda-forge` channel for a correct installation of dependencies.
 
 To install developer tools (e.g., testing and linting):
 
