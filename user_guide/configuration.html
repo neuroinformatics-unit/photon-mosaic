@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/documentation_options.js?v=a58bc63e"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.0</p>
+    <p class="title logo__title">photon-mosaic v0.1.1</p>
   
 </a></div>
     
@@ -370,13 +370,14 @@
                   
   <section id="configuration">
 <span id="user-guide-configuration"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
-<p>Edit or create your <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file like so:</p>
+<p>Edit or create your <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file in the <code class="docutils literal notranslate"><span class="pre">workflow</span></code> folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
+Here is an example of a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">raw_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/raw/&quot;</span>
 <span class="nt">processed_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/processed/&quot;</span>
 
 <span class="nt">suite2p_ops</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">fs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.5</span>
-<span class="w">  </span><span class="nt">nplanes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">nplanes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">  </span><span class="nt">tau</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
 <span class="w">  </span><span class="nt">nonrigid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">diameter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
