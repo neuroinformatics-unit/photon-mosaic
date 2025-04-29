@@ -178,6 +178,6 @@ html_favicon = "_static/light-logo-niu.png"
 # }
 
 linkcheck_ignore = [
-    "https://neuroinformatics.zulipchat.com/#narrow/channel/495735-photon-mosaic",
     "https://www.sciencedirect.com/science/article/pii/S089662731930889X",
+    "https://photon-mosaic.neuroinformatics.dev/*",
 ]
