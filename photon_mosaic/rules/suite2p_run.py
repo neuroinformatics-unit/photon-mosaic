@@ -45,7 +45,7 @@ def run_suite2p(
         ops_end = run_s2p(ops=ops)
 
         # save metrics, as before
-        with open(dataset_folder / "suite2p_metrics.txt", "w") as f:
+        with open(save_folder / "suite2p_metrics.txt", "w") as f:
             f.write("registration metrics:\n")
             for key in ["regDX", "regPC", "tPC"]:
                 f.write(f"{key}: {ops_end.get(key, 'NaN')}\n")
