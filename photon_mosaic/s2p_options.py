@@ -18,7 +18,7 @@ def get_edited_options(
         The path to the input data folder.
     save_folder : Path
         The path to the folder where the results will be saved.
-    user_ops_dict : dic, optional
+    user_ops_dict : dict, optional
         A dictionary containing user-provided options to override
         the default options. The default is None.
 
