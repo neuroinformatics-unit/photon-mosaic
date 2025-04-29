@@ -69,30 +69,32 @@ A dry run is a simulation of the workflow that shows you what would happen if yo
 
 To preview the workflow without running it:
 ```bash
-snakemake --jobs 20 all --dry-run
+snakemake --jobs 1 all --dry-run
 ```
 `all` is a keyword that tells snakemake to run all the rules in the workflow.
+The `--jobs` argument specifies the number of jobs to run in parallel. In this case, we are running one job at a time. You can increase this number to run multiple jobs in parallel.
+Dry run can also be abbreviated to `-np`.
 
 To run the workflow you can skip the `--dry-run` argument and run the command:
 ```bash
-snakemake --jobs 20 all
+snakemake --jobs 5 all
 ```
 
 If you wish to force the re-execution of a given rule you can use the `--force-rerun` argument followed by the name of the rule you want to rerun. For example, if you want to rerun the rule `suite2p`, you can use the command:
 ```bash
-snakemake --jobs 20 all --force-rerun suite2p
+snakemake --jobs 5 all --forcerun suite2p
 ```
 
 You can also rerun a specific dataset by specifying the output of interest:
 ```bash
-snakemake --jobs 20 all --force-rerun /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+snakemake --jobs 1 /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
 ```
-This will trigger the rerun of the `suite2p` rule for the dataset `dataset_name` and for plane 0.
+This will trigger the analysis that lead to the creation of the file `F.npy` in the specified dataset folder.
 
 Once you have tested the workflow locally, you can use further arguments to submit the jobs to a cluster. If you are using SLURM, you can use the following command:
 
 ```bash
-snakemake --executor slurm --jobs 20 all
+snakemake --executor slurm --jobs 5 all
 ```
 
 Other useful arguments are:
