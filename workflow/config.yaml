@@ -28,8 +28,12 @@ preprocessing:
     - name: derotation
       kwargs:
         # Derotation pipeline parameters
+        # You can either use glob patterns:
         glob_naming_pattern_tif: "*.tif"
         glob_naming_pattern_bin: "*.bin"
+        # Or specify exact filenames in lists (they must match in length):
+        # glob_naming_pattern_tif: ["rotation.tif", "rotation_increment.tif"]
+        # glob_naming_pattern_bin: ["rotation.bin", "rotation_increment.bin"]
         path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
     - name: contrast_enhancement
       kwargs:
