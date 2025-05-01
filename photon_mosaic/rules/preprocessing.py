@@ -10,7 +10,7 @@ from typing import Dict
 from photon_mosaic.preprocessing import get_step
 
 
-def get_input_files(dataset_folder, config):
+def get_input_files(dataset_folder, config, ses_idx):
     """
     Get input TIFF files based on the glob patterns defined in the config.
 
@@ -39,7 +39,12 @@ def get_input_files(dataset_folder, config):
                 f for f in dataset_folder.rglob(pattern) if f.is_file()
             ]
             tiff_files.extend(matched_files)
-    return tiff_files
+            if not matched_files:
+                raise FileNotFoundError(
+                    f"No files found for pattern {pattern} in {dataset_folder}"
+                )
+
+    return tiff_files[ses_idx]
 
 
 def get_output_pattern(tiff_name: str, config: Dict, tiff_paths: Dict) -> str:
