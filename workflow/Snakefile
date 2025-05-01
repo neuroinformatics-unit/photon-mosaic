@@ -2,66 +2,90 @@ configfile: "workflow/config.yaml"
 
 from pathlib import Path
 from photon_mosaic.dataset_discovery import discover_datasets
+from photon_mosaic.rules.preprocessing import get_input_files
 
-# Define paths
 raw_data_base = Path(config["raw_data_base"])
 processed_data_base = Path(config["processed_data_base"])
 slurm_config = config.get("slurm", {})
 
-# Discover datasets based on configuration
-datasets = discover_datasets(
+# Discover datasets
+datasets_old_names = discover_datasets(
     str(raw_data_base),
     pattern=config["dataset_discovery"]["pattern"],
     exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
-    substitutions=config["dataset_discovery"].get("substitutions")
+)
+datasets_new_names = discover_datasets(
+    str(raw_data_base),
+    pattern=config["dataset_discovery"]["pattern"],
+    exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
+    substitutions=config["dataset_discovery"].get("substitutions"),
 )
 
-# Create dictionary of tiff paths for each dataset
-tiff_paths = {
-    dataset: list((raw_data_base / dataset).rglob("*.tif?"))
-    for dataset in datasets
-}
+# Mapping old_name -> new_name
+dataset_pairs = list(zip(datasets_old_names, datasets_new_names))
+output_patterns = config["preprocessing"]["output_patterns"]
 
-# Create a list of all tiff files with their dataset and tiff name
-tiff_files = []
-for dataset, paths in tiff_paths.items():
-    for i, path in enumerate(paths):
-        tiff_files.append({
-            "dataset": dataset,
-            "tiff_index": i,
-            "tiff_name": Path(path).stem
-        })
+# Preprocessed outputs
+preprocessed_outputs = [
+    processed_data_base / f"sub-{i}_{new}" / f"ses-{j}" / "funcimg" / f"{name}.tif"
+    for i, (_, new) in enumerate(dataset_pairs)
+    for j, name in enumerate(output_patterns)
+]
 
-# Include preprocessing rule
+# Suite2p outputs
+suite2p_outputs = [
+    processed_data_base / f"sub-{i}_{new}" / f"ses-{j}" / "funcimg" / "suite2p" / "plane0" / fname
+    for i, (_, new) in enumerate(dataset_pairs)
+    for j in range(len(output_patterns))
+    for fname in ["F.npy", "data.bin"]
+]
+
+# Build a list of all sample identifiers as tuples (sub_idx, ses_idx)
+SAMPLE_PAIRS = [
+    (f"{i}", f"{j}")
+    for i in range(len(datasets_new_names))
+    for j in range(len(output_patterns))
+]
+
 include: "preprocessing.smk"
+
+preproc_targets = [
+    f"{processed_data_base}/sub-{i}_{datasets_new_names[i]}/ses-{j}/funcimg/{output_patterns[j]}"
+    for i in range(len(datasets_new_names))
+    for j in range(len(output_patterns))
+]
+
+suite2p_targets = [
+    f"{processed_data_base}/sub-{i}_{datasets_new_names[i]}/ses-{j}/funcimg/suite2p/plane0/{fname}"
+    for i in range(len(datasets_new_names))
+    for j in range(len(output_patterns))
+    for fname in ["F.npy", "data.bin"]
+]
 
 rule all:
     input:
-        expand(
-            [
-                f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
-            ],
-            zip,
-            index=range(len(datasets)),
-            datasets=datasets,
-        )
+        preproc_targets + suite2p_targets
+
 
 rule suite2p:
     input:
-        tiff=lambda wildcards: f"{processed_data_base}/sub-{wildcards.index}_{wildcards.datasets}/ses-0/funcimg/{wildcards.tiff_name}.tif",
+        tiff=lambda wildcards: str(
+            processed_data_base /
+            f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}" /
+            f"ses-{wildcards.ses_idx}/funcimg/" /
+            f"{output_patterns[int(wildcards.ses_idx)]}"
+        )
     output:
-        stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
-        bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
+        F=f"{processed_data_base}/sub-{{sub_idx}}_{{dataset}}/ses-{{ses_idx}}/funcimg/suite2p/plane0/F.npy",
+        bin=f"{processed_data_base}/sub-{{sub_idx}}_{{dataset}}/ses-{{ses_idx}}/funcimg/suite2p/plane0/data.bin"
     params:
-        dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
-    resources:
-        **(slurm_config if slurm_config.get("use_slurm") else {}),
+        dataset_folder=f"{processed_data_base}/sub-{{sub_idx}}_{{dataset}}/ses-{{ses_idx}}/funcimg"
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
         run_suite2p(
-            input["tiff"],
-            output["stat"],
-            output["bin"],
-            Path(params["dataset_folder"]),
+            input.tiff,
+            output.F,
+            output.bin,
+            Path(params.dataset_folder),
             config["suite2p_ops"],
         )
