@@ -10,7 +10,8 @@ dependencies = [
   "snakemake",
   "numpy",
   "snakemake-executor-plugin-slurm",
-  "suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git"
+  "suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git",
+  "derotation"
 ]
 
 license = {text = "BSD-3-Clause"}

@@ -9,16 +9,33 @@ WORKFLOW_PATH = Path(__file__).parent.parent.parent / "workflow" / "Snakefile"
 
 
 @pytest.fixture
-def snake_test_env(tmp_path):
-    raw_data = tmp_path / "raw"
-    shutil.copytree("tests/data", raw_data)
-
-    processed_data = tmp_path / "processed"
-    processed_data.mkdir()
-
-    config = {
-        "raw_data_base": str(raw_data),
-        "processed_data_base": str(processed_data),
+def test_config():
+    """Create a test configuration."""
+    return {
+        "raw_data_base": "raw",  # This will be replaced in snake_test_env
+        "processed_data_base": "processed",  # This will be replaced in
+        # snake_test_env
+        "dataset_discovery": {
+            "pattern": "^.*$",  # Match all directories for testing
+            "exclude_patterns": [],  # Don't exclude anything
+        },
+        "preprocessing": {
+            "steps": [
+                {
+                    "name": "noop",
+                    "kwargs": {
+                        "glob_naming_pattern_tif": [
+                            "2p_example_V1_01.tif",
+                            "2p_example_V1_02.tif",
+                        ]
+                    },
+                }
+            ],
+            "output_patterns": [
+                "2p_example_V1_01.tif",
+                "2p_example_V1_02.tif",
+            ],
+        },
         "suite2p_ops": {
             "fs": 6.0,
             "nplanes": 1,
@@ -26,13 +43,29 @@ def snake_test_env(tmp_path):
             "nonrigid": True,
             "diameter": 8,
         },
-        "slurm": {
-            "use_slurm": False,
-        },
+        "use_slurm": False,
     }
+
+
+@pytest.fixture
+def snake_test_env(tmp_path, test_config):
+    """
+    Fixture that sets up the test environment with data and configuration.
+    """
+    raw_data = tmp_path / "raw"
+    shutil.copytree("tests/data", raw_data)
+    processed_data = tmp_path / "processed"
+    processed_data.mkdir()
+
+    # Update paths in config
+    config = test_config.copy()
+    config["raw_data_base"] = str(raw_data)
+    config["processed_data_base"] = str(processed_data)
+
+    # Create config file
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
-        yaml.dump(config, f)
+        yaml.safe_dump(config, f, default_style='"', allow_unicode=True)
 
     return {
         "workdir": tmp_path,
@@ -41,6 +74,7 @@ def snake_test_env(tmp_path):
 
 
 def test_snakemake_dry_run(snake_test_env):
+    """Test that snakemake can do a dry run."""
     result = subprocess.run(
         [
             "snakemake",
@@ -49,19 +83,32 @@ def test_snakemake_dry_run(snake_test_env):
             str(WORKFLOW_PATH),
             "--configfile",
             str(snake_test_env["configfile"]),
+            "--printshellcmds",
+            "--verbose",
+            "--debug-dag",
         ],
         cwd=snake_test_env["workdir"],
         capture_output=True,
         text=True,
     )
 
+    # Print detailed information about the failure
+    print("\n=== Snakemake Dry Run Output ===")
+    print("STDOUT:")
     print(result.stdout)
-    assert (
-        result.returncode == 0
-    ), f"Snakemake dry-run failed:\n{result.stderr}"
+    print("\nSTDERR:")
+    print(result.stderr)
+    print("\nReturn Code:", result.returncode)
+    print("=== End of Snakemake Dry Run Output ===\n")
+
+    assert result.returncode == 0, (
+        f"Snakemake dry-run failed:\nSTDOUT:\n{result.stdout}\n"
+        f"STDERR:\n{result.stderr}"
+    )
 
 
 def test_snakemake_execution(snake_test_env):
+    """Test that snakemake can execute the workflow."""
     result = subprocess.run(
         [
             "snakemake",
@@ -74,26 +121,63 @@ def test_snakemake_execution(snake_test_env):
             str(WORKFLOW_PATH),
             "--configfile",
             str(snake_test_env["configfile"]),
+            "--debug-dag",  # Add DAG debugging
         ],
         cwd=snake_test_env["workdir"],
         capture_output=True,
         text=True,
     )
 
+    # Print detailed information about the execution
+    print("\n=== Snakemake Execution Output ===")
+    print("STDOUT:")
     print(result.stdout)
-    assert (
-        result.returncode == 0
-    ), f"Snakemake execution failed:\n{result.stderr}"
+    print("\nSTDERR:")
+    print(result.stderr)
+    print("\nReturn Code:", result.returncode)
+    print("=== End of Snakemake Execution Output ===\n")
 
-    # Check that output files were created
-    output_base = output_base = (
-        snake_test_env["workdir"]
-        / "processed"
-        / "sub-0_001"
-        / "ses-0"
-        / "funcimg"
-        / "suite2p"
-        / "plane0"
+    assert result.returncode == 0, (
+        f"Snakemake execution failed:\nSTDOUT:\n{result.stdout}\n"
+        f"STDERR:\n{result.stderr}"
     )
-    assert (output_base / "stat.npy").exists(), "Missing output: stat.npy"
-    assert (output_base / "data.bin").exists(), "Missing output: data.bin"
+
+    # Check that output files were created for each dataset and tiff
+    datasets = ["001", "002", "003"]
+    tiffs = ["2p_example_V1_01.tif", "2p_example_V1_02.tif"]
+
+    for sub_idx, dataset in enumerate(datasets):
+        for ses_idx, tiff in enumerate(tiffs):
+            output_base = (
+                snake_test_env["workdir"]
+                / "processed"
+                / f"sub-{sub_idx}_{dataset}"
+                / f"ses-{ses_idx}"
+                / "funcimg"
+                / "suite2p"
+                / "plane0"
+            )
+
+            # Print information about the expected output files
+            print(
+                f"\n=== Checking files for {dataset}/ses-{ses_idx}/{tiff} ==="
+            )
+            print(f"Checking for files in: {output_base}")
+            print(
+                "Directory contents:",
+                list(output_base.iterdir())
+                if output_base.exists()
+                else "Directory does not exist",
+            )
+            print("=== End of Expected Output Files ===\n")
+
+            assert (
+                output_base / "F.npy"
+            ).exists(), (
+                f"Missing output: F.npy for {dataset}/ses-{ses_idx}/{tiff}"
+            )
+            assert (
+                output_base / "data.bin"
+            ).exists(), (
+                f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
+            )
