@@ -4,6 +4,7 @@ include workflow/Snakefile
 include workflow/config.yaml
 
 recursive-include photon_mosaic *.py
+recursive-include workflow *.smk
 
 exclude .pre-commit-config.yaml
 

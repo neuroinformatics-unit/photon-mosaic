@@ -28,4 +28,18 @@ How to configure `photon-mosaic` for your specific needs.
 Basic Snakemake tutorial to get you started.
 :::
 
+:::{grid-item-card} 🔄 Preprocessing
+:link: preprocessing
+:link-type: doc
+
+Learn about the preprocessing steps available in photon-mosaic.
+:::
+
+:::{grid-item-card} 🔍 Dataset Discovery
+:link: dataset_discovery
+:link-type: doc
+
+Learn how to use the flexible dataset discovery system to find and process your datasets.
+:::
+
 ::::
