@@ -10,7 +10,6 @@ dependencies = [
   "snakemake",
   "numpy",
   "snakemake-executor-plugin-slurm",
-  "suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git"
 ]
 
 license = {text = "BSD-3-Clause"}
@@ -44,6 +43,8 @@ dev = [
   "ruff",
   "setuptools_scm",
 ]
+suite2p_fork = ["suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git"]
+
 
 [build-system]
 requires = [
