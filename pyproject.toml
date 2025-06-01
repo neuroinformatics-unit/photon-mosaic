@@ -32,6 +32,9 @@ classifiers = [
 "Source Code" = "https://github.com/neuroinformatics-unit/photon-mosaic"
 "User Support" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
 
+[project.scripts]
+photon-mosaic = "photon_mosaic.cli:main"
+
 [build-system]
 requires = [
     "setuptools>=45",
