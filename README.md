@@ -16,7 +16,7 @@ The current structure sets the stage for future modular integration of preproces
 
 ## Installation
 
-Photon-mosaic requires **Python 3.11** or **3.12** and installs a custom fork of Suite2p for compatibility.
+Photon-mosaic requires **Python 3.11** or **3.12** and depends on a custom fork of Suite2p for compatibility.
 
 ```bash
 git clone https://github.com/neuroinformatics-unit/photon-mosaic.git
@@ -24,12 +24,14 @@ cd photon-mosaic
 conda create -n photon-mosaic python=3.12
 conda activate photon-mosaic
 pip install .
+pip install git+https://github.com/neuroinformatics-unit/suite2p.git
 ```
 
 To install developer tools (e.g., testing and linting):
 
 ```bash
-pip install '.[dev]'
+pip install -r requirements-dev.txt
+```
 
 ## Configuration
 

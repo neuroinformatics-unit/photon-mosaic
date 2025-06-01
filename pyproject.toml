@@ -32,20 +32,6 @@ classifiers = [
 "Source Code" = "https://github.com/neuroinformatics-unit/photon-mosaic"
 "User Support" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
 
-[project.optional-dependencies]
-dev = [
-  "pytest",
-  "pytest-cov",
-  "coverage",
-  "tox",
-  "mypy",
-  "pre-commit",
-  "ruff",
-  "setuptools_scm",
-]
-suite2p_fork = ["suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git"]
-
-
 [build-system]
 requires = [
     "setuptools>=45",
@@ -113,8 +99,7 @@ python =
     3.12: py312
 
 [testenv]
-extras =
-    dev
+deps = -r requirements-dev.txt
 commands =
     pytest -v --color=yes --cov=photon_mosaic --cov-report=xml
 """
