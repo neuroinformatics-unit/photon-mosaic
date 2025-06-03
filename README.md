@@ -34,7 +34,24 @@ pip install -r requirements-dev.txt
 
 ## Configuration
 
-Edit or create your `config.yaml` file in the `photon_mosaic/workflow` folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
+On first run, photon-mosaic will create a user config at `~/.photon_mosaic/config.yaml` if it does not exist.
+
+You can:
+- Edit this file directly for user-wide defaults.
+- Override key paths at the command line:
+  ```bash
+  photon-mosaic --raw_data_base /my/data --processed_data_base /my/processed --jobs 5
+  ```
+- Use a project-specific config:
+  ```bash
+  photon-mosaic --config ./config.yaml --jobs 5
+  ```
+
+**Note:**
+- The config used for the run (with any overrides) is always exported to a timestamped file in the `photon-mosaic/configs/` directory.
+- Snakemake logs are always dumped to a timestamped file in the `photon-mosaic/logs/` directory.
+- Both logs and configs are organized with timestamps (format: YYYYMMDD_HHMMSS) for easy tracking of different runs.
+
 Here is an example of a `config.yaml` file:
 
 ```yaml
@@ -57,7 +74,7 @@ slurm:
   nodes: 1
 ```
 
-If you don’t have access to a cluster or SLURM, set `use_slurm: false` to run locally.
+If you don't have access to a cluster or SLURM, set `use_slurm: false` to run locally.
 
 ## Basic snakemake tutorial
 
