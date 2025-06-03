@@ -24,6 +24,7 @@ conda activate photon-mosaic
 pip install photon-mosaic
 pip install git+https://github.com/neuroinformatics-unit/suite2p.git
 ```
+N.B.: as you can see, we are using a custom fork of Suite2p to ensure compatibility with the latest Python versions and to include additional features. This fork is maintained by the Neuroinformatics Unit.
 
 To install developer tools (e.g., testing and linting):
 
@@ -33,7 +34,7 @@ pip install -r requirements-dev.txt
 
 ## Configuration
 
-Edit or create your `config.yaml` file in the `workflow` folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
+Edit or create your `config.yaml` file in the `photon_mosaic/workflow` folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
 Here is an example of a `config.yaml` file:
 
 ```yaml
@@ -70,6 +71,8 @@ Snakemake is a powerful workflow management system that allows you to run comple
 
 This approach lets you rerun only the parts of the workflow that need to be updated, avoiding the need to repeat the entire analysis each time.
 
+Here we show examples that do not call directly the `snakemake` command, but instead use the `photon-mosaic` CLI, which is a wrapper around Snakemake that simplifies the execution of the workflow.
+
 **Dry Run**
 A dry run is a simulation that shows what would happen if the workflow were executed, without actually running any commands. This is useful for verifying that everything is set up correctly. The output includes a DAG (directed acyclic graph) showing dependencies between rules, which files will be created, and which rules will be executed.
 
@@ -90,28 +93,28 @@ photon-mosaic --config path/to/config.yaml --jobs 1 --dry-run
 To run the full workflow:
 
 ```bash
-photon-mosaic --config path/to/config.yaml --jobs 5
+photon-mosaic --jobs 5
 ```
 
 To force the re-execution of a specific rule:
 
 ```bash
-photon-mosaic --config path/to/config.yaml --jobs 5 -- --forcerun suite2p
+photon-mosaic --jobs 5 --forcerun suite2p
 ```
 
 To reprocess a specific dataset, you can specify a target output file (e.g., `F.npy`):
 
 ```bash
-photon-mosaic --config path/to/config.yaml --jobs 1 -- /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+photon-mosaic --jobs 1 /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
 ```
 
 Once you have tested the workflow locally, you can also submit jobs to a cluster. If you are using SLURM:
 
 ```bash
-photon-mosaic --config path/to/config.yaml --jobs 5 -- --executor slurm
+photon-mosaic --jobs 5 --executor slurm
 ```
 
-Other useful arguments you can pass after `--`:
+Other useful arguments you can pass:
 
 - `--latency-wait`: wait time before checking if output files are ready
 - `--rerun-incomplete`: rerun any incomplete jobs
