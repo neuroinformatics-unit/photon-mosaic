@@ -56,11 +56,11 @@ suite2p_ops:
   diameter: 10
 
 # SLURM configuration
+use_slurm: true
 slurm:
-  use_slurm: true
-  partition: "cpu"
-  mem_mb: 16000
-  mem_mb_per_cpu: 4000
-  cpu_per_task: 4
+  slurm_partition: "gpu"
+  mem_mb: 32000
+  # mem_mb_per_cpu: 8000
+  # cpu_per_task: 4
   tasks: 1
   nodes: 1
