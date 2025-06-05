@@ -6,6 +6,18 @@ suite2p_ops:
   tau: 0.8
   nonrigid: true
   diameter: 10
+# Preprocessing configuration
+preprocessing:
+  steps:
+    - name: derotation
+      kwargs:
+        # Derotation pipeline parameters
+        glob_naming_pattern_tif: "*.tif"
+        glob_naming_pattern_bin: "*.bin"
+        path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
+    - name: contrast_enhancement
+      kwargs:
+        clip_limit: 2.0
 slurm:
   use_slurm: true
   partition: "cpu"

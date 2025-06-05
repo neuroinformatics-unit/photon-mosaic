@@ -15,6 +15,9 @@ tiff_paths = {
     for dataset in datasets
 }
 
+# Include preprocessing rule
+include: "preprocessing.smk"
+
 rule all:
     input:
         expand(
@@ -28,7 +31,7 @@ rule all:
 
 rule suite2p:
     input:
-        tiff=lambda wildcards: tiff_paths[wildcards.datasets],
+        tiff=rules.preprocessing.output.tiff,  # Use the preprocessed output
     output:
         stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
         bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
