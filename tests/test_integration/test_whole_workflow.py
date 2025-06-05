@@ -23,11 +23,17 @@ def test_config():
                 {
                     "name": "noop",
                     "kwargs": {
-                        "glob_naming_pattern_tif": ["2p_example_V1.tif"]
+                        "glob_naming_pattern_tif": [
+                            "2p_example_V1_01.tif",
+                            "2p_example_V1_02.tif",
+                        ]
                     },
                 }
             ],
-            "output_patterns": ["2p_example_V1.tif"],
+            "output_patterns": [
+                "2p_example_V1_01.tif",
+                "2p_example_V1_02.tif",
+            ],
         },
         "suite2p_ops": {
             "fs": 6.0,
@@ -139,29 +145,45 @@ def test_snakemake_execution(snake_test_env):
         f"STDERR:\n{result.stderr}"
     )
 
-    output_base = (
-        snake_test_env["workdir"]
-        / "processed"
-        / "sub-0_001"
-        / "ses-0"
-        / "funcimg"
-        / "suite2p"
-        / "plane0"
-    )
+    # Check that output files were created for each dataset and tiff
+    datasets = ["001", "002", "003"]
+    tiffs = ["2p_example_V1_01.tif", "2p_example_V1_02.tif"]
 
-    # Print information about the expected output files
-    print("\n=== Expected Output Files ===")
-    print(f"Checking for files in: {output_base}")
-    print(
-        "Directory contents:",
-        list(output_base.iterdir())
-        if output_base.exists()
-        else "Directory does not exist",
-    )
-    print("=== End of Expected Output Files ===\n")
+    for sub_idx, dataset in enumerate(datasets):
+        for ses_idx, tiff in enumerate(tiffs):
+            output_base = (
+                snake_test_env["workdir"]
+                / "processed"
+                / f"sub-{sub_idx}_{dataset}"
+                / f"ses-{ses_idx}"
+                / "funcimg"
+                / "suite2p"
+                / "plane0"
+            )
 
-    assert (output_base / "F.npy").exists(), "Missing output: F.npy"
-    assert (output_base / "data.bin").exists(), "Missing output: data.bin"
+            # Print information about the expected output files
+            print(
+                f"\n=== Checking files for {dataset}/ses-{ses_idx}/{tiff} ==="
+            )
+            print(f"Checking for files in: {output_base}")
+            print(
+                "Directory contents:",
+                list(output_base.iterdir())
+                if output_base.exists()
+                else "Directory does not exist",
+            )
+            print("=== End of Expected Output Files ===\n")
+
+            assert (
+                output_base / "F.npy"
+            ).exists(), (
+                f"Missing output: F.npy for {dataset}/ses-{ses_idx}/{tiff}"
+            )
+            assert (
+                output_base / "data.bin"
+            ).exists(), (
+                f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
+            )
 
 
 def test_photon_mosaic_cli_dry_run(snake_test_env):
