@@ -9,7 +9,7 @@ tiff_regex = "|".join(re.escape(name) for name in output_patterns)
 # Preprocessing rule
 rule preprocessing:
     input:
-        tiffs=lambda wildcards: get_input_files(
+        tiff=lambda wildcards: get_input_files(
             dataset_folder = raw_data_base / datasets_old_names[int(wildcards.sub_idx)],
             config = config,
             ses_idx = int(wildcards.ses_idx),
@@ -31,4 +31,5 @@ rule preprocessing:
             Path(params.output_folder),
             config["preprocessing"],
             Path(params.dataset_folder),
+            ses_idx=int(wildcards.ses_idx),
         )
