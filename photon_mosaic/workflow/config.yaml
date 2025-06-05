@@ -24,6 +24,14 @@ suite2p_ops:
   diameter: 10
 # Preprocessing configuration
 preprocessing:
+  # Output file pattern for preprocessed files
+  # Use {tiff_name} as a placeholder for the original tiff filename
+  # You can either use a single pattern:
+  output_pattern: "preprocessed_{tiff_name}.tif"
+  # Or specify a list of patterns (they must match the number of input files):
+  # output_patterns:
+  #   - "derotated_{tiff_name}.tif"
+  #   - "derotated_increment_{tiff_name}.tif"
   steps:
     - name: derotation
       kwargs:

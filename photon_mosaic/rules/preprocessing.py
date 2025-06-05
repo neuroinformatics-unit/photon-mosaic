@@ -5,20 +5,53 @@ This module provides a function to run preprocessing on image data using the
 preprocessing registry.
 """
 
-import numpy as np
+from typing import Dict
+
 from tifffile import imread
 
 from photon_mosaic.preprocessing import get_step
 
 
-def run_preprocessing(input_paths, output_path, config, dataset_folder=None):
+def get_output_pattern(tiff_name: str, config: Dict, tiff_paths: Dict) -> str:
+    """
+    Get the output pattern for a tiff file.
+
+    Parameters
+    ----------
+    tiff_name : str
+        The name of the tiff file (without extension)
+    config : dict
+        The configuration dictionary
+    tiff_paths : dict
+        Dictionary mapping dataset names to tiff file paths
+
+    Returns
+    -------
+    str
+        The output pattern with the tiff name substituted
+    """
+    # Check if we have a list of patterns
+    if "output_patterns" in config["preprocessing"]:
+        # Get the index of the current tiff in the list of tiffs
+        tiff_index = list(tiff_paths.values()).index(tiff_name)
+        # Get the corresponding pattern
+        pattern = config["preprocessing"]["output_patterns"][tiff_index]
+    else:
+        # Use the single pattern
+        pattern = config["preprocessing"]["output_pattern"]
+
+    # Substitute the tiff name
+    return pattern.format(tiff_name=tiff_name)
+
+
+def run_preprocessing(input_path, output_path, config, dataset_folder=None):
     """
     Run preprocessing on image data.
 
     Parameters
     ----------
-    input_paths : list
-        List of paths to input image files.
+    input_path : Path
+        Path to the input image file.
     output_path : str
         Path to save the preprocessed image.
     config : dict
@@ -28,8 +61,7 @@ def run_preprocessing(input_paths, output_path, config, dataset_folder=None):
         that require access to the dataset folder.
     """
     # Load images
-    images = [imread(p) for p in input_paths]
-    data = np.stack(images)
+    data = imread(input_path)
 
     # Apply preprocessing steps
     if "preprocessing" in config and "steps" in config["preprocessing"]:
