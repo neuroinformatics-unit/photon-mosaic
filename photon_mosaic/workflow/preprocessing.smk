@@ -3,6 +3,7 @@ from photon_mosaic.rules.preprocessing import run_preprocessing
 import re
 
 
+#  Necessary for the suite2p rule to understand the input mapping
 tiff_regex = "|".join(re.escape(name) for name in output_patterns)
 
 # Preprocessing rule
