@@ -1,8 +1,11 @@
 import shutil
 import subprocess
 
+import numpy as np
 import pytest
 import yaml
+from tifffile import imread
+from pathlib import Path
 
 from photon_mosaic import get_snakefile_path
 
@@ -33,6 +36,48 @@ def test_config():
             "output_patterns": [
                 "2p_example_V1_01.tif",
                 "2p_example_V1_02.tif",
+            ],
+        },
+        "suite2p_ops": {
+            "fs": 6.0,
+            "nplanes": 1,
+            "tau": 0.7,
+            "nonrigid": True,
+            "diameter": 8,
+        },
+        "use_slurm": False,
+    }
+
+
+@pytest.fixture
+def test_config_with_contrast():
+    """
+    Create a test configuration with contrast enhancement preprocessing step.
+    """
+    return {
+        "raw_data_base": "raw",  # This will be replaced in snake_test_env
+        "processed_data_base": "processed",  # This will be replaced in
+        # snake_test_env
+        "dataset_discovery": {
+            "pattern": "^.*$",  # Match all directories for testing
+            "exclude_patterns": [],  # Don't exclude anything
+        },
+        "preprocessing": {
+            "steps": [
+                {
+                    "name": "contrast",
+                    "kwargs": {
+                        "clip_limit": 2.0,
+                        "glob_naming_pattern_tif": [
+                            "2p_example_V1_01.tif",
+                            "2p_example_V1_02.tif",
+                        ],
+                    },
+                }
+            ],
+            "output_patterns": [
+                "enhanced_2p_example_V1_01.tif",
+                "enhanced_2p_example_V1_02.tif",
             ],
         },
         "suite2p_ops": {
@@ -84,7 +129,6 @@ def test_snakemake_dry_run(snake_test_env):
             snakefile,
             "--configfile",
             str(snake_test_env["configfile"]),
-            "--printshellcmds",
             "--verbose",
             "--debug-dag",
         ],
@@ -92,15 +136,6 @@ def test_snakemake_dry_run(snake_test_env):
         capture_output=True,
         text=True,
     )
-
-    # Print detailed information about the failure
-    print("\n=== Snakemake Dry Run Output ===")
-    print("STDOUT:")
-    print(result.stdout)
-    print("\nSTDERR:")
-    print(result.stderr)
-    print("\nReturn Code:", result.returncode)
-    print("=== End of Snakemake Dry Run Output ===\n")
 
     assert result.returncode == 0, (
         f"Snakemake dry-run failed:\nSTDOUT:\n{result.stdout}\n"
@@ -118,7 +153,6 @@ def test_snakemake_execution(snake_test_env):
             "--cores",
             "1",
             "--verbose",
-            "--printshellcmds",
             "--keep-going",
             "-s",
             snakefile,
@@ -130,15 +164,6 @@ def test_snakemake_execution(snake_test_env):
         capture_output=True,
         text=True,
     )
-
-    # Print detailed information about the execution
-    print("\n=== Snakemake Execution Output ===")
-    print("STDOUT:")
-    print(result.stdout)
-    print("\nSTDERR:")
-    print(result.stderr)
-    print("\nReturn Code:", result.returncode)
-    print("=== End of Snakemake Execution Output ===\n")
 
     assert result.returncode == 0, (
         f"Snakemake execution failed:\nSTDOUT:\n{result.stdout}\n"
@@ -184,6 +209,94 @@ def test_snakemake_execution(snake_test_env):
             ).exists(), (
                 f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
             )
+
+
+def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
+    """Test that snakemake can execute the workflow with contrast enhancement
+    preprocessing."""
+    # Update config with contrast enhancement settings
+    config = test_config_with_contrast.copy()
+    config["raw_data_base"] = str(Path(snake_test_env["workdir"]) / "raw")
+    config["processed_data_base"] = str(
+        Path(snake_test_env["workdir"]) / "processed"
+    )
+
+    # Create config file
+    config_path = Path(snake_test_env["workdir"]) / "config.yaml"
+    with open(config_path, "w") as f:
+        yaml.safe_dump(config, f, default_style='"', allow_unicode=True)
+
+    snakefile = str(get_snakefile_path())
+
+    # Run snakemake with real contrast enhancement
+    result = subprocess.run(
+        [
+            "snakemake",
+            "--cores",
+            "1",
+            "--verbose",
+            "--keep-going",
+            "-s",
+            str(snakefile),
+            "--configfile",
+            str(config_path),
+            "--debug-dag",
+        ],
+        cwd=snake_test_env["workdir"],
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, (
+        f"Snakemake execution with contrast enhancement failed:\nSTDOUT:\n"
+        f"{result.stdout}\nSTDERR:\n{result.stderr}"
+    )
+
+    # Check that enhanced output files were created and contain valid image
+    # data
+    datasets = ["001", "002", "003"]
+    for sub_idx, dataset in enumerate(datasets):
+        for ses_idx in range(2):
+            output_base = (
+                snake_test_env["workdir"]
+                / "processed"
+                / f"sub-{sub_idx}_{dataset}"
+                / f"ses-{ses_idx}"
+                / "funcimg"
+                / "suite2p"
+                / "plane0"
+            )
+
+            # Check for enhanced files
+            enhanced_file = (
+                snake_test_env["workdir"]
+                / "processed"
+                / f"sub-{sub_idx}_{dataset}"
+                / f"ses-{ses_idx}"
+                / "funcimg"
+                / f"enhanced_2p_example_V1_{ses_idx+1:02d}.tif"
+            )
+
+            assert (
+                enhanced_file.exists()
+            ), f"Missing enhanced output: {enhanced_file}"
+
+            # Verify that the enhanced file contains valid image data
+            enhanced_data = imread(enhanced_file)
+            assert (
+                enhanced_data.dtype == np.int16
+            ), f"Enhanced file {enhanced_file} has "
+            f"incorrect data type: {enhanced_data.dtype}"
+            assert (
+                enhanced_data.size > 0
+            ), f"Enhanced file {enhanced_file} is empty"
+
+            assert (
+                output_base / "F.npy"
+            ).exists(), f"Missing output: F.npy for {dataset}/ses-{ses_idx}"
+            assert (
+                output_base / "data.bin"
+            ).exists(), f"Missing output: data.bin for {dataset}/ses-{ses_idx}"
 
 
 def test_photon_mosaic_cli_dry_run(snake_test_env):
