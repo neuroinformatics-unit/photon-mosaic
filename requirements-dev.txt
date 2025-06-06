@@ -1,0 +1,12 @@
+coverage
+git+https://github.com/neuroinformatics-unit/suite2p.git
+mypy
+numpy
+pre-commit
+pytest
+pytest-cov
+ruff
+setuptools_scm
+snakemake
+snakemake-executor-plugin-slurm
+tox

@@ -1,0 +1,66 @@
+# Dataset discovery configuration
+dataset_discovery:
+  # Match directories starting with '2' (e.g., date-based directories)
+  pattern: "^2.*"
+  # Exclude specific patterns
+  exclude_patterns:
+    - ".*_test$"  # Exclude test datasets
+    - ".*_backup$"  # Exclude backup datasets
+  # Transform names using regex substitutions
+  substitutions:
+    # Remove underscores
+    - pattern: "_"
+      repl: ""
+    # Take the first part of the path
+    - pattern: "([^/]+)/.*"
+      repl: '\\1'
+raw_data_base: "path/to/raw/data/"
+processed_data_base: "path/to/processed/data/"
+suite2p_ops:
+  fs: 7.5
+  nplanes: 2
+  tau: 0.8
+  nonrigid: true
+  diameter: 10
+# Preprocessing configuration
+preprocessing:
+  # Output file pattern for preprocessed files
+  # Use {tiff_name} as a placeholder for the original tiff filename
+  # You can either use a single pattern:
+  output_pattern: "preprocessed_{tiff_name}.tif"
+  # Or specify a list of patterns (they must match the number of input files):
+  # output_patterns:
+  #   - "derotated_{tiff_name}.tif"
+  #   - "derotated_increment_{tiff_name}.tif"
+  steps:
+    - name: derotation
+      kwargs:
+        # Derotation pipeline parameters
+        # You can either use glob patterns:
+        glob_naming_pattern_tif: "*.tif"
+        glob_naming_pattern_bin: "*.bin"
+        # Or specify exact filenames in lists (they must match in length):
+        # glob_naming_pattern_tif: ["rotation.tif", "rotation_increment.tif"]
+        # glob_naming_pattern_bin: ["rotation.bin", "rotation_increment.bin"]
+        path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
+    - name: contrast_enhancement
+      kwargs:
+        clip_limit: 2.0
+
+# Suite2p configuration
+suite2p_ops:
+  fs: 7.5
+  nplanes: 2
+  tau: 0.8
+  nonrigid: true
+  diameter: 10
+
+# SLURM configuration
+use_slurm: true
+slurm:
+  slurm_partition: "gpu"
+  mem_mb: 32000
+  # mem_mb_per_cpu: 8000
+  # cpu_per_task: 4
+  tasks: 1
+  nodes: 1
