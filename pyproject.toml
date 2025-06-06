@@ -10,6 +10,7 @@ dependencies = [
   "snakemake",
   "numpy",
   "snakemake-executor-plugin-slurm",
+  "PyYAML",
 ]
 
 license = {text = "BSD-3-Clause"}
