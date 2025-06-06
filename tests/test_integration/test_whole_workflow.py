@@ -1,11 +1,10 @@
 import shutil
 import subprocess
-from pathlib import Path
 
 import pytest
 import yaml
 
-WORKFLOW_PATH = Path(__file__).parent.parent.parent / "workflow" / "Snakefile"
+from photon_mosaic import get_snakefile_path
 
 
 @pytest.fixture
@@ -30,6 +29,7 @@ def snake_test_env(tmp_path):
             "use_slurm": False,
         },
     }
+
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
         yaml.dump(config, f)
@@ -41,12 +41,14 @@ def snake_test_env(tmp_path):
 
 
 def test_snakemake_dry_run(snake_test_env):
+    snakefile = str(get_snakefile_path())
+
     result = subprocess.run(
         [
             "snakemake",
             "--dry-run",
             "-s",
-            str(WORKFLOW_PATH),
+            snakefile,
             "--configfile",
             str(snake_test_env["configfile"]),
         ],
@@ -62,6 +64,8 @@ def test_snakemake_dry_run(snake_test_env):
 
 
 def test_snakemake_execution(snake_test_env):
+    snakefile = str(get_snakefile_path())
+
     result = subprocess.run(
         [
             "snakemake",
@@ -71,7 +75,7 @@ def test_snakemake_execution(snake_test_env):
             "--printshellcmds",
             "--keep-going",
             "-s",
-            str(WORKFLOW_PATH),
+            snakefile,
             "--configfile",
             str(snake_test_env["configfile"]),
         ],
@@ -85,8 +89,7 @@ def test_snakemake_execution(snake_test_env):
         result.returncode == 0
     ), f"Snakemake execution failed:\n{result.stderr}"
 
-    # Check that output files were created
-    output_base = output_base = (
+    output_base = (
         snake_test_env["workdir"]
         / "processed"
         / "sub-0_001"
@@ -97,3 +100,24 @@ def test_snakemake_execution(snake_test_env):
     )
     assert (output_base / "stat.npy").exists(), "Missing output: stat.npy"
     assert (output_base / "data.bin").exists(), "Missing output: data.bin"
+
+
+def test_photon_mosaic_cli_dry_run(snake_test_env):
+    result = subprocess.run(
+        [
+            "photon-mosaic",
+            "--config",
+            str(snake_test_env["configfile"]),
+            "--jobs",
+            "1",
+            "--dry-run",
+        ],
+        cwd=snake_test_env["workdir"],
+        capture_output=True,
+        text=True,
+    )
+
+    print(result.stdout)
+    assert (
+        result.returncode == 0
+    ), f"photon-mosaic CLI dry-run failed:\n{result.stderr}"

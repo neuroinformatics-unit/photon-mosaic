@@ -16,24 +16,42 @@ The current structure sets the stage for future modular integration of preproces
 
 ## Installation
 
-Photon-mosaic requires **Python 3.11** or **3.12** and installs a custom fork of Suite2p for compatibility.
+Photon-mosaic requires **Python 3.11** or **3.12** and depends on a custom fork of Suite2p for compatibility.
 
 ```bash
-git clone https://github.com/neuroinformatics-unit/photon-mosaic.git
-cd photon-mosaic
 conda create -n photon-mosaic python=3.12
 conda activate photon-mosaic
-pip install .
+pip install photon-mosaic
+pip install git+https://github.com/neuroinformatics-unit/suite2p.git
 ```
+N.B.: as you can see, we are using a custom fork of Suite2p to ensure compatibility with the latest Python versions and to include additional features. This fork is maintained by the Neuroinformatics Unit.
 
 To install developer tools (e.g., testing and linting):
 
 ```bash
-pip install '.[dev]'
+pip install -r requirements-dev.txt
+```
 
 ## Configuration
 
-Edit or create your `config.yaml` file in the `workflow` folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
+On first run, photon-mosaic will create a user config at `~/.photon_mosaic/config.yaml` if it does not exist.
+
+You can:
+- Edit this file directly for user-wide defaults.
+- Override key paths at the command line:
+  ```bash
+  photon-mosaic --raw_data_base /my/data --processed_data_base /my/processed --jobs 5
+  ```
+- Use a project-specific config:
+  ```bash
+  photon-mosaic --config ./my/path/to/config.yaml --jobs 5
+  ```
+
+**Note:**
+- The config used for the run (with any overrides) is always exported to a timestamped file in the `derivatives/photon-mosaic/configs/` directory.
+- Snakemake logs are always dumped to a timestamped file in the `derivatives/photon-mosaic/logs/` directory.
+- Both logs and configs are organized with timestamps (format: YYYYMMDD_HHMMSS) for easy tracking of different runs.
+
 Here is an example of a `config.yaml` file:
 
 ```yaml
@@ -56,54 +74,79 @@ slurm:
   nodes: 1
 ```
 
-If you don’t have access to a cluster or SLURM, set `use_slurm: false` to run locally.
+If you don't have access to a cluster or SLURM, set `use_slurm: false` to run locally.
 
 ## Basic snakemake tutorial
 
-With `snakemake` you can run a workflow that automatically runs the necessary steps to process your data. The workflow is pre-defined in `workflow/Snakefile` and can be customized using the provided configuration file.
+With `photon-mosaic`, you can run a Snakemake workflow that automatically executes the necessary steps to process your data. The workflow is included in the installed package and can be customized using a YAML configuration file.
 
-It searches for dataset folders in the specified path and searches for tiffs in each of them. Each dataset will be processed in parallel and the results will be saved in the specified output folder called `derivatives`.
+The pipeline searches for dataset folders in the specified path and looks for TIFF files in each of them. Each dataset will be processed in parallel, and the results will be saved in a standardized output folder structure under `derivatives`.
 
-### Why use snakemake?
-Snakemake is a powerful workflow management system that allows you to run complex data analysis pipelines in a reproducible and efficient manner. For each defined rule (a rule is a step in the workflow, for instance running suite2p), Snakemake will check if the output files already exist and if they are up to date. If they are not, it will run the rule and create the output files. This way, you can easily rerun only the parts of the workflow that need to be updated, without having to rerun the entire analysis pipeline each time.
+### Why use Snakemake?
+
+Snakemake is a powerful workflow management system that allows you to run complex data analysis pipelines in a reproducible and efficient manner. For each defined rule (a rule is a step in the workflow, for instance running Suite2p), Snakemake checks if the output files already exist and whether they are up to date. If not, it runs the rule and generates the outputs.
+
+This approach lets you rerun only the parts of the workflow that need to be updated, avoiding the need to repeat the entire analysis each time.
+
+Here we show examples that do not call directly the `snakemake` command, but instead use the `photon-mosaic` CLI, which is a wrapper around Snakemake that simplifies the execution of the workflow.
 
 **Dry Run**
-A dry run is a simulation of the workflow that shows you what would happen if you ran it, without actually executing any commands. This is useful for checking if everything is set up correctly before running the workflow. What you will see as an output is a DAG, i.e. a directed acyclic graph, that shows the dependencies between the different rules in the workflow. You can also see which files will be created and which rules will be executed. For rules to be linked together, input and output names must match: rule A will be linked to rule B if the output of rule A is the input of rule B.
+A dry run is a simulation that shows what would happen if the workflow were executed, without actually running any commands. This is useful for verifying that everything is set up correctly. The output includes a DAG (directed acyclic graph) showing dependencies between rules, which files will be created, and which rules will be executed.
 
 To preview the workflow without running it:
-```bash
-snakemake --jobs 1 all --dry-run
-```
-`all` is a keyword that tells snakemake to run all the rules in the workflow.
-The `--jobs` argument specifies the number of jobs to run in parallel. In this case, we are running one job at a time. You can increase this number to run multiple jobs in parallel.
-Dry run can also be abbreviated to `-np`.
-
-To run the workflow you can skip the `--dry-run` argument and run the command:
-```bash
-snakemake --jobs 5 all
-```
-
-If you wish to force the re-execution of a given rule you can use the `--force-rerun` argument followed by the name of the rule you want to rerun. For example, if you want to rerun the rule `suite2p`, you can use the command:
-```bash
-snakemake --jobs 5 all --forcerun suite2p
-```
-
-You can also rerun a specific dataset by specifying the output of interest:
-```bash
-snakemake --jobs 1 /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
-```
-This will trigger the analysis that lead to the creation of the file `F.npy` in the specified dataset folder.
-
-Once you have tested the workflow locally, you can use further arguments to submit the jobs to a cluster. If you are using SLURM, you can use the following command:
 
 ```bash
-snakemake --executor slurm --jobs 5 all
+photon-mosaic --jobs 1 --dry-run
 ```
 
-Other useful arguments are:
-- `--latency-wait`: to wait for a certain amount of time before checking if the output files are ready.
-- `--rerun-incomplete`: to rerun any incomplete jobs.
-- `--unlock`: to unlock the workflow.
+By default, the workflow uses the configuration file included in the package. To run with your own configuration:
+
+```bash
+photon-mosaic --config path/to/config.yaml --jobs 1 --dry-run
+```
+
+`--jobs` specifies the number of jobs to run in parallel. You can increase this number to parallelize execution across datasets. A dry run can also be abbreviated to `-np` if using Snakemake directly.
+
+To run the full workflow:
+
+```bash
+photon-mosaic --jobs 5
+```
+
+To force the re-execution of a specific rule:
+
+```bash
+photon-mosaic --jobs 5 --forcerun suite2p
+```
+
+To reprocess a specific dataset, you can specify a target output file (e.g., `F.npy`):
+
+```bash
+photon-mosaic --jobs 1 /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+```
+
+Once you have tested the workflow locally, you can also submit jobs to a cluster. If you are using SLURM:
+
+```bash
+photon-mosaic --jobs 5 --executor slurm
+```
+
+Other useful arguments you can pass:
+
+- `--latency-wait`: wait time before checking if output files are ready
+- `--rerun-incomplete`: rerun any incomplete jobs
+- `--unlock`: unlock the workflow if it's in a locked state
+
+You can also run the workflow directly with `snakemake`, using the programmatic path to the bundled Snakefile:
+
+```bash
+snakemake --snakefile $(python -c 'import photon_mosaic; print(photon_mosaic.get_snakefile_path())') \
+          --configfile path/to/config.yaml \
+          --jobs 5
+```
+
+This is equivalent to using the `photon-mosaic` CLI but gives full control over the Snakemake interface.
+
 
 ## Contributing
 

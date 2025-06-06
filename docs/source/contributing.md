@@ -32,6 +32,20 @@ Finally, initialise the [pre-commit hooks](#formatting-and-pre-commit-hooks):
 pre-commit install
 ```
 
+## Adding a New Feature
+
+To add a new feature, start by creating a new `.smk` rule file inside the `workflow/` folder. This rule should either call an installed package or use a wrapper function defined in the `rules/` Python module.
+
+If your feature needs specific parameters, make sure these are read from the `config.yaml` file, so they can be easily adjusted by the user.
+
+If the feature requires additional Python packages, you must add them to the `project.dependencies` section of the `pyproject.toml` file. Please make sure the package is compatible with the rest of the environment. If the latest version is not suitable or you're unsure which version to use, feel free to ask for help in the Zulip chat or open a discussion in your pull request.
+
+You should also add tests under the `tests/` folder to ensure the rule runs correctly, produces the expected output, and handles edge cases.
+
+Finally, document your feature. If you’re writing a wrapper function, include a clear docstring: it will be automatically included in the API reference docs. For user-facing features, add a short section to the `docs/` folder describing what the feature does, what inputs and config options it expects, and what outputs it generates. An example usage is helpful, but optional.
+
+Making sure each feature is modular, tested, and documented keeps the project clean and easy to maintain.
+
 
 ## Pull requests
 
