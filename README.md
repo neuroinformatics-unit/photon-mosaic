@@ -44,12 +44,12 @@ You can:
   ```
 - Use a project-specific config:
   ```bash
-  photon-mosaic --config ./config.yaml --jobs 5
+  photon-mosaic --config ./my/path/to/config.yaml --jobs 5
   ```
 
 **Note:**
-- The config used for the run (with any overrides) is always exported to a timestamped file in the `photon-mosaic/configs/` directory.
-- Snakemake logs are always dumped to a timestamped file in the `photon-mosaic/logs/` directory.
+- The config used for the run (with any overrides) is always exported to a timestamped file in the `derivatives/photon-mosaic/configs/` directory.
+- Snakemake logs are always dumped to a timestamped file in the `derivatives/photon-mosaic/logs/` directory.
 - Both logs and configs are organized with timestamps (format: YYYYMMDD_HHMMSS) for easy tracking of different runs.
 
 Here is an example of a `config.yaml` file:
