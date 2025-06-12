@@ -46,4 +46,43 @@ dataset_discovery:
       repl: "experiment\\1"
 ```
 
+### Animal ID-based Datasets
+```yaml
+dataset_discovery:
+  pattern: "mouse_[A-Z]\d{3}"  # Match mouse IDs like mouse_A123
+  substitutions:
+    - pattern: "mouse_([A-Z]\d{3})"
+      repl: "subject_\\1"
+```
+
+### Session-based Datasets
+```yaml
+dataset_discovery:
+  pattern: "session_\d{3}"  # Match session_001, session_002, etc.
+  substitutions:
+    - pattern: "session_(\d{3})"
+      repl: "s\\1"  # Convert to shorter format like s001
+```
+
+### Multi-level Directory Structure
+```yaml
+dataset_discovery:
+  pattern: "subject_\d+/session_\d+"  # Match subject_1/session_1, etc.
+  substitutions:
+    - pattern: "subject_(\d+)/session_(\d+)"
+      repl: "s\\1_s\\2"  # Convert to s1_s1 format
+  exclude_patterns:
+    - ".*/test/.*"  # Exclude test directories
+    - ".*/backup/.*"  # Exclude backup directories
+```
+
+### Complex Pattern Matching
+```yaml
+dataset_discovery:
+  pattern: "^(?:raw|processed)_\d{8}_[A-Z]{2}"  # Match raw_20240315_AB or processed_20240315_AB
+  substitutions:
+    - pattern: "^(raw|processed)_(\d{8})_([A-Z]{2})"
+      repl: "\\2_\\3_\\1"  # Reorder to 20240315_AB_raw
+```
+
 The discovered datasets are automatically used in the Snakemake workflow.

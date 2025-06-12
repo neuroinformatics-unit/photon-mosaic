@@ -49,7 +49,7 @@ dataset_discovery:
 
 # Suite2p settings
 suite2p_ops:
-  # Basic acquisition parameters
+  # Some acquisition parameters
   nplanes: 1
   nchannels: 1
   fs: 10.0
@@ -92,6 +92,11 @@ For the full configuration file, see [photon_mosaic/workflow/config.yaml](https:
 ### Suite2p Parameters
 For a complete list of all available Suite2p parameters and their descriptions, please refer to the [official Suite2p documentation](https://suite2p.readthedocs.io/en/latest/settings.html).
 
+#### Registration Settings
+Our custom fork of Suite2p includes additional parameters for registration:
+- `refImg_min_percentile`: Minimum percentile for reference image selection (default: 1). Controls the lower bound of contrast normalization. Higher values improve registration for low SNR datasets like three-photon imaging.
+- `refImg_max_percentile`: Maximum percentile for reference image selection (default: 99). Controls the upper bound of contrast normalization. Together with `refImg_min_percentile`, defines the contrast range for registration.
+
 #### Cell Detection
 To use Cellpose for cell detection, set `anatomical_only` to a value greater than 0 in your configuration. For example:
 
@@ -100,11 +105,8 @@ suite2p_ops:
   anatomical_only: 4  # Use maximum projection image for cell detection
 ```
 
-For more details about cell detection configuration, see the [Suite2p documentation](https://suite2p.readthedocs.io/en/latest/settings.html#cellpose-detection).
-
 ### Preprocessing
-- `output_pattern`: Template for output filenames
-- `steps`: List of preprocessing steps with their parameters
+For detailed information about preprocessing steps and their configuration, see the [preprocessing documentation](preprocessing.md).
 
 ### SLURM
 - `use_slurm`: Enable/disable SLURM job scheduling
@@ -112,6 +114,8 @@ For more details about cell detection configuration, see the [Suite2p documentat
 - `mem_mb`: Memory allocation per job
 - `tasks`: Number of parallel tasks
 - `nodes`: Number of compute nodes
+
+For more details about SLURM configuration options, see the [Snakemake SLURM executor plugin documentation](https://github.com/snakemake/snakemake-executor-plugin-slurm).
 
 ## Tips for Configuration
 
