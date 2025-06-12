@@ -26,14 +26,6 @@ dataset_pairs = list(zip(datasets_old_names, datasets_new_names))
 output_patterns = config["preprocessing"]["output_patterns"]
 
 
-# Suite2p outputs
-suite2p_outputs = [
-    processed_data_base / f"sub-{i}_{new}" / f"ses-{j}" / "funcimg" / "suite2p" / "plane0" / fname
-    for i, (_, new) in enumerate(dataset_pairs)
-    for j in range(len(output_patterns))
-    for fname in ["F.npy", "data.bin"]
-]
-
 # Build a list of all sample identifiers as tuples (sub_idx, ses_idx)
 SAMPLE_PAIRS = [
     (f"{i}", f"{j}")
