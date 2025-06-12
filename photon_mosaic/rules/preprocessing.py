@@ -92,6 +92,13 @@ def run_preprocessing(output_path, config, dataset_folder=None, ses_idx=0):
     dataset_folder : str, optional
         Path to the dataset folder. This is needed for some preprocessing steps
         that require access to the dataset folder.
+    ses_idx : int, optional
+        Session index to process. Default is 0.
+
+    Returns
+    -------
+    None
+        The function saves the preprocessed data to the output path and returns nothing.
     """
 
     # Apply preprocessing steps
