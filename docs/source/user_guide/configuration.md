@@ -85,6 +85,8 @@ For the full configuration file, see [photon_mosaic/workflow/config.yaml](https:
 - `exclude_patterns`: Patterns to skip during processing
 - `substitutions`: Rules to transform dataset names
 
+Please refer to the [dataset discovery documentation](dataset_discovery.md) for more details.
+
 ### Data Paths
 - `raw_data_base`: Root directory for raw imaging data
 - `processed_data_base`: Directory for processed outputs
