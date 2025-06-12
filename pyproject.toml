@@ -11,6 +11,7 @@ dependencies = [
   "numpy",
   "snakemake-executor-plugin-slurm",
   "PyYAML",
+  "derotation"
 ]
 
 license = {text = "BSD-3-Clause"}
