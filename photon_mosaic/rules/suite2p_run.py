@@ -1,3 +1,6 @@
+"""
+Snakemake rule for running Suite2P.
+"""
 import traceback
 from pathlib import Path
 from typing import Optional

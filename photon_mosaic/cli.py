@@ -1,3 +1,7 @@
+"""
+Command line interface for photon-mosaic.
+"""
+
 import argparse
 import importlib.resources as pkg_resources
 import subprocess
