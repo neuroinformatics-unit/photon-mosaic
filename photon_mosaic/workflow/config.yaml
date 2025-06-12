@@ -1,66 +1,166 @@
-# Dataset discovery configuration
+# ============================================================================
+# Data Paths Configuration
+# ============================================================================
+# Base directories for raw and processed data
+raw_data_base: "path/to/raw/data/"
+processed_data_base: "path/to/processed/data/"
+
+# ============================================================================
+# Dataset Discovery Configuration
+# ============================================================================
+# This section controls how datasets are discovered and processed in the pipeline
 dataset_discovery:
   # Match directories starting with '2' (e.g., date-based directories)
   pattern: "^2.*"
-  # Exclude specific patterns
+  
+  # Exclude specific patterns from processing
   exclude_patterns:
-    - ".*_test$"  # Exclude test datasets
+    - ".*_test$"    # Exclude test datasets
     - ".*_backup$"  # Exclude backup datasets
-  # Transform names using regex substitutions
+  
+  # Transform dataset names using regex substitutions
   substitutions:
-    # Remove underscores
+    # Remove underscores from names
     - pattern: "_"
       repl: ""
     # Take the first part of the path
     - pattern: "([^/]+)/.*"
       repl: '\\1'
-raw_data_base: "path/to/raw/data/"
-processed_data_base: "path/to/processed/data/"
+
+# ============================================================================
+# Suite2p Configuration
+# ============================================================================
+# Parameters for Suite2p processing pipeline
 suite2p_ops:
-  fs: 7.5
-  nplanes: 2
-  tau: 0.8
+  # Version and basic settings
+  look_one_level_down: false
+  fast_disk: []
+  delete_bin: false
+  mesoscan: false
+  bruker: false
+  bruker_bidirectional: false
+  
+  # File handling settings
+  h5py: []
+  h5py_key: 'data'
+  nwb_file: ''
+  nwb_driver: ''
+  nwb_series: ''
+  save_path0: ''
+  save_folder: []
+  subfolders: []
+  move_bin: false
+  save_mat: false
+  save_NWB: false
+  
+  # Acquisition parameters
+  nplanes: 1
+  nchannels: 1
+  functional_chan: 1
+  tau: 1.0
+  fs: 10.0
+  force_sktiff: false
+  frames_include: -1
+  multiplane_parallel: false
+  ignore_flyback: []
+  
+  # Registration settings
+  do_registration: true
+  two_step_registration: false
+  keep_movie_raw: false
+  nimg_init: 300
+  batch_size: 500
+  maxregshift: 0.1
+  align_by_chan: 1
+  reg_tif: false
+  reg_tif_chan2: false
+  subpixel: 10
+  smooth_sigma_time: 0
+  smooth_sigma: 1.15
+  th_badframes: 1.0
+  norm_frames: true
+  force_refImg: false
+  pad_fft: false
   nonrigid: true
-  diameter: 10
-# Preprocessing configuration
+  block_size: [128, 128]
+  snr_thresh: 1.2
+  maxregshiftNR: 5
+  1Preg: false
+  spatial_hp_reg: 42
+  pre_smooth: 0
+  spatial_taper: 40
+  
+  # ROI detection settings
+  roidetect: true
+  spikedetect: true
+  sparse_mode: true
+  spatial_scale: 0
+  connected: true
+  nbinned: 5000
+  max_iterations: 20
+  threshold_scaling: 1.0
+  max_overlap: 0.75
+  high_pass: 100
+  spatial_hp_detect: 25
+  denoise: false
+  anatomical_only: 0
+  diameter: 0
+  cellprob_threshold: 0.0
+  flow_threshold: 1.5
+  spatial_hp_cp: 0
+  pretrained_model: 'cyto'
+  
+  # Neuropil extraction settings
+  soma_crop: true
+  neuropil_extract: true
+  inner_neuropil_radius: 2
+  min_neuropil_pixels: 350
+  lam_percentile: 50.0
+  allow_overlap: false
+  
+  # Classification settings
+  use_builtin_classifier: false
+  classifier_path: ''
+  chan2_thres: 0.65
+  
+  # Baseline settings
+  baseline: 'maximin'
+  win_baseline: 60.0
+  sig_baseline: 10.0
+  prctile_baseline: 8.0
+  neucoeff: 0.7
+
+# ============================================================================
+# Preprocessing Configuration
+# ============================================================================
+# Controls the preprocessing steps applied to the data
 preprocessing:
-  # Output file pattern for preprocessed files
+  # Output file naming pattern for preprocessed files
   # Use {tiff_name} as a placeholder for the original tiff filename
-  # You can either use a single pattern:
   output_pattern: "preprocessed_{tiff_name}.tif"
-  # Or specify a list of patterns (they must match the number of input files):
-  # output_patterns:
-  #   - "derotated_{tiff_name}.tif"
-  #   - "derotated_increment_{tiff_name}.tif"
+  
+  # Define preprocessing steps and their parameters
   steps:
+    # Step 1: Derotation
     - name: derotation
       kwargs:
-        # Derotation pipeline parameters
-        # You can either use glob patterns:
+        # File pattern matching for input files
         glob_naming_pattern_tif: "*.tif"
         glob_naming_pattern_bin: "*.bin"
-        # Or specify exact filenames in lists (they must match in length):
-        # glob_naming_pattern_tif: ["rotation.tif", "rotation_increment.tif"]
-        # glob_naming_pattern_bin: ["rotation.bin", "rotation_increment.bin"]
         path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
+    
+    # Step 2: Contrast Enhancement
     - name: contrast_enhancement
       kwargs:
-        clip_limit: 2.0
+        clip_limit: 2.0  # Limit for CLAHE contrast enhancement
 
-# Suite2p configuration
-suite2p_ops:
-  fs: 7.5
-  nplanes: 2
-  tau: 0.8
-  nonrigid: true
-  diameter: 10
-
-# SLURM configuration
+# ============================================================================
+# SLURM Configuration
+# ============================================================================
+# Settings for SLURM job scheduling system
 use_slurm: true
 slurm:
-  slurm_partition: "gpu"
-  mem_mb: 32000
-  # mem_mb_per_cpu: 8000
-  # cpu_per_task: 4
-  tasks: 1
-  nodes: 1
+  slurm_partition: "gpu"  # GPU partition for processing
+  mem_mb: 32000          # Memory allocation in MB
+  tasks: 1               # Number of tasks
+  nodes: 1               # Number of nodes to use
