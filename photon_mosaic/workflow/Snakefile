@@ -80,6 +80,8 @@ rule suite2p:
         bin=f"{processed_data_base}/sub-{{sub_idx}}_{{dataset}}/ses-{{ses_idx}}/funcimg/suite2p/plane0/data.bin"
     params:
         dataset_folder=f"{processed_data_base}/sub-{{sub_idx}}_{{dataset}}/ses-{{ses_idx}}/funcimg"
+    resources:
+        **(slurm_config if config.get("use_slurm") else {}),
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
         run_suite2p(
