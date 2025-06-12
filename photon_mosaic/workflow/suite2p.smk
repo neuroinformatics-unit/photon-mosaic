@@ -1,9 +1,10 @@
 rule suite2p:
     input:
         tiff=lambda wildcards: str(
-            processed_data_base /
+            Path(processed_data_base) /
             f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}" /
-            f"ses-{wildcards.ses_idx}/funcimg/" /
+            f"ses-{wildcards.ses_idx}" /
+            "funcimg" /
             f"{output_patterns[int(wildcards.ses_idx)]}"
         )
     output:
