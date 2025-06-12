@@ -6,21 +6,31 @@ The preprocessing module in photon-mosaic provides a flexible system for applyin
 
 ### Contrast Enhancement
 
-The contrast enhancement step uses CLAHE (Contrast Limited Adaptive Histogram Equalization) to improve image contrast:
+The contrast enhancement step uses percentile-based contrast stretching to improve image contrast:
 
 ```python
 from photon_mosaic.preprocessing import get_step
 
 # Get the contrast enhancement step
-contrast = get_step("contrast_enhancement")
+contrast = get_step("contrast")
 
 # Apply contrast enhancement
-enhanced = contrast(data, clip_limit=2.0)
+enhanced = contrast(
+    dataset_folder="path/to/dataset",
+    output_folder="path/to/output",
+    ses_idx=0,
+    glob_naming_pattern_tif="*.tif",
+    percentile_low=1,
+    percentile_high=99
+)
 ```
 
-Parameters:
-- `data`: Input image data (numpy array)
-- `clip_limit`: Threshold for contrast limiting (default: 2.0)
+The contrast enhancement works by:
+1. Finding the pixel values at the specified percentiles
+2. Stretching the image intensity to use the full range between these values
+3. Saving the enhanced image with the prefix "enhanced_" in the output folder
+
+**Note**: If you are using the `refImg_min_percentile` option in Suite2p (available in our custom fork), you may not need to perform contrast enhancement as a separate preprocessing step. This option automatically handles contrast normalization during the registration process. See the Suite2p configuration section for more details.
 
 ### Derotation
 
@@ -33,13 +43,38 @@ from photon_mosaic.preprocessing import get_step
 derotation = get_step("derotation")
 
 # Apply derotation
-derotated = derotation(data, dataset_folder="path/to/dataset", output_folder="path/to/output")
+derotated = derotation(
+    dataset_folder="path/to/dataset",
+    output_folder="path/to/output",
+    ses_idx=0,
+    glob_naming_pattern_tif="*.tif",
+    glob_naming_pattern_bin="*.bin"
+)
 ```
 
-Parameters:
-- `data`: Input image data (numpy array)
-- `dataset_folder`: Path to the dataset folder
-- `output_folder`: Path to the output folder
+### No-Operation (Noop)
+
+The noop step is useful when you want to skip preprocessing for certain files. It either returns the input data unchanged or copies the input file to the output directory:
+
+```python
+from photon_mosaic.preprocessing import get_step
+
+# Get the noop step
+noop = get_step("noop")
+
+# Option 1: Pass data directly
+processed = noop(data=image_array)
+
+# Option 2: Copy file without modification
+noop(
+    dataset_folder="path/to/dataset",
+    output_folder="path/to/output",
+    ses_idx=0,
+    glob_naming_pattern_tif="*.tif"
+)
+```
+
+For detailed parameter documentation, please refer to the [API Reference](api_reference.html).
 
 ## Using Preprocessing in Configuration
 
@@ -50,11 +85,17 @@ preprocessing:
   steps:
     - name: derotation
       kwargs:
-        dataset_folder: "path/to/dataset"
-        output_folder: "path/to/output"
-    - name: contrast_enhancement
+        glob_naming_pattern_tif: "*.tif"
+        glob_naming_pattern_bin: "*.bin"
+        path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
+    - name: contrast
       kwargs:
-        clip_limit: 2.0
+        glob_naming_pattern_tif: "*.tif"
+        percentile_low: 1
+        percentile_high: 99
+    - name: noop
+      kwargs:
+        glob_naming_pattern_tif: "*.tif"
 ```
 
 ## Adding New Preprocessing Steps
