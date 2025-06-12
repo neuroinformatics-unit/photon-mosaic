@@ -1,15 +1,22 @@
 configfile: "workflow/config.yaml"
 
 from pathlib import Path
+from photon_mosaic.dataset_discovery import discover_datasets
 
-
+# Define paths
 raw_data_base = Path(config["raw_data_base"])
 processed_data_base = Path(config["processed_data_base"])
 slurm_config = config.get("slurm", {})
 
+# Discover datasets based on configuration
+datasets = discover_datasets(
+    str(raw_data_base),
+    pattern=config["dataset_discovery"]["pattern"],
+    exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
+    substitutions=config["dataset_discovery"].get("substitutions")
+)
 
-# discover datasets
-datasets = [f.name for f in raw_data_base.iterdir() if f.is_dir()]
+# Create dictionary of tiff paths for each dataset
 tiff_paths = {
     dataset: list((raw_data_base / dataset).rglob("*.tif?"))
     for dataset in datasets
