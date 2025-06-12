@@ -13,7 +13,7 @@ dataset_discovery:
       repl: ""
     # Take the first part of the path
     - pattern: "([^/]+)/.*"
-      repl: "\1"
+      repl: '\\1'
 raw_data_base: "path/to/raw/data/"
 processed_data_base: "path/to/processed/data/"
 suite2p_ops:
