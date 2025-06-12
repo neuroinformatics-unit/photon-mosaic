@@ -9,7 +9,6 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Union
 
-import numpy as np
 from derotation.derotate_batch import derotate
 
 from .registry import register_step
@@ -17,7 +16,6 @@ from .registry import register_step
 
 @register_step("derotation")
 def run(
-    data: np.ndarray,
     dataset_folder: Optional[Path] = None,
     output_folder: Optional[Path] = None,
     glob_naming_pattern_tif: Union[str, List[str]] = "*.tif",
@@ -83,6 +81,9 @@ def run(
                 output_folder=output_folder,
                 glob_naming_pattern_tif=tif_pattern,
                 glob_naming_pattern_bin=bin_pattern,
+                folder_suffix="incremental"
+                if "increment" in tif_pattern
+                else "full",
                 **kwargs,
             )
 

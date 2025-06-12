@@ -1,36 +1,27 @@
-"""
-Preprocessing rule for photon-mosaic Snakemake workflow.
-
-This file contains the rule for preprocessing image data before running Suite2P.
-"""
-
 from pathlib import Path
 from photon_mosaic.rules.preprocessing import run_preprocessing
+import re
 
+
+tiff_regex = "|".join(re.escape(name) for name in output_patterns)
+
+# Preprocessing rule
 rule preprocessing:
     input:
-        tiff=lambda wildcards: str(tiff_paths[wildcards.datasets][int(wildcards.tiff_index)])
-    output:
-        processed=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/{{tiff_name}}.tif"
-    params:
-        dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
-    resources:
-        **(slurm_config if slurm_config.get("use_slurm") else {}),
-    run:
-        from photon_mosaic.rules.preprocessing_run import run_preprocessing
-        run_preprocessing(
-            input["tiff"],
-            output["processed"],
-            Path(params["dataset_folder"]),
-            config["preprocessing_ops"],
+        tiffs=lambda wildcards: get_input_files(
+            raw_data_base / datasets_old_names[int(wildcards.sub_idx)],
+            config
         )
-
-# Expand the preprocessing rule for all tiff files
-expand(
-    "{processed_data_base}/sub-{index}_{datasets}/ses-0/funcimg/{tiff_name}.tif",
-    processed_data_base=processed_data_base,
-    zip,
-    index=[i for i, _ in enumerate(datasets)],
-    datasets=datasets,
-    tiff_name=[tiff["tiff_name"] for tiff in tiff_files],
-)
+    output:
+        processed="{processed_data}/sub-{sub_idx}_{dataset}/ses-{ses_idx}/funcimg/{tiff}"
+    params:
+        dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)])
+    wildcard_constraints:
+        tiff=tiff_regex
+    run:
+        from photon_mosaic.rules.preprocessing import run_preprocessing
+        run_preprocessing(
+            output.processed,
+            config["preprocessing"],
+            Path(params.dataset_folder),
+        )

@@ -7,9 +7,39 @@ preprocessing registry.
 
 from typing import Dict
 
-from tifffile import imread
-
 from photon_mosaic.preprocessing import get_step
+
+
+def get_input_files(dataset_folder, config):
+    """
+    Get input TIFF files based on the glob patterns defined in the config.
+
+    Parameters
+    ----------
+    dataset_folder : Path
+        Path to the dataset folder.
+    config : dict
+        Configuration dictionary containing glob patterns.
+
+    Returns
+    -------
+    list of Path
+        List of input TIFF file paths matching the patterns.
+    """
+    tiff_files = []
+
+    # Iterate over all preprocessing steps
+    for step in config["preprocessing"]["steps"]:
+        # Get the glob pattern for this step
+        glob_patterns = step["kwargs"].get("glob_naming_pattern_tif", [])
+
+        # Add matching files for each pattern
+        for pattern in glob_patterns:
+            matched_files = [
+                f for f in dataset_folder.rglob(pattern) if f.is_file()
+            ]
+            tiff_files.extend(matched_files)
+    return tiff_files
 
 
 def get_output_pattern(tiff_name: str, config: Dict, tiff_paths: Dict) -> str:
@@ -44,14 +74,12 @@ def get_output_pattern(tiff_name: str, config: Dict, tiff_paths: Dict) -> str:
     return pattern.format(tiff_name=tiff_name)
 
 
-def run_preprocessing(input_path, output_path, config, dataset_folder=None):
+def run_preprocessing(output_path, config, dataset_folder=None):
     """
     Run preprocessing on image data.
 
     Parameters
     ----------
-    input_path : Path
-        Path to the input image file.
     output_path : str
         Path to save the preprocessed image.
     config : dict
@@ -60,25 +88,23 @@ def run_preprocessing(input_path, output_path, config, dataset_folder=None):
         Path to the dataset folder. This is needed for some preprocessing steps
         that require access to the dataset folder.
     """
-    # Load images
-    data = imread(input_path)
 
     # Apply preprocessing steps
-    if "preprocessing" in config and "steps" in config["preprocessing"]:
-        for step in config["preprocessing"]["steps"]:
-            step_name = step["name"]
-            kwargs = step.get("kwargs", {})
+    for step in config["steps"]:
+        step_name = step["name"]
+        kwargs = step.get("kwargs", {})
 
-            # Add dataset folder to kwargs if provided
-            if dataset_folder and "dataset_folder" not in kwargs:
-                kwargs["dataset_folder"] = dataset_folder
+        # Add dataset folder to kwargs if provided
+        if dataset_folder and "dataset_folder" not in kwargs:
+            kwargs["dataset_folder"] = dataset_folder
+            kwargs["output_folder"] = output_path
 
-            # Add output path for contrast enhancement
-            if step_name == "contrast":
-                kwargs["output_path"] = output_path
+        # Add output path for contrast enhancement
+        if step_name == "contrast":
+            kwargs["output_path"] = output_path
 
-            # Get the preprocessing function from the registry
-            func = get_step(step_name)
+        # Get the preprocessing function from the registry
+        func = get_step(step_name)
 
-            # Apply the preprocessing step
-            func(data, **kwargs)
+        # Apply the preprocessing step
+        func(**kwargs)
