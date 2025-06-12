@@ -34,180 +34,49 @@ For reproducibility and debugging:
 
 ## Configuration Structure
 
-Here's a detailed explanation of the configuration file structure:
+The configuration file is organized into several main sections. Here a simplified example:
 
 ```yaml
-# ============================================================================
-# Dataset Discovery Configuration
-# ============================================================================
+# Data paths
+raw_data_base: "/path/to/raw/"
+processed_data_base: "/path/to/processed/"
+
+# Dataset discovery settings
 dataset_discovery:
-  # Pattern to match dataset directories (e.g., date-based folders)
-  pattern: "^2.*"
-  
-  # Patterns to exclude from processing
-  exclude_patterns:
-    - ".*_test$"    # Exclude test datasets
-    - ".*_backup$"  # Exclude backup datasets
-  
-  # Transform dataset names using regex substitutions
-  substitutions:
-    # Remove underscores from names
-    - pattern: "_"
-      repl: ""
-    # Take the first part of the path
-    - pattern: "([^/]+)/.*"
-      repl: '\\1'
+  pattern: "^2.*"  # Pattern to match dataset directories
+  exclude_patterns: []  # Patterns to skip
+  substitutions: []  # Rules to transform names
 
-# ============================================================================
-# Data Paths Configuration
-# ============================================================================
-# Base directories for raw and processed data
-raw_data_base: "/path/to/raw/"      # Directory containing raw imaging data
-processed_data_base: "/path/to/processed/"  # Directory for processed outputs
-
-# ============================================================================
-# Suite2p Configuration
-# ============================================================================
-# Parameters for Suite2p processing pipeline
+# Suite2p settings
 suite2p_ops:
-  # Version and basic settings
-  look_one_level_down: false
-  fast_disk: []
-  delete_bin: false
-  mesoscan: false
-  bruker: false
-  bruker_bidirectional: false
-  
-  # File handling settings
-  h5py: []
-  h5py_key: 'data'
-  nwb_file: ''
-  nwb_driver: ''
-  nwb_series: ''
-  save_path0: ''
-  save_folder: []
-  subfolders: []
-  move_bin: false
-  save_mat: false
-  save_NWB: false
-  
-  # Acquisition parameters
+  # Basic acquisition parameters
   nplanes: 1
   nchannels: 1
-  functional_chan: 1
-  tau: 1.0
   fs: 10.0
-  force_sktiff: false
-  frames_include: -1
-  multiplane_parallel: false
-  ignore_flyback: []
-  
-  # Registration settings
-  do_registration: true
-  two_step_registration: false
-  keep_movie_raw: false
-  nimg_init: 300
-  batch_size: 500
-  maxregshift: 0.1
-  align_by_chan: 1
-  reg_tif: false
-  reg_tif_chan2: false
-  subpixel: 10
-  smooth_sigma_time: 0
-  smooth_sigma: 1.15
-  th_badframes: 1.0
-  norm_frames: true
-  force_refImg: false
-  pad_fft: false
-  nonrigid: true
-  block_size: [128, 128]
-  snr_thresh: 1.2
-  maxregshiftNR: 5
-  1Preg: false
-  spatial_hp_reg: 42
-  pre_smooth: 0
-  spatial_taper: 40
-  refImg_min_percentile: 1  # Minimum percentile for reference image selection (custom fork feature)
-  
-  # ROI detection settings
-  roidetect: true
-  spikedetect: true
-  sparse_mode: true
-  spatial_scale: 0
-  connected: true
-  nbinned: 5000
-  max_iterations: 20
-  threshold_scaling: 1.0
-  max_overlap: 0.75
-  high_pass: 100
-  spatial_hp_detect: 25
-  denoise: false
-  anatomical_only: 0
-  diameter: 0
-  cellprob_threshold: 0.0
-  flow_threshold: 1.5
-  spatial_hp_cp: 0
-  pretrained_model: 'cyto'
-  
-  # Neuropil extraction settings
-  soma_crop: true
-  neuropil_extract: true
-  inner_neuropil_radius: 2
-  min_neuropil_pixels: 350
-  lam_percentile: 50.0
-  allow_overlap: false
-  
-  # Classification settings
-  use_builtin_classifier: false
-  classifier_path: ''
-  chan2_thres: 0.65
-  
-  # Baseline settings
-  baseline: 'maximin'
-  win_baseline: 60.0
-  sig_baseline: 10.0
-  prctile_baseline: 8.0
-  neucoeff: 0.7
+  tau: 1.0
+  # any other Suite2p parameters can be added here
 
-# ============================================================================
-# Preprocessing Configuration
-# ============================================================================
-# Controls the preprocessing steps applied to the data
+  # Cell detection
+  anatomical_only: 0  # Set > 0 to use Cellpose
+
+# Preprocessing steps
 preprocessing:
-  # Output file naming pattern for preprocessed files
-  # Use {tiff_name} as a placeholder for the original tiff filename
-  output_pattern: "preprocessed_{tiff_name}.tif"
-  
-  # Define preprocessing steps and their parameters
   steps:
-    # Step 1: Derotation
-    - name: derotation
-      kwargs:
-        # File pattern matching for input files
-        glob_naming_pattern_tif: "*.tif"
-        glob_naming_pattern_bin: "*.bin"
-        path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
-    
-    # Step 2: Contrast Enhancement
     - name: contrast
       kwargs:
-        # File pattern matching for input files
         glob_naming_pattern_tif: "*.tif"
-        # Contrast enhancement parameters
-        percentile_low: 1    # Lower percentile for contrast stretching
-        percentile_high: 99  # Upper percentile for contrast stretching
+        percentile_low: 1
+        percentile_high: 99
 
-# ============================================================================
-# SLURM Configuration
-# ============================================================================
-# Settings for SLURM job scheduling system
+# SLURM settings
 use_slurm: true
 slurm:
-  slurm_partition: "gpu"  # GPU partition for processing
-  mem_mb: 32000          # Memory allocation in MB
-  tasks: 1               # Number of tasks
-  nodes: 1               # Number of nodes to use
+  partition: "gpu"
+  mem_mb: 32000
+  tasks: 1
+  nodes: 1
 ```
+For the full configuration file, see [photon_mosaic/workflow/config.yaml](https://github.com/neuroinformatics-unit/photon-mosaic/blob/main/photon_mosaic/workflow/config.yaml) or the YAML file in `~/.photon-mosaic/config.yaml` generated on first run.
 
 ## Key Parameters Explained
 
@@ -221,12 +90,17 @@ slurm:
 - `processed_data_base`: Directory for processed outputs
 
 ### Suite2p Parameters
-- **Acquisition**: Basic imaging parameters like sampling rate and number of planes
-- **Registration**: Motion correction settings
-- **ROI Detection**: Cell detection and segmentation parameters
-- **Neuropil**: Neuropil extraction and decontamination settings
-- **Classification**: Cell classification parameters
-- **Baseline**: Baseline correction settings
+For a complete list of all available Suite2p parameters and their descriptions, please refer to the [official Suite2p documentation](https://suite2p.readthedocs.io/en/latest/settings.html).
+
+#### Cell Detection
+To use Cellpose for cell detection, set `anatomical_only` to a value greater than 0 in your configuration. For example:
+
+```yaml
+suite2p_ops:
+  anatomical_only: 4  # Use maximum projection image for cell detection
+```
+
+For more details about cell detection configuration, see the [Suite2p documentation](https://suite2p.readthedocs.io/en/latest/settings.html#cellpose-detection).
 
 ### Preprocessing
 - `output_pattern`: Template for output filenames
