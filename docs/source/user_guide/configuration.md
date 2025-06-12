@@ -8,6 +8,12 @@ The configuration system in `photon-mosaic` is designed to be flexible and user-
 ### User Configuration
 On first run, photon-mosaic will create a user config at `~/.photon_mosaic/config.yaml` if it does not exist. This serves as your default configuration.
 
+The default config expects you to run the pipeline in the directory that contains the raw data and will create a `derivatives` directory in the same directory, following `NeuroBlueprint` conventions. You can specify different paths for the raw and processed data using the `raw_data_base` and `processed_data_base` parameters by editing the config file or via the command line:
+
+```bash
+photon-mosaic --raw_data_base /my/data --processed_data_base /my/processed --jobs 5
+```
+
 ### Project Configuration
 You can also create a project-specific configuration file to override the defaults for a particular analysis.
 
