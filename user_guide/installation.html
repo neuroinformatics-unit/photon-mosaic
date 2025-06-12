@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../_static/documentation_options.js?v=360bc84d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.1</p>
+    <p class="title logo__title">photon-mosaic v0.1.3</p>
   
 </a></div>
     
@@ -370,16 +370,16 @@
                   
   <section id="installation">
 <span id="user-guide-installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
-<p>Photon-mosaic requires <strong>Python 3.11</strong> or <strong>3.12</strong> and installs a custom fork of Suite2p for compatibility.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/neuroinformatics-unit/photon-mosaic.git
-<span class="nb">cd</span><span class="w"> </span>photon-mosaic
-conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>photon-mosaic<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
+<p>Photon-mosaic requires <strong>Python 3.11</strong> or <strong>3.12</strong> and depends on a custom fork of Suite2p for compatibility.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>photon-mosaic<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
 conda<span class="w"> </span>activate<span class="w"> </span>photon-mosaic
-pip<span class="w"> </span>install<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>photon-mosaic
+pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/neuroinformatics-unit/suite2p.git
 </pre></div>
 </div>
+<p>N.B.: as you can see, we are using a custom fork of Suite2p to ensure compatibility with the latest Python versions and to include additional features. This fork is maintained by the Neuroinformatics Unit.</p>
 <p>To install developer tools (e.g., testing and linting):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.[dev]&#39;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
 </pre></div>
 </div>
 </section>

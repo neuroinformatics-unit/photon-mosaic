@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../_static/documentation_options.js?v=360bc84d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.1</p>
+    <p class="title logo__title">photon-mosaic v0.1.3</p>
   
 </a></div>
     
@@ -374,43 +374,53 @@
                   
   <section id="basic-snakemake-tutorial">
 <span id="user-guide-snakemake-tutorial"></span><h1>Basic snakemake tutorial<a class="headerlink" href="#basic-snakemake-tutorial" title="Link to this heading">#</a></h1>
-<p>With <code class="docutils literal notranslate"><span class="pre">snakemake</span></code> you can run a workflow that automatically runs the necessary steps to process your data. The workflow is pre-defined in <code class="docutils literal notranslate"><span class="pre">workflow/Snakefile</span></code> and can be customized using the provided configuration file.</p>
-<p>It searches for dataset folders in the specified path and searches for tiffs in each of them. Each dataset will be processed in parallel and the results will be saved in the specified output folder called <code class="docutils literal notranslate"><span class="pre">derivatives</span></code>.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code>, you can run a Snakemake workflow that automatically executes the necessary steps to process your data. The workflow is included in the installed package and can be customized using a YAML configuration file.</p>
+<p>The pipeline searches for dataset folders in the specified path and looks for TIFF files in each of them. Each dataset will be processed in parallel, and the results will be saved in a standardized output folder structure under <code class="docutils literal notranslate"><span class="pre">derivatives</span></code>.</p>
 <section id="why-use-snakemake">
-<h2>Why use snakemake?<a class="headerlink" href="#why-use-snakemake" title="Link to this heading">#</a></h2>
-<p>Snakemake is a powerful workflow management system that allows you to run complex data analysis pipelines in a reproducible and efficient manner. For each defined rule (a rule is a step in the workflow, for instance running suite2p), Snakemake will check if the output files already exist and if they are up to date. If they are not, it will run the rule and create the output files. This way, you can easily rerun only the parts of the workflow that need to be updated, without having to rerun the entire analysis pipeline each time.</p>
+<h2>Why use Snakemake?<a class="headerlink" href="#why-use-snakemake" title="Link to this heading">#</a></h2>
+<p>Snakemake is a powerful workflow management system that allows you to run complex data analysis pipelines in a reproducible and efficient manner. For each defined rule (a rule is a step in the workflow, for instance running Suite2p), Snakemake checks if the output files already exist and whether they are up to date. If not, it runs the rule and generates the outputs.</p>
+<p>This approach lets you rerun only the parts of the workflow that need to be updated, avoiding the need to repeat the entire analysis each time.</p>
+<p>Here we show examples that do not call directly the <code class="docutils literal notranslate"><span class="pre">snakemake</span></code> command, but instead use the <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> CLI, which is a wrapper around Snakemake that simplifies the execution of the workflow.</p>
 <p><strong>Dry Run</strong>
-A dry run is a simulation of the workflow that shows you what would happen if you ran it, without actually executing any commands. This is useful for checking if everything is set up correctly before running the workflow. What you will see as an output is a DAG, i.e. a directed acyclic graph, that shows the dependencies between the different rules in the workflow. You can also see which files will be created and which rules will be executed. For rules to be linked together, input and output names must match: rule A will be linked to rule B if the output of rule A is the input of rule B.</p>
+A dry run is a simulation that shows what would happen if the workflow were executed, without actually running any commands. This is useful for verifying that everything is set up correctly. The output includes a DAG (directed acyclic graph) showing dependencies between rules, which files will be created, and which rules will be executed.</p>
 <p>To preview the workflow without running it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--jobs<span class="w"> </span><span class="m">1</span><span class="w"> </span>all<span class="w"> </span>--dry-run
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--jobs<span class="w"> </span><span class="m">1</span><span class="w"> </span>--dry-run
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">all</span></code> is a keyword that tells snakemake to run all the rules in the workflow.
-The <code class="docutils literal notranslate"><span class="pre">--jobs</span></code> argument specifies the number of jobs to run in parallel. In this case, we are running one job at a time. You can increase this number to run multiple jobs in parallel.
-Dry run can also be abbreviated to <code class="docutils literal notranslate"><span class="pre">-np</span></code>.</p>
-<p>To run the workflow you can skip the <code class="docutils literal notranslate"><span class="pre">--dry-run</span></code> argument and run the command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span><span class="w"> </span>all
+<p>By default, the workflow uses the configuration file included in the package. To run with your own configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--config<span class="w"> </span>path/to/config.yaml<span class="w"> </span>--jobs<span class="w"> </span><span class="m">1</span><span class="w"> </span>--dry-run
 </pre></div>
 </div>
-<p>If you wish to force the re-execution of a given rule you can use the <code class="docutils literal notranslate"><span class="pre">--force-rerun</span></code> argument followed by the name of the rule you want to rerun. For example, if you want to rerun the rule <code class="docutils literal notranslate"><span class="pre">suite2p</span></code>, you can use the command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span><span class="w"> </span>all<span class="w"> </span>--forcerun<span class="w"> </span>suite2p
+<p><code class="docutils literal notranslate"><span class="pre">--jobs</span></code> specifies the number of jobs to run in parallel. You can increase this number to parallelize execution across datasets. A dry run can also be abbreviated to <code class="docutils literal notranslate"><span class="pre">-np</span></code> if using Snakemake directly.</p>
+<p>To run the full workflow:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span>
 </pre></div>
 </div>
-<p>You can also rerun a specific dataset by specifying the output of interest:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--jobs<span class="w"> </span><span class="m">1</span><span class="w"> </span>/path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+<p>To force the re-execution of a specific rule:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span><span class="w"> </span>--forcerun<span class="w"> </span>suite2p
 </pre></div>
 </div>
-<p>This will trigger the analysis that lead to the creation of the file <code class="docutils literal notranslate"><span class="pre">F.npy</span></code> in the specified dataset folder.</p>
-<p>Once you have tested the workflow locally, you can use further arguments to submit the jobs to a cluster. If you are using SLURM, you can use the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--executor<span class="w"> </span>slurm<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span><span class="w"> </span>all
+<p>To reprocess a specific dataset, you can specify a target output file (e.g., <code class="docutils literal notranslate"><span class="pre">F.npy</span></code>):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--jobs<span class="w"> </span><span class="m">1</span><span class="w"> </span>/path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
 </pre></div>
 </div>
-<p>Other useful arguments are:</p>
+<p>Once you have tested the workflow locally, you can also submit jobs to a cluster. If you are using SLURM:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span><span class="w"> </span>--executor<span class="w"> </span>slurm
+</pre></div>
+</div>
+<p>Other useful arguments you can pass:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--latency-wait</span></code>: to wait for a certain amount of time before checking if the output files are ready.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--rerun-incomplete</span></code>: to rerun any incomplete jobs.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--unlock</span></code>: to unlock the workflow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--latency-wait</span></code>: wait time before checking if output files are ready</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--rerun-incomplete</span></code>: rerun any incomplete jobs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--unlock</span></code>: unlock the workflow if it’s in a locked state</p></li>
 </ul>
+<p>You can also run the workflow directly with <code class="docutils literal notranslate"><span class="pre">snakemake</span></code>, using the programmatic path to the bundled Snakefile:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--snakefile<span class="w"> </span><span class="k">$(</span>python<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;import photon_mosaic; print(photon_mosaic.get_snakefile_path())&#39;</span><span class="k">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--configfile<span class="w"> </span>path/to/config.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--jobs<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>This is equivalent to using the <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> CLI but gives full control over the Snakemake interface.</p>
 </section>
 </section>
 
@@ -443,7 +453,7 @@ Dry run can also be abbreviated to <code class="docutils literal notranslate"><s
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-use-snakemake">Why use snakemake?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-use-snakemake">Why use Snakemake?</a></li>
 </ul>
   </nav></div>
 

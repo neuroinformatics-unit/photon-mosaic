@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../_static/documentation_options.js?v=360bc84d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.1</p>
+    <p class="title logo__title">photon-mosaic v0.1.3</p>
   
 </a></div>
     
@@ -370,8 +370,28 @@
                   
   <section id="configuration">
 <span id="user-guide-configuration"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
-<p>Edit or create your <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file in the <code class="docutils literal notranslate"><span class="pre">workflow</span></code> folder. This file contains all the parameters for the pipeline, including paths to your raw data, processed data, and Suite2p options.
-Here is an example of a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file:</p>
+<p>On first run, photon-mosaic will create a user config at <code class="docutils literal notranslate"><span class="pre">~/.photon_mosaic/config.yaml</span></code> if it does not exist.</p>
+<p>You can:</p>
+<ul>
+<li><p>Edit this file directly for user-wide defaults.</p></li>
+<li><p>Override key paths at the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--raw_data_base<span class="w"> </span>/my/data<span class="w"> </span>--processed_data_base<span class="w"> </span>/my/processed<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+</li>
+<li><p>Use a project-specific config:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--config<span class="w"> </span>./my/path/to/config.yaml<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>Note:</strong></p>
+<ul class="simple">
+<li><p>The config used for the run (with any overrides) is always exported to a timestamped file in the <code class="docutils literal notranslate"><span class="pre">derivatives/photon-mosaic/configs/</span></code> directory.</p></li>
+<li><p>Snakemake logs are always dumped to a timestamped file in the <code class="docutils literal notranslate"><span class="pre">derivatives/photon-mosaic/logs/</span></code> directory.</p></li>
+<li><p>Both logs and configs are organized with timestamps (format: YYYYMMDD_HHMMSS) for easy tracking of different runs.</p></li>
+</ul>
+<p>Here is an example of a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">raw_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/raw/&quot;</span>
 <span class="nt">processed_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/processed/&quot;</span>
 

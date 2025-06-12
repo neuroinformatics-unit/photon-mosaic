@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>photon_mosaic.rules.suite2p_run &#8212; photon-mosaic</title>
+    <title>photon_mosaic.cli &#8212; photon-mosaic</title>
   
   
   
@@ -40,16 +40,15 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+    <script src="../_static/documentation_options.js?v=360bc84d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/photon_mosaic.rules.suite2p_run';</script>
-    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/api/photon_mosaic.rules.suite2p_run.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/photon_mosaic.cli';</script>
+    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/api/photon_mosaic.cli.html" />
     <link rel="icon" href="../_static/light-logo-niu.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="photon_mosaic.s2p_options" href="photon_mosaic.s2p_options.html" />
     <link rel="prev" title="API Reference" href="../api_index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -115,7 +114,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.1</p>
+    <p class="title logo__title">photon-mosaic v0.1.3</p>
   
 </a></div>
     
@@ -326,8 +325,7 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.rules.suite2p_run</a></li>
-<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.s2p_options.html">photon_mosaic.s2p_options</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.cli</a></li>
 </ul>
 </div>
 </nav></div>
@@ -371,7 +369,7 @@
     
     <li class="breadcrumb-item"><a href="../api_index.html" class="nav-link">API Reference</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.rules.suite2p_run</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.cli</span></li>
   </ul>
 </nav>
 </div>
@@ -388,36 +386,54 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-photon_mosaic.rules.suite2p_run">
-<span id="photon-mosaic-rules-suite2p-run"></span><h1>photon_mosaic.rules.suite2p_run<a class="headerlink" href="#module-photon_mosaic.rules.suite2p_run" title="Link to this heading">#</a></h1>
+  <section id="module-photon_mosaic.cli">
+<span id="photon-mosaic-cli"></span><h1>photon_mosaic.cli<a class="headerlink" href="#module-photon_mosaic.cli" title="Link to this heading">#</a></h1>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.rules.suite2p_run.run_suite2p" title="photon_mosaic.rules.suite2p_run.run_suite2p"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_suite2p</span></code></a>(tiff_file, stat_path, bin_path, ...)</p></td>
-<td><p>This function runs Suite2P on a given TIFF file and saves the results in the specified paths.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.main" title="photon_mosaic.cli.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<td><p>Run the photon-mosaic Snakemake pipeline for automated and reproducible</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py function">
-<dt class="sig sig-object py" id="photon_mosaic.rules.suite2p_run.run_suite2p">
-<span class="sig-prename descclassname"><span class="pre">photon_mosaic.rules.suite2p_run.</span></span><span class="sig-name descname"><span class="pre">run_suite2p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tiff_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_ops_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/rules/suite2p_run.html#run_suite2p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.rules.suite2p_run.run_suite2p" title="Link to this definition">#</a></dt>
-<dd><p>This function runs Suite2P on a given TIFF file and saves the
-results in the specified paths. It also handles any exceptions
-that may occur during the process and logs them in an error
-file.</p>
+<dt class="sig sig-object py" id="photon_mosaic.cli.main">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.main" title="Link to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Run the photon-mosaic Snakemake pipeline for automated and reproducible</dt><dd><p>analysis of multiphoton calcium imaging datasets.</p>
+</dd>
+</dl>
+<p>This pipeline integrates Suite2p for image registration and signal
+extraction, with a standardized output folder structure following
+the NeuroBlueprint specification. It is designed for labs that
+store their data on servers connected to HPC clusters and want to
+batch-process multiple imaging sessions in parallel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tiff_file</strong> (<em>str</em>) – The path to the TIFF file to be processed.</p></li>
-<li><p><strong>stat_path</strong> (<em>str</em>) – The path where the Suite2P statistics will be saved.</p></li>
-<li><p><strong>bin_path</strong> (<em>str</em>) – The path where the Suite2P binary data will be saved.</p></li>
-<li><p><strong>dataset_folder</strong> (<em>str</em>) – The path to the folder containing the dataset.</p></li>
-<li><p><strong>user_ops_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary containing user-provided options to override
-the default Suite2P options. The default is None.</p></li>
+<li><p><strong>--config</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to your config.yaml file. If not provided, uses
+~/.photon_mosaic/config.yaml.</p></li>
+<li><p><strong>--raw_data_base</strong> (<em>str</em><em>, </em><em>optional</em>) – Override raw_data_base in config file (path to raw imaging data).</p></li>
+<li><p><strong>--processed_data_base</strong> (<em>str</em><em>, </em><em>optional</em>) – Override processed_data_base in config file (path for processed
+outputs).</p></li>
+<li><p><strong>--jobs</strong> (<em>str</em><em>, </em><em>default=&quot;1&quot;</em>) – Number of parallel jobs to run.</p></li>
+<li><p><strong>--dry-run</strong> (<em>bool</em><em>, </em><em>optional</em>) – Perform a dry run to preview the workflow without executing.</p></li>
+<li><p><strong>--forcerun</strong> (<em>str</em><em>, </em><em>optional</em>) – Force re-run of a specific rule (e.g., ‘suite2p’).</p></li>
+<li><p><strong>--rerun-incomplete</strong> (<em>bool</em><em>, </em><em>optional</em>) – Rerun any incomplete jobs.</p></li>
+<li><p><strong>--unlock</strong> (<em>bool</em><em>, </em><em>optional</em>) – Unlock the workflow if it’s in a locked state.</p></li>
+<li><p><strong>--latency-wait</strong> (<em>int</em><em>, </em><em>default=10</em>) – Time to wait before checking if output files are ready.</p></li>
+<li><p><strong>--executor</strong> (<em>str</em><em>, </em><em>default=&quot;slurm&quot;</em>) – Executor to use.</p></li>
+<li><p><strong>extra</strong> (<em>list</em>) – Additional arguments to pass to snakemake.</p></li>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The pipeline will:
+1. Create a timestamped config file in derivatives/photon-mosaic/configs/
+2. Save execution logs in derivatives/photon-mosaic/logs/
+3. Process all TIFF files found in the raw data directory
+4. Generate standardized outputs following NeuroBlueprint specification</p>
 </dd></dl>
 
 </section>
@@ -441,15 +457,6 @@ the default Suite2P options. The default is None.</p></li>
         <p class="prev-next-title">API Reference</p>
       </div>
     </a>
-    <a class="right-next"
-       href="photon_mosaic.s2p_options.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">photon_mosaic.s2p_options</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -469,7 +476,7 @@ the default Suite2P options. The default is None.</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.rules.suite2p_run.run_suite2p"><code class="docutils literal notranslate"><span class="pre">run_suite2p()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
   </nav></div>
 

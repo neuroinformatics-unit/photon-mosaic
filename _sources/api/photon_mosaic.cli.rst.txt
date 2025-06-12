@@ -1,0 +1,12 @@
+﻿photon\_mosaic.cli
+==================
+
+.. automodule:: photon_mosaic.cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   

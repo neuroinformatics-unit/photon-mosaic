@@ -10,6 +10,7 @@ This section contains automatically generated documentation for the
    :maxdepth: 2
    :caption: API Documentation
 
+   photon_mosaic.cli
    photon_mosaic.rules.suite2p_run
    photon_mosaic.s2p_options
 
@@ -19,5 +20,6 @@ This section contains automatically generated documentation for the
    :toctree: api
    :nosignatures:
 
+   photon_mosaic.cli
    photon_mosaic.rules.suite2p_run
    photon_mosaic.s2p_options
