@@ -1,9 +1,9 @@
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import yaml
 from tifffile import imread
-from pathlib import Path
 
 from photon_mosaic import get_snakefile_path
 
@@ -159,7 +159,7 @@ def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
         snake_test_env["workdir"], datasets, tiffs, check_enhanced=True
     )
 
- 
+
 def test_photon_mosaic_cli_dry_run(snake_test_env):
     """Test that photon-mosaic can do a dry run."""
     result = run_snakemake(
