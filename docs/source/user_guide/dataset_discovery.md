@@ -1,7 +1,7 @@
 (user_guide/dataset_discovery)=
 # Dataset Discovery
 
-The `photon-mosaic` pipeline includes a flexible dataset discovery system that uses regex patterns to find and process datasets.
+The `photon-mosaic` pipeline includes a flexible dataset discovery system that uses regex patterns to find and process datasets. This functionality allows users to process datasets with different naming conventions and structures other than the NeuroBlueprint specification.
 
 ## Configuration
 
