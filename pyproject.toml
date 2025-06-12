@@ -10,7 +10,7 @@ dependencies = [
   "snakemake",
   "numpy",
   "snakemake-executor-plugin-slurm",
-  "suite2p @ git+https://github.com/neuroinformatics-unit/suite2p.git"
+  "PyYAML",
 ]
 
 license = {text = "BSD-3-Clause"}
@@ -33,17 +33,8 @@ classifiers = [
 "Source Code" = "https://github.com/neuroinformatics-unit/photon-mosaic"
 "User Support" = "https://github.com/neuroinformatics-unit/photon-mosaic/issues"
 
-[project.optional-dependencies]
-dev = [
-  "pytest",
-  "pytest-cov",
-  "coverage",
-  "tox",
-  "mypy",
-  "pre-commit",
-  "ruff",
-  "setuptools_scm",
-]
+[project.scripts]
+photon-mosaic = "photon_mosaic.cli:main"
 
 [build-system]
 requires = [
@@ -112,8 +103,7 @@ python =
     3.12: py312
 
 [testenv]
-extras =
-    dev
+deps = -r requirements-dev.txt
 commands =
     pytest -v --color=yes --cov=photon_mosaic --cov-report=xml
 """
