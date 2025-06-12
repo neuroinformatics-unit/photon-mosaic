@@ -79,7 +79,7 @@ def get_output_pattern(tiff_name: str, config: Dict, tiff_paths: Dict) -> str:
     return pattern.format(tiff_name=tiff_name)
 
 
-def run_preprocessing(output_path, config, dataset_folder=None):
+def run_preprocessing(output_path, config, dataset_folder=None, ses_idx=0):
     """
     Run preprocessing on image data.
 
@@ -103,6 +103,7 @@ def run_preprocessing(output_path, config, dataset_folder=None):
         if dataset_folder and "dataset_folder" not in kwargs:
             kwargs["dataset_folder"] = dataset_folder
             kwargs["output_folder"] = output_path
+            kwargs["ses_idx"] = ses_idx
 
         # Add output path for contrast enhancement
         if step_name == "contrast":
