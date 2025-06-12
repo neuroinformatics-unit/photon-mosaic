@@ -24,7 +24,7 @@ conda activate photon-mosaic
 pip install photon-mosaic
 pip install git+https://github.com/neuroinformatics-unit/suite2p.git
 ```
-N.B.: as you can see, we are using a custom fork of Suite2p to ensure compatibility with the latest Python versions and to include additional features. This fork is maintained by the Neuroinformatics Unit.
+N.B.: as you can see, we are using a custom fork of Suite2p to ensure compatibility with the latest Python versions and to include additional features. It will also install the latest version of Cellpose (v4). In order to use older versions of Cellpose, install them manually with `pip install cellpose==x.x.x`.
 
 To install developer tools (e.g., testing and linting):
 
