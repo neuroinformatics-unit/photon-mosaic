@@ -1,13 +1,14 @@
 """
 Snakemake rule for running Suite2P.
 """
+
 import traceback
 from pathlib import Path
 from typing import Optional
 
 from suite2p import run_s2p
-
 from suite2p.default_ops import default_ops
+
 
 def run_suite2p(
     stat_path: str,
@@ -43,8 +44,6 @@ def run_suite2p(
         with open(dataset_folder / "error.txt", "a") as f:
             f.write(f"Error: {e}\n")
             f.write(traceback.format_exc())
-
-
 
 
 def get_edited_options(

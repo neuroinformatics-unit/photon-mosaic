@@ -30,8 +30,8 @@ def run(data=None, **kwargs):
     Returns
     -------
     None
-        The function either returns the input data unchanged or copies the input file
-        to the output directory and returns nothing.
+        The function either returns the input data unchanged or copies the
+        input file to the output directory and returns nothing.
     """
     if data is None:
         # If no data provided, just copy the input file to output

@@ -49,7 +49,8 @@ def run(
     Returns
     -------
     None
-        The function saves the enhanced image to the output path and returns nothing.
+        The function saves the enhanced image to the output path and returns
+        nothing.
     """
     # Convert paths to Path objects
     dataset_folder = Path(dataset_folder)

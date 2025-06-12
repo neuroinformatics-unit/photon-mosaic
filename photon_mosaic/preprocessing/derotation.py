@@ -46,7 +46,8 @@ def run(
     Returns
     -------
     None
-        The function saves the derotated data to the output folder and returns nothing.
+        The function saves the derotated data to the output folder and returns
+        nothing.
 
     Raises
     ------

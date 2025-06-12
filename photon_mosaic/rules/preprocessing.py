@@ -98,7 +98,8 @@ def run_preprocessing(output_path, config, dataset_folder=None, ses_idx=0):
     Returns
     -------
     None
-        The function saves the preprocessed data to the output path and returns nothing.
+        The function saves the preprocessed data to the output path and returns
+        nothing.
     """
 
     # Apply preprocessing steps

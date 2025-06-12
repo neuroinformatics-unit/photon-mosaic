@@ -12,12 +12,12 @@ processed_data_base: "path/to/processed/data/"
 dataset_discovery:
   # Match directories starting with '2' (e.g., date-based directories)
   pattern: "^2.*"
-  
+
   # Exclude specific patterns from processing
   exclude_patterns:
     - ".*_test$"    # Exclude test datasets
     - ".*_backup$"  # Exclude backup datasets
-  
+
   # Transform dataset names using regex substitutions
   substitutions:
     # Remove underscores from names
@@ -36,7 +36,7 @@ preprocessing:
   # Output file naming pattern for preprocessed files
   # Use {tiff_name} as a placeholder for the original tiff filename
   output_pattern: "preprocessed_{tiff_name}.tif"
-  
+
   # Define preprocessing steps and their parameters
   steps:
     # Step 1: Derotation
@@ -46,7 +46,7 @@ preprocessing:
         glob_naming_pattern_tif: "*.tif"
         glob_naming_pattern_bin: "*.bin"
         path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
-    
+
     # Step 2: Contrast Enhancement (optional if using refImg_min_percentile in Suite2p)
     - name: contrast
       kwargs:
@@ -68,7 +68,7 @@ suite2p_ops:
   mesoscan: false  # For scanimage mesoscope recordings
   bruker: false  # For single page BRUKER tiffs
   bruker_bidirectional: false  # For bidirectional BRUKER recordings
-  
+
   # File handling settings
   h5py: []  # Path to h5py input file
   h5py_key: 'data'  # Key for h5py data array
@@ -81,7 +81,7 @@ suite2p_ops:
   move_bin: false  # Move binary file to save_disk
   save_mat: false  # Save results in matlab format
   save_NWB: false  # Save output as NWB file
-  
+
   # Acquisition parameters
   nplanes: 1  # Number of planes per tiff
   nchannels: 1  # Number of channels per plane
@@ -92,7 +92,7 @@ suite2p_ops:
   frames_include: -1  # Number of frames to process (-1 for all)
   multiplane_parallel: false  # Run pipeline on server
   ignore_flyback: []  # Planes to ignore as flyback
-  
+
   # Registration settings
   do_registration: true  # Run registration
   two_step_registration: false  # Run registration twice (for low SNR)
@@ -120,7 +120,7 @@ suite2p_ops:
   spatial_taper: 40  # Edge pixels to ignore
   refImg_min_percentile: 1  # Min percentile for reference image
   refImg_max_percentile: 99  # Max percentile for reference image
-  
+
   # ROI detection settings
   roidetect: true  # Run ROI detection
   spikedetect: true  # Run spike detection
@@ -140,7 +140,7 @@ suite2p_ops:
   flow_threshold: 1.5  # Cellpose flow threshold
   spatial_hp_cp: 0  # Window for Cellpose high-pass
   pretrained_model: 'cyto'  # Cellpose model
-  
+
   # Neuropil extraction settings
   soma_crop: true  # Crop dendrites for stats
   neuropil_extract: true  # Extract neuropil signal
@@ -148,12 +148,12 @@ suite2p_ops:
   min_neuropil_pixels: 350  # Min pixels for neuropil
   lam_percentile: 50.0  # Lambda percentile to ignore
   allow_overlap: false  # Extract from overlapping pixels
-  
+
   # Classification settings
   use_builtin_classifier: false  # Use built-in classifier
   classifier_path: ''  # Path to classifier file
   chan2_thres: 0.65  # Threshold for channel 2 detection
-  
+
   # Baseline settings
   baseline: 'maximin'  # Baseline computation method
   win_baseline: 60.0  # Window for maximin filter (s)
