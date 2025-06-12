@@ -25,14 +25,6 @@ datasets_new_names = discover_datasets(
 dataset_pairs = list(zip(datasets_old_names, datasets_new_names))
 output_patterns = config["preprocessing"]["output_patterns"]
 
-
-# Build a list of all sample identifiers as tuples (sub_idx, ses_idx)
-SAMPLE_PAIRS = [
-    (f"{i}", f"{j}")
-    for i in range(len(datasets_new_names))
-    for j in range(len(output_patterns))
-]
-
 include: "preprocessing.smk"
 include: "suite2p.smk"
 
