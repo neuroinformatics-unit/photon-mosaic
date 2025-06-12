@@ -26,6 +26,12 @@ def run(data=None, **kwargs):
         - dataset_folder: Path to the input file
         - output_folder: Path to save the output
         - ses_idx: Session index
+
+    Returns
+    -------
+    None
+        The function either returns the input data unchanged or copies the input file
+        to the output directory and returns nothing.
     """
     if data is None:
         # If no data provided, just copy the input file to output

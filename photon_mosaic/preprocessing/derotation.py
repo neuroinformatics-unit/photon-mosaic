@@ -38,8 +38,15 @@ def run(
     glob_naming_pattern_bin : Union[str, List[str]]
         Pattern(s) to match bin files. Can be a single pattern or a list of
         specific filenames.
+    ses_idx : int, optional
+        Session index to process. Default is 0.
     **kwargs : dict
         Additional arguments for the derotation pipeline.
+
+    Returns
+    -------
+    None
+        The function saves the derotated data to the output folder and returns nothing.
 
     Raises
     ------

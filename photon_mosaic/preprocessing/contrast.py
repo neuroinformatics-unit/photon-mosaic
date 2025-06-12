@@ -45,6 +45,11 @@ def run(
             Lower percentile for contrast stretching. Default is 1.
         - percentile_high : float, optional
             Upper percentile for contrast stretching. Default is 99.
+
+    Returns
+    -------
+    None
+        The function saves the enhanced image to the output path and returns nothing.
     """
     # Convert paths to Path objects
     dataset_folder = Path(dataset_folder)
