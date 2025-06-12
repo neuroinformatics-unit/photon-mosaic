@@ -22,6 +22,16 @@ tiff_paths = {
     for dataset in datasets
 }
 
+# Create a list of all tiff files with their dataset and tiff name
+tiff_files = []
+for dataset, paths in tiff_paths.items():
+    for i, path in enumerate(paths):
+        tiff_files.append({
+            "dataset": dataset,
+            "tiff_index": i,
+            "tiff_name": Path(path).stem
+        })
+
 # Include preprocessing rule
 include: "preprocessing.smk"
 
@@ -38,7 +48,7 @@ rule all:
 
 rule suite2p:
     input:
-        tiff=rules.preprocessing.output.tiff,  # Use the preprocessed output
+        tiff=lambda wildcards: f"{processed_data_base}/sub-{wildcards.index}_{wildcards.datasets}/ses-0/funcimg/{wildcards.tiff_name}.tif",
     output:
         stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
         bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
