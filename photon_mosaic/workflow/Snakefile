@@ -22,7 +22,6 @@ datasets_new_names = discover_datasets(
 )
 
 # Mapping old_name -> new_name
-dataset_pairs = list(zip(datasets_old_names, datasets_new_names))
 output_patterns = config["preprocessing"]["output_patterns"]
 
 include: "preprocessing.smk"
