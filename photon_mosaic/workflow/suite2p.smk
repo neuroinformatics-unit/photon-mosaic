@@ -1,7 +1,7 @@
 rule suite2p:
     input:
         tiff=lambda wildcards: str(
-            Path(processed_data_base)
+            Path(processed_data_base).resolve()
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
@@ -9,7 +9,7 @@ rule suite2p:
         )
     output:
         F=str(
-            Path(processed_data_base)
+            Path(processed_data_base).resolve()
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
@@ -18,7 +18,7 @@ rule suite2p:
             / "F.npy"
         ),
         bin=str(
-            Path(processed_data_base)
+            Path(processed_data_base).resolve()
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
@@ -28,7 +28,7 @@ rule suite2p:
         )
     params:
         dataset_folder=lambda wildcards: str(
-            Path(processed_data_base)
+            Path(processed_data_base).resolve()
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"

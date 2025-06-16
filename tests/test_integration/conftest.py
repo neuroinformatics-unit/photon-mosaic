@@ -87,8 +87,8 @@ def snake_test_env(tmp_path, test_config):
 
     # Update paths in config
     config = test_config.copy()
-    config["raw_data_base"] = str(raw_data)
-    config["processed_data_base"] = str(processed_data)
+    config["raw_data_base"] = str(raw_data.resolve())
+    config["processed_data_base"] = str(processed_data.resolve())
 
     # Create config file
     config_path = tmp_path / "config.yaml"
