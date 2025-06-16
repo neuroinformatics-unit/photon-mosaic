@@ -33,6 +33,8 @@ rule suite2p:
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
         )
+    wildcard_constraints:
+        dataset="|".join(datasets_new_names)
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
