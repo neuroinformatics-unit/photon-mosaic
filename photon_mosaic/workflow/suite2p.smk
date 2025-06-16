@@ -8,29 +8,29 @@ rule suite2p:
             / f"{output_patterns[int(wildcards.ses_idx)]}"
         )
     output:
-        F=lambda wildcards, processed_data_base, dataset, sub_idx, ses_idx: str(
+        F=str(
             Path(processed_data_base)
-            / f"sub-{sub_idx}_{dataset}"
-            / f"ses-{ses_idx}"
+            / "sub-{sub_idx}_{dataset}"
+            / "ses-{ses_idx}"
             / "funcimg"
             / "suite2p"
             / "plane0"
             / "F.npy"
         ),
-        bin=lambda wildcards, processed_data_base, dataset, sub_idx, ses_idx: str(
+        bin=str(
             Path(processed_data_base)
-            / f"sub-{sub_idx}_{dataset}"
-            / f"ses-{ses_idx}"
+            / "sub-{sub_idx}_{dataset}"
+            / "ses-{ses_idx}"
             / "funcimg"
             / "suite2p"
             / "plane0"
             / "data.bin"
         )
     params:
-        dataset_folder=lambda wildcards, processed_data_base, dataset, sub_idx, ses_idx: str(
+        dataset_folder=lambda wildcards: str(
             Path(processed_data_base)
-            / f"sub-{sub_idx}_{dataset}"
-            / f"ses-{ses_idx}"
+            / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
+            / f"ses-{wildcards.ses_idx}"
             / "funcimg"
         )
     resources:

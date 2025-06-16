@@ -77,3 +77,23 @@ snakemake --snakefile $(python -c 'import photon_mosaic; print(photon_mosaic.get
 ```
 
 This is equivalent to using the `photon-mosaic` CLI but gives full control over the Snakemake interface.
+
+## Path and Wildcard Handling in Snakemake
+
+Key considerations for handling paths and wildcards in Snakemake:
+
+### Wildcard Syntax
+Wildcards are used to define the pattern of the output files and are inferred via the outputs paths. Use single curly braces for wildcards in output paths: `{wildcard_name}`. You can use the `wildcards` object to access the values of the wildcards in the rule by constructing a lambda function: `lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")`. In the parameters, you can use the wildcards to construct the path to the input files.
+
+Use `pathlib.Path` for cross-platform compatibility and convert paths to strings when using in Snakemake rules.
+
+Example:
+```python
+rule example:
+    input:
+        file=lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")
+    output:
+        result=str(Path(output_dir) / "sub-{sub_idx}" / "processed.npy")
+    params:
+        folder=lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}")
+```
