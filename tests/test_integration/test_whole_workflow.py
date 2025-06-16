@@ -27,6 +27,9 @@ def run_snakemake(workdir, configfile, dry_run=False):
     if dry_run:
         cmd.insert(1, "--dry-run")
 
+    #  print the command that will be run
+    print(" ".join(cmd))
+
     result = subprocess.run(
         cmd,
         cwd=workdir,
@@ -43,7 +46,7 @@ def check_output_files(workdir, datasets, tiffs, check_enhanced=False):
         for ses_idx, tiff in enumerate(tiffs):
             output_base = (
                 workdir
-                / "processed"
+                / "derivatives"
                 / f"sub-{sub_idx}_{dataset}"
                 / f"ses-{ses_idx}"
                 / "funcimg"
@@ -78,7 +81,7 @@ def check_output_files(workdir, datasets, tiffs, check_enhanced=False):
             if check_enhanced:
                 enhanced_file = (
                     workdir
-                    / "processed"
+                    / "derivatives"
                     / f"sub-{sub_idx}_{dataset}"
                     / f"ses-{ses_idx}"
                     / "funcimg"
@@ -144,9 +147,9 @@ def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
     """
     # Update config with contrast enhancement settings
     config = test_config_with_contrast.copy()
-    config["raw_data_base"] = str(Path(snake_test_env["workdir"]) / "raw")
+    config["raw_data_base"] = str(Path(snake_test_env["workdir"]) / "raw_data")
     config["processed_data_base"] = str(
-        Path(snake_test_env["workdir"]) / "processed"
+        Path(snake_test_env["workdir"]) / "derivatives"
     )
 
     # Create config file

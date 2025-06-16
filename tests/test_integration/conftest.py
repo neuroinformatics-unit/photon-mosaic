@@ -8,8 +8,8 @@ import yaml
 def get_base_config():
     """Create a base configuration that can be extended."""
     return {
-        "raw_data_base": "raw",
-        "processed_data_base": "processed",
+        "raw_data_base": "raw_data",
+        "processed_data_base": "derivatives",
         "dataset_discovery": {
             "pattern": "^.*$",  # Match all directories for testing
             "exclude_patterns": [],  # Don't exclude anything
@@ -84,13 +84,13 @@ def snake_test_env(tmp_path, test_config):
     print("\n=== Setting up test environment ===")
     print(f"Temporary directory: {tmp_path}")
 
-    raw_data = tmp_path / "raw"
+    raw_data = tmp_path / "raw_data"
     print(f"Raw data directory: {raw_data}")
     print(f"Copying test data from: {Path('tests/data').absolute()}")
     shutil.copytree("tests/data", raw_data)
     print(f"Raw data contents after copy: {list(raw_data.glob('**/*'))}")
 
-    processed_data = tmp_path / "processed"
+    processed_data = tmp_path / "derivatives"
     processed_data.mkdir()
     print(f"Processed data directory: {processed_data}")
 
