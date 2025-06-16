@@ -39,8 +39,15 @@ rule suite2p:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
+        from pathlib import Path
+
+        # Ensure all paths are properly resolved
+        input_path = Path(input.tiff).resolve()
+        output_path = Path(output.F).resolve()
+        dataset_folder = Path(params.dataset_folder).resolve()
+
         run_suite2p(
-            output.F,
-            Path(params.dataset_folder),
+            str(output_path),
+            dataset_folder,
             config["suite2p_ops"],
         )

@@ -16,7 +16,7 @@ rule preprocessing:
         )
     output:
         processed=str(
-            Path("{processed_data}")
+            Path(processed_data_base).resolve()
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
@@ -25,13 +25,14 @@ rule preprocessing:
     params:
         dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),
         output_folder=lambda wildcards: str(
-            Path(processed_data_base)
+            Path(processed_data_base).resolve()
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
         ),
     wildcard_constraints:
-        tiff=tiff_regex
+        tiff=tiff_regex,
+        dataset="|".join(datasets_new_names)
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
