@@ -28,13 +28,27 @@ include: "preprocessing.smk"
 include: "suite2p.smk"
 
 preproc_targets = [
-    f"{processed_data_base}/sub-{i}_{datasets_new_names[i]}/ses-{j}/funcimg/{output_patterns[j]}"
+    str(
+        Path(processed_data_base)
+        / f"sub-{i}_{datasets_new_names[i]}"
+        / f"ses-{j}"
+        / "funcimg"
+        / output_patterns[j]
+    )
     for i in range(len(datasets_new_names))
     for j in range(len(output_patterns))
 ]
 
 suite2p_targets = [
-    f"{processed_data_base}/sub-{i}_{datasets_new_names[i]}/ses-{j}/funcimg/suite2p/plane0/{fname}"
+    str(
+        Path(processed_data_base)
+        / f"sub-{i}_{datasets_new_names[i]}"
+        / f"ses-{j}"
+        / "funcimg"
+        / "suite2p"
+        / "plane0"
+        / fname
+    )
     for i in range(len(datasets_new_names))
     for j in range(len(output_patterns))
     for fname in ["F.npy", "data.bin"]

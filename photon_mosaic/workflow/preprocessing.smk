@@ -15,11 +15,20 @@ rule preprocessing:
             ses_idx = int(wildcards.ses_idx),
         )
     output:
-        processed="{processed_data}/sub-{sub_idx}_{dataset}/ses-{ses_idx}/funcimg/{tiff}"
+        processed=str(
+            Path("{processed_data}")
+            / "sub-{sub_idx}_{dataset}"
+            / "ses-{ses_idx}"
+            / "funcimg"
+            / "{tiff}"
+        )
     params:
         dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),
         output_folder=lambda wildcards: str(
-            processed_data_base / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}/ses-{wildcards.ses_idx}/funcimg"
+            Path(processed_data_base)
+            / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
+            / f"ses-{wildcards.ses_idx}"
+            / "funcimg"
         ),
     wildcard_constraints:
         tiff=tiff_regex
