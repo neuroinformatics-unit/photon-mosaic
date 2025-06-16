@@ -102,9 +102,19 @@ def check_output_files(workdir, datasets, tiffs, check_enhanced=False):
 
 def test_snakemake_dry_run(snake_test_env):
     """Test that snakemake can do a dry run."""
+    print("\n=== Starting snakemake dry run test ===")
+    print(f"Working directory: {snake_test_env['workdir']}")
+    print(f"Config file: {snake_test_env['configfile']}")
+
+    # List contents of working directory
+    print("\nWorking directory contents:")
+    for path in Path(snake_test_env["workdir"]).glob("**/*"):
+        print(f"  {path}")
+
     result = run_snakemake(
         snake_test_env["workdir"], snake_test_env["configfile"], dry_run=True
     )
+
     assert result.returncode == 0, (
         f"Snakemake dry-run failed:\nSTDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"

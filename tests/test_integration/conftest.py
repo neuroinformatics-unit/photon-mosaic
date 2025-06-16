@@ -1,4 +1,5 @@
 import shutil
+from pathlib import Path
 
 import pytest
 import yaml
@@ -80,20 +81,34 @@ def snake_test_env(tmp_path, test_config):
     """
     Fixture that sets up the test environment with data and configuration.
     """
+    print("\n=== Setting up test environment ===")
+    print(f"Temporary directory: {tmp_path}")
+
     raw_data = tmp_path / "raw"
+    print(f"Raw data directory: {raw_data}")
+    print(f"Copying test data from: {Path('tests/data').absolute()}")
     shutil.copytree("tests/data", raw_data)
+    print(f"Raw data contents after copy: {list(raw_data.glob('**/*'))}")
+
     processed_data = tmp_path / "processed"
     processed_data.mkdir()
+    print(f"Processed data directory: {processed_data}")
 
     # Update paths in config
     config = test_config.copy()
     config["raw_data_base"] = str(raw_data.resolve())
     config["processed_data_base"] = str(processed_data.resolve())
 
+    print("\n=== Configuration ===")
+    print(f"Raw data base: {config['raw_data_base']}")
+    print(f"Processed data base: {config['processed_data_base']}")
+
     # Create config file
     config_path = tmp_path / "config.yaml"
     with open(config_path, "w") as f:
         yaml.safe_dump(config, f, default_style='"', allow_unicode=True)
+    print(f"Config file created at: {config_path}")
+    print("=== End of test environment setup ===\n")
 
     return {
         "workdir": tmp_path,
