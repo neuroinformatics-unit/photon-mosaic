@@ -1,3 +1,5 @@
+import re
+
 rule suite2p:
     input:
         tiff=lambda wildcards: str(
@@ -5,7 +7,7 @@ rule suite2p:
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
-            / f"{output_patterns[int(wildcards.ses_idx)]}"
+            / tiff_files_map[int(wildcards.sub_idx)][int(wildcards.ses_idx)]
         )
     output:
         F=str(
@@ -32,9 +34,9 @@ rule suite2p:
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
-        )
+        ),
     wildcard_constraints:
-        dataset="|".join(datasets_new_names)
+        dataset="|".join(datasets_new_names),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:

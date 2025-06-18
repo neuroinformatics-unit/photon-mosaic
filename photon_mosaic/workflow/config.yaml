@@ -35,7 +35,7 @@ dataset_discovery:
 preprocessing:
   # Output file naming pattern for preprocessed files
   # Use {tiff_name} as a placeholder for the original tiff filename
-  output_pattern: "preprocessed_{tiff_name}.tif"
+  output_patterns: ["{tiff_name}.tif"]
 
   # Define preprocessing steps and their parameters
   steps:

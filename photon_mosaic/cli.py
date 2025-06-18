@@ -7,7 +7,8 @@ import importlib.resources as pkg_resources
 import subprocess
 from datetime import datetime
 from pathlib import Path
-
+import shutil
+import logging
 import yaml
 
 from photon_mosaic import get_snakefile_path
@@ -68,12 +69,12 @@ def main():
     )
     parser.add_argument(
         "--raw_data_base",
-        default=".",
+        default=None,
         help="Override raw_data_base in config file",
     )
     parser.add_argument(
         "--processed_data_base",
-        default=".",
+        default=None,
         help="Override processed_data_base in config file",
     )
     parser.add_argument(
@@ -104,8 +105,13 @@ def main():
     )
     parser.add_argument(
         "--executor",
-        default="slurm",
+        default=None,
         help="Executor to use",
+    )
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        help="Log level",
     )
     parser.add_argument(
         "extra",
@@ -115,25 +121,29 @@ def main():
 
     args = parser.parse_args()
 
+    logging.basicConfig(level=args.log_level)
+    logger = logging.getLogger(__name__)
+    logger.debug("Starting photon-mosaic CLI")
+
     # Ensure ~/.photon_mosaic/config.yaml exists, if not, create it
     default_config_dif = Path.home() / ".photon_mosaic"
     default_config_path = default_config_dif / "config.yaml"
     if not default_config_path.exists():
+        logger.debug("Creating default config file")
         default_config_dif.mkdir(parents=True, exist_ok=True)
-        default_config_path = pkg_resources.files("photon_mosaic").joinpath(
+        source_config_path = pkg_resources.files("photon_mosaic").joinpath(
             "workflow", "config.yaml"
         )
-        with (
-            open(default_config_path, "r") as src,
-            open(default_config_path, "w") as dst,
-        ):
+        with source_config_path.open("rb") as src, open(default_config_path, "wb") as dst:
             dst.write(src.read())
 
     # Determine which config to use
     if args.config is not None:
+        logger.debug(f"Using config file: {args.config}")
         # Take the path provided by the user
         config_path = Path(args.config)
     elif default_config_path.exists():
+        logger.debug("Using default config file")
         # Use the default config
         config_path = default_config_path
 
@@ -143,14 +153,28 @@ def main():
 
     # Apply CLI overrides
     if args.raw_data_base is not None:
+        logger.debug(f"Overriding raw_data_base to: {args.raw_data_base}")
         config["raw_data_base"] = args.raw_data_base
+    else:
+        logger.debug(f"Using raw_data_base from config file: {config['raw_data_base']}")
+
     if args.processed_data_base is not None:
+        logger.debug(f"Overriding processed_data_base to: {args.processed_data_base}")
         config["processed_data_base"] = args.processed_data_base
+    else:
+        logger.debug(f"Using processed_data_base from config file: {config['processed_data_base']}")
+
+    # Append derivatives to the processed_data_base if it doesn't end with /derivatives
+    processed_data_base = Path(config['processed_data_base']).resolve()
+    if processed_data_base.name != "derivatives":
+        processed_data_base = processed_data_base / "derivatives"
+    config['processed_data_base'] = str(processed_data_base)
 
     # Create photon-mosaic directory with logs and configs subdirectories
     output_dir = (
-        Path(args.processed_data_base) / "derivatives" / "photon-mosaic"
+        processed_data_base / "photon-mosaic"
     )
+    logger.debug(f"Creating output directory: {output_dir}")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     logs_dir = output_dir / "logs"
     configs_dir = output_dir / "configs"
@@ -165,10 +189,12 @@ def main():
     config_filename = f"config_{timestamp}.yaml"
     config_path = configs_dir / config_filename
     with open(config_path, "w") as f:
+        logger.debug(f"Saving config to: {config_path}")
         yaml.dump(config, f)
 
     snakefile_path = get_snakefile_path()
 
+    logger.debug(f"Launching snakemake with snakefile: {snakefile_path}")
     cmd = [
         "snakemake",
         "--snakefile",
@@ -198,4 +224,13 @@ def main():
     log_filename = f"snakemake_{timestamp}.log"
     log_path = logs_dir / log_filename
     with open(log_path, "w") as logfile:
-        subprocess.run(cmd, stdout=logfile, stderr=logfile)
+        logger.debug(f"Saving logs to: {log_path}")
+        logger.info(f"Launching snakemake with command: {' '.join(cmd)}")
+        result = subprocess.run(cmd, stdout=logfile, stderr=logfile)
+        if result.returncode == 0:
+            logging.info("Snakemake pipeline completed successfully.")
+        else:
+            logging.info(f"Snakemake pipeline failed with exit code {result.returncode}. Check the log file at {log_path} for details.")
+        
+
+

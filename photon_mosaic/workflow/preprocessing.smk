@@ -1,15 +1,15 @@
 from pathlib import Path
 from photon_mosaic.rules.preprocessing import run_preprocessing
 import re
+import logging
 
-
-#  Necessary for the suite2p rule to understand the input mapping
-tiff_regex = "|".join(re.escape(name) for name in output_patterns)
+tiff_regex = "|".join(TIFF_NAMES)
+logging.debug(f"TIFF regex: {tiff_regex}")
 
 # Preprocessing rule
 rule preprocessing:
     input:
-        tiff=lambda wildcards: get_input_files(
+        img=lambda wildcards: get_input_files(
             dataset_folder = raw_data_base / datasets_old_names[int(wildcards.sub_idx)],
             config = config,
             ses_idx = int(wildcards.ses_idx),

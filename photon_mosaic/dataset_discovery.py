@@ -7,7 +7,7 @@ All filtering and transformations are handled through regex substitutions.
 
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 
 def discover_datasets(
@@ -15,9 +15,10 @@ def discover_datasets(
     pattern: str = ".*",
     exclude_patterns: Optional[List[str]] = None,
     substitutions: Optional[List[Dict[str, str]]] = None,
-) -> List[str]:
+    tiff_pattern: str = "*.tif",
+) -> Tuple[List[str], List[str], Dict[str, List[str]]]:
     """
-    Discover datasets in a directory using regex patterns.
+    Discover datasets and their TIFF files in a directory using regex patterns.
 
     Parameters
     ----------
@@ -31,36 +32,16 @@ def discover_datasets(
     substitutions : List[Dict[str, str]], optional
         List of regex substitution pairs to transform dataset names.
         Each dict should have 'pattern' and 'repl' keys for re.sub().
+    tiff_pattern : str, optional
+        Glob pattern for TIFF files (default: '*.tif').
 
     Returns
     -------
-    List[str]
-        List of discovered dataset names.
+    Tuple[List[str], List[str], Dict[str, List[str]]]
+        - List of original dataset names
+        - List of transformed dataset names
+        - Dictionary mapping original dataset names to their TIFF files
 
-    Examples
-    --------
-    >>> # Find all datasets starting with '2' (e.g., date-based)
-    >>> datasets = discover_datasets("/path/to/data", pattern="^2.*")
-
-    >>> # Exclude test datasets and remove underscores
-    >>> datasets = discover_datasets(
-    ...     "/path/to/data",
-    ...     pattern="^2.*",
-    ...     exclude_patterns=[".*_test$"],
-    ...     substitutions=[{"pattern": "_", "repl": ""}],
-    ... )
-
-    >>> # Complex transformations using regex groups
-    >>> datasets = discover_datasets(
-    ...     "/path/to/data",
-    ...     pattern=".*",
-    ...     substitutions=[
-    ...         # Convert "exp_001" to "experiment001"
-    ...         {"pattern": "exp_(\d+)", "repl": r"experiment\1"},
-    ...         # Remove any trailing _v1, _v2, etc.
-    ...         {"pattern": "_v\d+$", "repl": ""},
-    ...     ],
-    ... )
     """
     # Convert base_path to Path if it's a string
     base_path_obj = (
@@ -79,11 +60,23 @@ def discover_datasets(
         for exclude in exclude_patterns:
             datasets = [ds for ds in datasets if not re.match(exclude, ds)]
 
-    # Apply regex substitutions
+    # Store original dataset names
+    original_datasets = datasets.copy()
+
+    # Apply regex substitutions to get new names
     if substitutions:
         for sub in substitutions:
             datasets = [
                 re.sub(sub["pattern"], sub["repl"], ds) for ds in datasets
             ]
 
-    return sorted(datasets)
+    # Discover TIFF files for each dataset
+    tiff_files = {}
+    for dataset in original_datasets:
+        dataset_path = base_path_obj / dataset
+        tiff_files[dataset] = sorted([
+            f.name for f in dataset_path.glob(tiff_pattern)
+        ])
+
+    return sorted(original_datasets), sorted(datasets), tiff_files
+

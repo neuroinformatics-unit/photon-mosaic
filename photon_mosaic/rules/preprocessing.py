@@ -20,11 +20,13 @@ def get_input_files(dataset_folder, config, ses_idx):
         Path to the dataset folder.
     config : dict
         Configuration dictionary containing glob patterns.
+    ses_idx : int
+        Session index to process.
 
     Returns
     -------
-    list of Path
-        List of input TIFF file paths matching the patterns.
+    Path
+        Input TIFF file path matching the patterns.
     """
     tiff_files = []
 
@@ -44,6 +46,11 @@ def get_input_files(dataset_folder, config, ses_idx):
                     f"No files found for pattern {pattern} in {dataset_folder}"
                 )
 
+    # If we have files but not enough for the requested session index,
+    # use the first file (assuming single session)
+    if tiff_files and ses_idx >= len(tiff_files):
+        return tiff_files[0]
+    
     return tiff_files[ses_idx]
 
 

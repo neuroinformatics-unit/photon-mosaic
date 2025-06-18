@@ -31,7 +31,7 @@ To use preprocessing in your configuration, add a `preprocessing` section to you
 
 ```yaml
 preprocessing:
-  output_pattern: "preprocessed_{tiff_name}.tif"
+  output_pattern: "{tiff_name}.tif"
   steps:
     - name: contrast
       kwargs:
@@ -46,7 +46,7 @@ Each preprocessing step can have its own configuration parameters:
 
 ```yaml
 preprocessing:
-  output_pattern: "preprocessed_{tiff_name}.tif"
+  output_pattern: "{tiff_name}.tif"
   steps:
     - name: derotation
       kwargs:
