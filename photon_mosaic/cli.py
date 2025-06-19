@@ -16,7 +16,7 @@ from photon_mosaic import get_snakefile_path
 
 def main():
     """Run the photon-mosaic Snakemake pipeline for automated and reproducible
-     analysis of multiphoton calcium imaging datasets.
+    analysis of multiphoton calcium imaging datasets.
 
     This pipeline integrates Suite2p for image registration and signal
     extraction, with a standardized output folder structure following
@@ -24,8 +24,8 @@ def main():
     store their data on servers connected to HPC clusters and want to
     batch-process multiple imaging sessions in parallel.
 
-    Parameters
-    ----------
+    Command Line Arguments
+    ---------------------
     --config : str, optional
         Path to your config.yaml file. If not provided, uses
         ~/.photon_mosaic/config.yaml.

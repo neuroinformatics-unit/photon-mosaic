@@ -170,9 +170,12 @@ def test_snakemake_execution(snake_test_env, map_of_tiffs):
 
     # Check that output files were created for each dataset and tiff
     datasets = ["001", "002", "003"]
-    tiff_patterns = snake_test_env["configfile"]["dataset_discovery"][
-        "tiff_patterns"
-    ]
+
+    # Load config from file to get tiff_patterns
+    with open(snake_test_env["configfile"], "r") as f:
+        config = yaml.safe_load(f)
+
+    tiff_patterns = config["dataset_discovery"]["tiff_patterns"]
     check_output_files(
         snake_test_env["workdir"], datasets, map_of_tiffs, tiff_patterns
     )
@@ -207,9 +210,7 @@ def test_snakemake_with_contrast(
     # Check that enhanced output files were created and contain valid image
     # data
     datasets = ["001", "002", "003"]
-    tiff_patterns = snake_test_env["configfile"]["dataset_discovery"][
-        "tiff_patterns"
-    ]
+    tiff_patterns = config["dataset_discovery"]["tiff_patterns"]
     check_output_files(
         snake_test_env["workdir"],
         datasets,

@@ -50,7 +50,8 @@ def test_config_with_contrast(base_config):
             {
                 "name": "contrast",
                 "kwargs": {
-                    "clip_limit": 2.0,
+                    "percentile_low": 1.0,
+                    "percentile_high": 99.0,
                 },
             }
         ],

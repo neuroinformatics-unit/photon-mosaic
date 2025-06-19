@@ -9,29 +9,44 @@ import shutil
 from pathlib import Path
 
 
-def run(**kwargs):
+def run(
+    dataset_folder: Path,
+    output_folder: Path,
+    tiff_name: str,
+    **kwargs,
+):
     """
     No-operation preprocessing step.
 
     Parameters
     ----------
+    dataset_folder : Path
+        Path to the dataset folder containing the input TIFF files.
+    output_folder : Path
+        Path to the output folder where the files will be copied.
+    tiff_name : str
+        Name of the TIFF file to copy.
     **kwargs : dict
-        Additional arguments. If data is None, kwargs should contain:
-        - dataset_folder: Path to the input file
-        - output_folder: Path to save the output
-        - ses_idx: Session index
+        Additional keyword arguments (unused).
 
     Returns
     -------
     None
-        The function either returns the input data unchanged or copies the
-        input file to the output directory and returns nothing.
-    """
-    # If no data provided, just copy the input file to output
-    dataset_folder = Path(kwargs["dataset_folder"])
-    output_folder = Path(kwargs["output_folder"])
+        The function copies the input TIFF file to the output directory
+        without any modification and returns nothing.
 
-    input_file = dataset_folder / kwargs["tiff_name"]
+    Notes
+    -----
+    The function will search for the TIFF file using rglob if it's not found
+    at the expected location.
+    """
+    # Convert paths to Path objects if they're strings
+    if isinstance(dataset_folder, str):
+        dataset_folder = Path(dataset_folder)
+    if isinstance(output_folder, str):
+        output_folder = Path(output_folder)
+
+    input_file = dataset_folder / tiff_name
 
     # Create output directory and copy file
     output_folder.mkdir(parents=True, exist_ok=True)
@@ -39,5 +54,5 @@ def run(**kwargs):
         shutil.copy2(input_file, output_folder / input_file.name)
     except FileNotFoundError:
         #  use rglob to find the correct path
-        correct_path = next(dataset_folder.rglob(kwargs["tiff_name"]))
+        correct_path = next(dataset_folder.rglob(tiff_name))
         shutil.copy2(correct_path, output_folder / correct_path.name)

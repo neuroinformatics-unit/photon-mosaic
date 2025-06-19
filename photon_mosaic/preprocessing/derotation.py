@@ -7,11 +7,18 @@ package.
 
 import logging
 from pathlib import Path
+from typing import List
 
 from derotation.derotate_batch import derotate
 
 
 def run(
+    dataset_folder: Path,
+    output_folder: Path,
+    glob_naming_pattern_tif: str | List[str],
+    glob_naming_pattern_bin: str | List[str],
+    path_to_stimulus_randperm: str,
+    ses_idx: int = 0,
     **kwargs,
 ):
     """
@@ -23,12 +30,14 @@ def run(
         The path to the dataset folder.
     output_folder : Path
         The path to the output folder.
-    glob_naming_pattern_tif : Union[str, List[str]]
+    glob_naming_pattern_tif : str or List[str]
         Pattern(s) to match tif files. Can be a single pattern or a list of
-        specific filenames.
-    glob_naming_pattern_bin : Union[str, List[str]]
+        patterns where the session index selects the appropriate pattern.
+    glob_naming_pattern_bin : str or List[str]
         Pattern(s) to match bin files. Can be a single pattern or a list of
-        specific filenames.
+        patterns where the session index selects the appropriate pattern.
+    path_to_stimulus_randperm : str
+        Path to the stimulus randomization file.
     ses_idx : int, optional
         Session index to process. Default is 0.
     **kwargs : dict
@@ -39,23 +48,7 @@ def run(
     None
         The function saves the derotated data to the output folder and returns
         nothing.
-
-    Raises
-    ------
-    ValueError
-        If required parameters are missing or if tif/bin patterns don't match
-        in length.
     """
-    dataset_folder = Path(kwargs["dataset_folder"])
-    output_folder = Path(kwargs["output_folder"])
-    glob_naming_pattern_tif = kwargs["glob_naming_pattern_tif"]
-    glob_naming_pattern_bin = kwargs["glob_naming_pattern_bin"]
-    ses_idx = kwargs["ses_idx"]
-
-    if dataset_folder is None or output_folder is None:
-        raise ValueError(
-            "dataset_folder and output_folder are required parameters"
-        )
 
     # Convert string patterns to lists if needed
     if isinstance(glob_naming_pattern_tif, str):
@@ -77,5 +70,5 @@ def run(
         glob_naming_pattern_tif=pattern_tif,
         glob_naming_pattern_bin=pattern_bin,
         folder_suffix="incremental" if "increment" in pattern_tif else "full",
-        path_to_stimulus_randperm=kwargs["path_to_stimulus_randperm"],
+        path_to_stimulus_randperm=path_to_stimulus_randperm,
     )

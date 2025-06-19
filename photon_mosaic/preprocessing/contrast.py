@@ -12,6 +12,11 @@ from skimage import exposure
 
 
 def run(
+    dataset_folder: Path,
+    output_folder: Path,
+    tiff_name: str,
+    percentile_low: float = 1,
+    percentile_high: float = 99,
     **kwargs,
 ) -> None:
     """
@@ -19,53 +24,52 @@ def run(
 
     Parameters
     ----------
-    dataset_folder : Union[str, Path]
+    dataset_folder : Path
         Path to the dataset folder containing the input TIFF files.
-    output_folder : Union[str, Path]
+    output_folder : Path
         Path to the output folder where the processed TIFF files will be saved.
-    ses_idx : int
-        Session index to process.
-    glob_naming_pattern_tif : List[str]
-        List of glob patterns to match TIFF files.
-    output_path : Optional[Union[str, Path]], optional
-        Path to save the enhanced image. If not provided, will be derived from
-        output_folder.
+    tiff_name : str
+        Name of the TIFF file to process.
+    percentile_low : float, optional
+        Lower percentile for contrast stretching. Default is 1.
+    percentile_high : float, optional
+        Upper percentile for contrast stretching. Default is 99.
     **kwargs : dict
-        Additional keyword arguments:
-        - percentile_low : float, optional
-            Lower percentile for contrast stretching. Default is 1.
-        - percentile_high : float, optional
-            Upper percentile for contrast stretching. Default is 99.
+        Additional keyword arguments (unused).
 
     Returns
     -------
     None
-        The function saves the enhanced image to the output path and returns
-        nothing.
+        The function saves the enhanced image to the output folder with the
+        prefix "enhanced_" and returns nothing.
+
+    Notes
+    -----
+    The function will search for the TIFF file using rglob if it's not found
+    at the expected location.
     """
-    # Convert paths to Path objects
-    dataset_folder = Path(kwargs["dataset_folder"])
-    output_folder = Path(kwargs["output_folder"])
-    tiff_file = dataset_folder / kwargs["tiff_name"]
+    # Convert paths to Path objects if they're strings
+    if isinstance(dataset_folder, str):
+        dataset_folder = Path(dataset_folder)
+    if isinstance(output_folder, str):
+        output_folder = Path(output_folder)
+
+    tiff_file = dataset_folder / tiff_name
 
     # Load the image
     try:
         img = tifffile.imread(tiff_file)
     except FileNotFoundError:
         #  use rglob to find the correct path
-        correct_path = next(dataset_folder.rglob(kwargs["tiff_name"]))
+        correct_path = next(dataset_folder.rglob(tiff_name))
         img = tifffile.imread(correct_path)
-
-    # Get contrast parameters
-    percentile_low = kwargs.get("percentile_low", 1)
-    percentile_high = kwargs.get("percentile_high", 99)
 
     # Enhance contrast
     p_low, p_high = np.percentile(img, (percentile_low, percentile_high))
     img_enhanced = exposure.rescale_intensity(img, in_range=(p_low, p_high))
 
     # Append filename to output path
-    output_path = output_folder / f"enhanced_{kwargs['tiff_name']}"
+    output_path = output_folder / f"enhanced_{tiff_name}"
 
     # Save the enhanced image
     tifffile.imwrite(output_path, img_enhanced)

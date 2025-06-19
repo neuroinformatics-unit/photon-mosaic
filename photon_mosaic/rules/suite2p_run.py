@@ -25,11 +25,18 @@ def run_suite2p(
     ----------
     stat_path : str
         The path where the Suite2P statistics will be saved.
-    dataset_folder : str
+    dataset_folder : Path
         The path to the folder containing the dataset.
     user_ops_dict : dict, optional
         A dictionary containing user-provided options to override
         the default Suite2P options. The default is None.
+
+    Returns
+    -------
+    None
+        The function runs Suite2P and saves results to the specified paths.
+        If an error occurs, it logs the error to an error.txt file in the
+        dataset folder.
     """
     save_folder = Path(stat_path).parents[1]
 

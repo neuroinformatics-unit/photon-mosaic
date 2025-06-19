@@ -34,17 +34,25 @@ def discover_datasets(
         List of regex substitution pairs to transform dataset names.
         Each dict should have 'pattern' and 'repl' keys for re.sub().
     tiff_patterns : list, optional
-        Glob pattern for TIFF files (default: '*.tif').
+        List of glob patterns for TIFF files. Each pattern corresponds to a
+        session. Defaults to ["*.tif"] for a single session.
 
     Returns
     -------
     Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]
-        - List of original dataset names
-        - List of transformed dataset names
+        - List of original dataset names (sorted)
+        - List of transformed dataset names (sorted)
         - Dictionary mapping original dataset names to their TIFF files by
-        session
-        - List of all TIFF files found
+          session (session index as key)
+        - List of all TIFF files found across all datasets
 
+    Notes
+    -----
+    - Datasets without any TIFF files are automatically excluded from the
+      results
+    - Both original and transformed dataset lists are sorted alphabetically
+    - Sessions are numbered starting from 0 based on the order in tiff_patterns
+    - Empty sessions (no files found) are included with empty lists
     """
     # Convert base_path to Path if it's a string
     base_path_obj = (
