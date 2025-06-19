@@ -5,79 +5,62 @@ import pytest
 import yaml
 
 
-def get_base_config():
-    """Create a base configuration that can be extended."""
-    return {
-        "raw_data_base": "raw_data",
-        "processed_data_base": "derivatives",
-        "dataset_discovery": {
-            "pattern": "^.*$",  # Match all directories for testing
-            "exclude_patterns": [],  # Don't exclude anything
-        },
-        "suite2p_ops": {
-            "fs": 6.0,
-            "nplanes": 1,
-            "tau": 0.7,
-            "nonrigid": True,
-            "diameter": 8,
-        },
-        "use_slurm": False,
-    }
-
-
 @pytest.fixture
-def test_config():
-    """Create a test configuration."""
-    config = get_base_config()
-    config["preprocessing"] = {
-        "steps": [
-            {
-                "name": "noop",
-                "kwargs": {
-                    "glob_naming_pattern_tif": [
-                        "2p_example_V1_01.tif",
-                        "2p_example_V1_02.tif",
-                    ]
-                },
-            }
-        ],
-        "output_patterns": [
-            "2p_example_V1_01.tif",
-            "2p_example_V1_02.tif",
-        ],
-    }
+def base_config():
+    """Create a base configuration that can be extended."""
+
+    photon_mosaic_path = Path(__file__).parent.parent.parent
+    with open(
+        photon_mosaic_path / "photon_mosaic" / "workflow" / "config.yaml", "r"
+    ) as f:
+        config = yaml.safe_load(f)
+
+    config["raw_data_base"] = "raw_data"
+    config["processed_data_base"] = "derivatives"
+    #  match different file naming patterns to different sessions
+    config["dataset_discovery"]["tiff_patterns"] = [
+        "type_1*.tif",
+        "type_2*.tif",
+    ]
+
     return config
 
 
 @pytest.fixture
-def test_config_with_contrast():
+def map_of_tiffs():
+    """Create a map of tiffs in the test data using rglob"""
+    photon_mosaic_path = Path(__file__).parent.parent.parent / "tests" / "data"
+    map_of_tiffs = {}
+    for dataset in photon_mosaic_path.glob("*"):
+        if dataset.is_dir():
+            # Get just the filenames, not the full paths
+            tiff_files = [f.name for f in dataset.rglob("*.tif")]
+            map_of_tiffs[dataset.name] = tiff_files
+    return map_of_tiffs
+
+
+@pytest.fixture
+def test_config_with_contrast(base_config):
     """
     Create a test configuration with contrast enhancement preprocessing step.
     """
-    config = get_base_config()
+    config = base_config.copy()
     config["preprocessing"] = {
         "steps": [
             {
                 "name": "contrast",
                 "kwargs": {
                     "clip_limit": 2.0,
-                    "glob_naming_pattern_tif": [
-                        "2p_example_V1_01.tif",
-                        "2p_example_V1_02.tif",
-                    ],
                 },
             }
         ],
-        "output_patterns": [
-            "enhanced_2p_example_V1_01.tif",
-            "enhanced_2p_example_V1_02.tif",
-        ],
+        "output_pattern": "enhanced_",
     }
     return config
 
 
 @pytest.fixture
-def snake_test_env(tmp_path, test_config):
+def snake_test_env(tmp_path, base_config):
     """
     Fixture that sets up the test environment with data and configuration.
     """
@@ -95,7 +78,7 @@ def snake_test_env(tmp_path, test_config):
     print(f"Processed data directory: {processed_data}")
 
     # Update paths in config
-    config = test_config.copy()
+    config = base_config.copy()
     config["raw_data_base"] = str(raw_data.resolve())
     config["processed_data_base"] = str(processed_data.resolve())
 

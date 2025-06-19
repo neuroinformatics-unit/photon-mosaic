@@ -17,7 +17,7 @@ def discover_datasets(
     exclude_patterns: Optional[List[str]] = None,
     substitutions: Optional[List[Dict[str, str]]] = None,
     tiff_patterns: list = ["*.tif"],
-) -> Tuple[List[str], List[str], Dict[str, List[str]]]:
+) -> Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]:
     """
     Discover datasets and their TIFF files in a directory using regex patterns.
 
@@ -38,10 +38,11 @@ def discover_datasets(
 
     Returns
     -------
-    Tuple[List[str], List[str], Dict[str, List[str]]]
+    Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]
         - List of original dataset names
         - List of transformed dataset names
-        - Dictionary mapping original dataset names to their TIFF files
+        - Dictionary mapping original dataset names to their TIFF files by session
+        - List of all TIFF files found
 
     """
     # Convert base_path to Path if it's a string
@@ -77,8 +78,21 @@ def discover_datasets(
     # Discover TIFF files for each dataset
     tiff_files = {}
     tiff_files_flat = []
+
     for dataset in original_datasets:
         dataset_path = base_path_obj / dataset
+
+        # check if there is at least one tiff in the dataset
+        if not any(dataset_path.rglob("*.tif")):
+            logging.info(f"No tiff files found in {dataset_path}")
+            idx = datasets.index(dataset)
+            datasets.pop(idx)
+            original_datasets.pop(idx)
+            continue
+
+        # Initialize the dataset entry with all sessions
+        tiff_files[dataset] = {}
+
         for session, tiff_pattern in enumerate(tiff_patterns):
             logging.debug(
                 f"Searching for tiff files in {dataset_path} with pattern {tiff_pattern}"
@@ -95,11 +109,9 @@ def discover_datasets(
                 logging.info(
                     f"No files found for pattern {tiff_pattern} in {dataset_path}"
                 )
-                idx = datasets.index(dataset)
-                datasets.pop(idx)
-                original_datasets.pop(idx)
+                # Initialize empty list for this session
+                tiff_files[dataset][session] = []
             else:
-                tiff_files[dataset] = {}
                 tiff_files[dataset][session] = files_found
                 tiff_files_flat.extend(files_found)
 

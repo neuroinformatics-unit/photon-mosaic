@@ -40,67 +40,94 @@ def run_snakemake(workdir, configfile, dry_run=False):
     return result
 
 
-def check_output_files(workdir, datasets, tiffs, check_enhanced=False):
+def check_output_files(
+    workdir, datasets, map_of_tiffs, tiff_patterns=None, check_enhanced=False
+):
     """Helper function to check output files."""
+    # Default tiff patterns if not provided
+    if tiff_patterns is None:
+        tiff_patterns = ["type_1*.tif", "type_2*.tif"]
+
     for sub_idx, dataset in enumerate(datasets):
-        for ses_idx, tiff in enumerate(tiffs):
-            output_base = (
-                workdir
-                / "derivatives"
-                / f"sub-{sub_idx}_{dataset}"
-                / f"ses-{ses_idx}"
-                / "funcimg"
-                / "suite2p"
-                / "plane0"
-            )
+        # Get the tiff files for this dataset
+        dataset_tiffs = map_of_tiffs[dataset]
 
-            # Print information about the expected output files
-            print(
-                f"\n=== Checking files for {dataset}/ses-{ses_idx}/{tiff} ==="
-            )
-            print(f"Checking for files in: {output_base}")
-            print(
-                "Directory contents:",
-                list(output_base.iterdir())
-                if output_base.exists()
-                else "Directory does not exist",
-            )
-            print("=== End of Expected Output Files ===\n")
+        # Group tiff files by session based on their pattern
+        session_files = {i: [] for i in range(len(tiff_patterns))}
 
-            assert (
-                output_base / "F.npy"
-            ).exists(), (
-                f"Missing output: F.npy for {dataset}/ses-{ses_idx}/{tiff}"
-            )
-            assert (
-                output_base / "data.bin"
-            ).exists(), (
-                f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
-            )
+        for tiff in dataset_tiffs:
+            # Find which pattern matches this tiff file
+            for ses_idx, pattern in enumerate(tiff_patterns):
+                # Convert glob pattern to regex for matching
+                import re
 
-            if check_enhanced:
-                enhanced_file = (
+                # Convert glob pattern to regex: type_1*.tif -> type_1.*\.tif
+                regex_pattern = pattern.replace("*", ".*").replace(".", r"\.")
+                if re.match(regex_pattern, tiff):
+                    session_files[ses_idx].append(tiff)
+                    break
+
+        # Check each session that has files
+        for ses_idx, tiffs in session_files.items():
+            if not tiffs:  # Skip empty sessions
+                continue
+
+            for tiff in tiffs:
+                output_base = (
                     workdir
                     / "derivatives"
                     / f"sub-{sub_idx}_{dataset}"
                     / f"ses-{ses_idx}"
                     / "funcimg"
-                    / f"enhanced_2p_example_V1_{ses_idx+1:02d}.tif"
+                    / "suite2p"
+                    / "plane0"
                 )
 
-                assert (
-                    enhanced_file.exists()
-                ), f"Missing enhanced output: {enhanced_file}"
+                # Print information about the expected output files
+                print(
+                    f"\n=== Checking files for {dataset}/ses-{ses_idx}/{tiff} ==="
+                )
+                print(f"Checking for files in: {output_base}")
+                print(
+                    "Directory contents:",
+                    list(output_base.iterdir())
+                    if output_base.exists()
+                    else "Directory does not exist",
+                )
+                print("=== End of Expected Output Files ===\n")
 
-                # Verify that the enhanced file contains valid image data
-                enhanced_data = imread(enhanced_file)
-                assert (
-                    enhanced_data.dtype == np.int16
-                ), f"Enhanced file {enhanced_file} has "
-                f"incorrect data type: {enhanced_data.dtype}"
-                assert (
-                    enhanced_data.size > 0
-                ), f"Enhanced file {enhanced_file} is empty"
+                assert (output_base / "F.npy").exists(), (
+                    f"Missing output: F.npy for {dataset}/ses-{ses_idx}/{tiff}"
+                    f"Output directory contents: {list(output_base.iterdir())}"
+                )
+                assert (output_base / "data.bin").exists(), (
+                    f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
+                    f"Output directory contents: {list(output_base.iterdir())}"
+                )
+
+                if check_enhanced:
+                    enhanced_file = (
+                        workdir
+                        / "derivatives"
+                        / f"sub-{sub_idx}_{dataset}"
+                        / f"ses-{ses_idx}"
+                        / "funcimg"
+                        / f"enhanced_{tiff}"
+                    )
+
+                    assert (
+                        enhanced_file.exists()
+                    ), f"Missing enhanced output: {enhanced_file}"
+
+                    # Verify that the enhanced file contains valid image data
+                    enhanced_data = imread(enhanced_file)
+                    assert (
+                        enhanced_data.dtype == np.int16
+                    ), f"Enhanced file {enhanced_file} has "
+                    f"incorrect data type: {enhanced_data.dtype}"
+                    assert (
+                        enhanced_data.size > 0
+                    ), f"Enhanced file {enhanced_file} is empty"
 
 
 def test_snakemake_dry_run(snake_test_env):
@@ -124,23 +151,34 @@ def test_snakemake_dry_run(snake_test_env):
     )
 
 
-def test_snakemake_execution(snake_test_env):
+def test_snakemake_execution(snake_test_env, map_of_tiffs):
     """Test that snakemake can execute the workflow."""
     result = run_snakemake(
         snake_test_env["workdir"], snake_test_env["configfile"]
     )
+
     assert result.returncode == 0, (
         f"Snakemake execution failed:\nSTDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"
     )
 
+    #  print sterr and stdout
+    print(f"STDOUT:\n{result.stdout}")
+    print(f"STDERR:\n{result.stderr}")
+
     # Check that output files were created for each dataset and tiff
     datasets = ["001", "002", "003"]
-    tiffs = ["2p_example_V1_01.tif", "2p_example_V1_02.tif"]
-    check_output_files(snake_test_env["workdir"], datasets, tiffs)
+    tiff_patterns = snake_test_env["configfile"]["dataset_discovery"][
+        "tiff_patterns"
+    ]
+    check_output_files(
+        snake_test_env["workdir"], datasets, map_of_tiffs, tiff_patterns
+    )
 
 
-def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
+def test_snakemake_with_contrast(
+    snake_test_env, test_config_with_contrast, map_of_tiffs
+):
     """
     Test that snakemake can execute the workflow with contrast enhancement
     preprocessing.
@@ -167,9 +205,15 @@ def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
     # Check that enhanced output files were created and contain valid image
     # data
     datasets = ["001", "002", "003"]
-    tiffs = ["2p_example_V1_01.tif", "2p_example_V1_02.tif"]
+    tiff_patterns = snake_test_env["configfile"]["dataset_discovery"][
+        "tiff_patterns"
+    ]
     check_output_files(
-        snake_test_env["workdir"], datasets, tiffs, check_enhanced=True
+        snake_test_env["workdir"],
+        datasets,
+        map_of_tiffs,
+        tiff_patterns,
+        check_enhanced=True,
     )
 
 

@@ -60,7 +60,7 @@ preprocessing:
     #     # Contrast enhancement parameters
     #     percentile_low: 1    # Lower percentile for contrast stretching
     #     percentile_high: 99  # Upper percentile for contrast stretching
-    
+
 
 # ============================================================================
 # Suite2p Configuration
@@ -171,7 +171,7 @@ suite2p_ops:
 # SLURM Configuration
 # ============================================================================
 # Settings for SLURM job scheduling system
-use_slurm: true
+use_slurm: false
 slurm:
   slurm_partition: "gpu"  # GPU partition for processing
   mem_mb: 32000          # Memory allocation in MB
