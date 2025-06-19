@@ -179,18 +179,22 @@ def main():
         config["processed_data_base"] = args.processed_data_base
     else:
         logger.debug(
-            f"Using processed_data_base from config file: {config['processed_data_base']}"
+            "Using processed_data_base from config file: "
+            f"{config['processed_data_base']}"
         )
 
     raw_data_base = Path(config["raw_data_base"]).resolve()
 
-    # Append derivatives to the processed_data_base if it doesn't end with /derivatives
+    # Append derivatives to the processed_data_base if it doesn't end with
+    # /derivatives
     processed_data_base = Path(config["processed_data_base"]).resolve()
     if processed_data_base.name != "derivatives":
         processed_data_base = processed_data_base / "derivatives"
     config["processed_data_base"] = str(processed_data_base)
 
-    # Change the values of processed_data_base in the config file saved in the .photon_mosaic/config.yaml without changing the other values and losing the comments
+    # Change the values of processed_data_base in the config file saved in
+    # the .photon_mosaic/config.yaml without changing the other values and
+    # losing the comments
     with open(default_config_path, "r") as f:
         config_lines = f.readlines()
     with open(default_config_path, "w") as f:
@@ -261,5 +265,7 @@ def main():
             logging.info("Snakemake pipeline completed successfully.")
         else:
             logging.info(
-                f"Snakemake pipeline failed with exit code {result.returncode}. Check the log file at {log_path} for details."
+                "Snakemake pipeline failed with exit code "
+                f"{result.returncode}. Check the log file at "
+                f"{log_path} for details."
             )

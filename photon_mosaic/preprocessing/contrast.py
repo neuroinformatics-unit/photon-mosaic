@@ -5,7 +5,6 @@ This module provides functions to enhance the contrast of images.
 """
 
 from pathlib import Path
-from typing import List, Optional, Union
 
 import numpy as np
 import tifffile

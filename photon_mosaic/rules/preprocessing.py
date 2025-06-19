@@ -47,10 +47,14 @@ def run_preprocessing(
 
         # Import the preprocessing module and get the run function
         try:
-            module = importlib.import_module(f"photon_mosaic.preprocessing.{step_name}")
+            module = importlib.import_module(
+                f"photon_mosaic.preprocessing.{step_name}"
+            )
             func = getattr(module, "run")
         except (ImportError, AttributeError) as e:
-            raise ValueError(f"Could not find preprocessing step '{step_name}': {e}")
+            raise ValueError(
+                f"Could not find preprocessing step '{step_name}': {e}"
+            )
 
         # Apply the preprocessing step
         func(**kwargs)

@@ -17,7 +17,7 @@ rule preprocessing:
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
-            / (f"{output_pattern}"+ "{tiff}") 
+            / (f"{output_pattern}"+ "{tiff}")
         )
     params:
         dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),

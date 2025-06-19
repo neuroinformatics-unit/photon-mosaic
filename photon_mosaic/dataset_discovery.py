@@ -41,7 +41,8 @@ def discover_datasets(
     Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]
         - List of original dataset names
         - List of transformed dataset names
-        - Dictionary mapping original dataset names to their TIFF files by session
+        - Dictionary mapping original dataset names to their TIFF files by
+        session
         - List of all TIFF files found
 
     """
@@ -76,7 +77,7 @@ def discover_datasets(
     original_datasets = sorted(original_datasets)
 
     # Discover TIFF files for each dataset
-    tiff_files = {}
+    tiff_files: Dict[str, Dict[int, List[str]]] = {}
     tiff_files_flat = []
 
     for dataset in original_datasets:
@@ -95,7 +96,8 @@ def discover_datasets(
 
         for session, tiff_pattern in enumerate(tiff_patterns):
             logging.debug(
-                f"Searching for tiff files in {dataset_path} with pattern {tiff_pattern}"
+                f"Searching for tiff files in {dataset_path} with pattern "
+                f"{tiff_pattern}"
             )
             files_found = sorted(
                 [
@@ -107,7 +109,8 @@ def discover_datasets(
 
             if not files_found:
                 logging.info(
-                    f"No files found for pattern {tiff_pattern} in {dataset_path}"
+                    f"No files found for pattern {tiff_pattern} in "
+                    f"{dataset_path}"
                 )
                 # Initialize empty list for this session
                 tiff_files[dataset][session] = []

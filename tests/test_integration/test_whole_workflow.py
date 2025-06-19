@@ -85,7 +85,8 @@ def check_output_files(
 
                 # Print information about the expected output files
                 print(
-                    f"\n=== Checking files for {dataset}/ses-{ses_idx}/{tiff} ==="
+                    "\n=== Checking files for "
+                    f"{dataset}/ses-{ses_idx}/{tiff} ==="
                 )
                 print(f"Checking for files in: {output_base}")
                 print(
@@ -101,7 +102,8 @@ def check_output_files(
                     f"Output directory contents: {list(output_base.iterdir())}"
                 )
                 assert (output_base / "data.bin").exists(), (
-                    f"Missing output: data.bin for {dataset}/ses-{ses_idx}/{tiff}"
+                    "Missing output: data.bin for "
+                    f"{dataset}/ses-{ses_idx}/{tiff}"
                     f"Output directory contents: {list(output_base.iterdir())}"
                 )
 

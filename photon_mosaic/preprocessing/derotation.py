@@ -7,7 +7,6 @@ package.
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
 
 from derotation.derotate_batch import derotate
 
