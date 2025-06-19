@@ -13,11 +13,6 @@ from derotation.derotate_batch import derotate
 
 
 def run(
-    dataset_folder: Optional[Path] = None,
-    output_folder: Optional[Path] = None,
-    glob_naming_pattern_tif: Union[str, List[str]] = "*.tif",
-    glob_naming_pattern_bin: Union[str, List[str]] = "*.bin",
-    ses_idx: int = 0,
     **kwargs,
 ):
     """
@@ -52,6 +47,12 @@ def run(
         If required parameters are missing or if tif/bin patterns don't match
         in length.
     """
+    dataset_folder = Path(kwargs["dataset_folder"])
+    output_folder = Path(kwargs["output_folder"])
+    glob_naming_pattern_tif = kwargs["glob_naming_pattern_tif"]
+    glob_naming_pattern_bin = kwargs["glob_naming_pattern_bin"]
+    ses_idx = kwargs["ses_idx"]
+
     if dataset_folder is None or output_folder is None:
         raise ValueError(
             "dataset_folder and output_folder are required parameters"
@@ -77,5 +78,5 @@ def run(
         glob_naming_pattern_tif=pattern_tif,
         glob_naming_pattern_bin=pattern_bin,
         folder_suffix="incremental" if "increment" in pattern_tif else "full",
-        **kwargs,
+        path_to_stimulus_randperm=kwargs["path_to_stimulus_randperm"],
     )

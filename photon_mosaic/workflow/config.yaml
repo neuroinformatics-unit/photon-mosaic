@@ -37,26 +37,30 @@ dataset_discovery:
 # Controls the preprocessing steps applied to the data
 preprocessing:
   # Output file naming pattern for preprocessed files
-  # Use {tiff_name} as a placeholder for the original tiff filename
-  output_pattern: "enhanced_" # "" for noop, "enhanced_" for contrast and "derotated_" for derotation
+  # Use a suffix relevant for the set of operations you want to perform
+  output_pattern: "" # "" for noop, "enhanced_" for contrast and "derotated_" for derotation
 
   # Define preprocessing steps and their parameters
+  # They are mutually exclusive
   steps:
-    # Step 1: Derotation
+    # No operation, just copy the files
+    - name: noop
+
+    # Derotation
     # - name: derotation
     #   kwargs:
     #     # File pattern matching for input files
-    #     glob_naming_pattern_tif: ["*.tif"]
-    #     glob_naming_pattern_bin: ["*.bin"]
-    #     path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
+    #     glob_naming_pattern_tif: ["rotation_00001.tif"]
+    #     glob_naming_pattern_bin: ["*rotation_1_001.bin"]
+    #     path_to_stimulus_randperm: "/Users/lauraporta/local_data/stimlus_randperm.mat"
 
-    # Step 2: Contrast Enhancement (optional if using refImg_min_percentile in Suite2p)
-    - name: contrast
-      kwargs:
-        # Contrast enhancement parameters
-        percentile_low: 1    # Lower percentile for contrast stretching
-        percentile_high: 99  # Upper percentile for contrast stretching
-    # - name: noop
+    # Contrast Enhancement (not required if using refImg_min_percentile in Suite2p)
+    # - name: contrast
+    #   kwargs:
+    #     # Contrast enhancement parameters
+    #     percentile_low: 1    # Lower percentile for contrast stretching
+    #     percentile_high: 99  # Upper percentile for contrast stretching
+    
 
 # ============================================================================
 # Suite2p Configuration

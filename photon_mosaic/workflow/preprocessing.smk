@@ -8,8 +8,8 @@ rule preprocessing:
     input:
         img=lambda wildcards: str(
             raw_data_base /
-            datasets_old_names[int(wildcards.sub_idx)] /
-            wildcards.tiff
+            datasets_old_names[int(wildcards.sub_idx)] #/
+            #wildcards.tiff
         )
     output:
         processed=str(

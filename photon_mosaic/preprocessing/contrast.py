@@ -50,7 +50,12 @@ def run(
     tiff_file = dataset_folder / kwargs["tiff_name"]
 
     # Load the image
-    img = tifffile.imread(tiff_file)
+    try:
+        img = tifffile.imread(tiff_file)
+    except FileNotFoundError:
+        #  use rglob to find the correct path
+        correct_path = next(dataset_folder.rglob(kwargs["tiff_name"]))
+        img = tifffile.imread(correct_path)
 
     # Get contrast parameters
     percentile_low = kwargs.get("percentile_low", 1)

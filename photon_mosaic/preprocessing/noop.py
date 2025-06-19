@@ -35,4 +35,9 @@ def run(**kwargs):
 
     # Create output directory and copy file
     output_folder.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(input_file, output_folder / input_file.name)
+    try:
+        shutil.copy2(input_file, output_folder / input_file.name)
+    except FileNotFoundError:
+        #  use rglob to find the correct path
+        correct_path = next(dataset_folder.rglob(kwargs["tiff_name"]))
+        shutil.copy2(correct_path, output_folder / correct_path.name)
