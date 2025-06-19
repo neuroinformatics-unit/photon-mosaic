@@ -1,28 +1,30 @@
 from pathlib import Path
 from photon_mosaic.rules.preprocessing import run_preprocessing
+from photon_mosaic.pathing import cross_platform_path
 import re
 import logging
+import os
 
 # Preprocessing rule
 rule preprocessing:
     input:
-        img=lambda wildcards: (raw_data_base / datasets_old_names[int(wildcards.sub_idx)]).as_posix()
+        img=lambda wildcards: cross_platform_path(raw_data_base / datasets_old_names[int(wildcards.sub_idx)])
     output:
-        processed=(
+        processed=cross_platform_path(
             Path(processed_data_base).resolve()
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
             / (f"{output_pattern}"+ "{tiff}")
-        ).as_posix()
+        )
     params:
-        dataset_folder=lambda wildcards: (raw_data_base / datasets_old_names[int(wildcards.sub_idx)]).as_posix(),
-        output_folder=lambda wildcards: (
+        dataset_folder=lambda wildcards: cross_platform_path(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),
+        output_folder=lambda wildcards: cross_platform_path(
             Path(processed_data_base).resolve()
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
-        ).as_posix(),
+        ),
     wildcard_constraints:
         tiff="|".join(sorted(tiff_files_flat)),
         dataset="|".join(datasets_new_names),

@@ -10,19 +10,15 @@ from photon_mosaic import get_snakefile_path
 
 def run_snakemake(workdir, configfile, dry_run=False):
     """Helper function to run snakemake with common parameters."""
-    snakefile = str(get_snakefile_path())
-    
-    # Use the full path to snakemake in the conda environment
-    snakemake_path = "C:/Users/lauraporta/miniforge3/envs/pm/Scripts/snakemake.exe"
-    
+
     cmd = [
-        snakemake_path,
+        "snakemake",
         "--cores",
         "1",
         "--verbose",
         "--keep-going",
         "-s",
-        str(snakefile),
+        str(get_snakefile_path()),
         "--configfile",
         str(configfile),
         "--debug-dag",
@@ -149,10 +145,19 @@ def test_snakemake_dry_run(snake_test_env):
 
     # Let's also check what the expected preprocessing output files should be
     print("\n=== Expected preprocessing outputs ===")
-    expected_preprocessing_dir = Path(snake_test_env["workdir"]) / "derivatives" / "sub-0_001" / "ses-0" / "funcimg"
+    expected_preprocessing_dir = (
+        Path(snake_test_env["workdir"])
+        / "derivatives"
+        / "sub-0_001"
+        / "ses-0"
+        / "funcimg"
+    )
     print(f"Expected preprocessing directory: {expected_preprocessing_dir}")
     if expected_preprocessing_dir.exists():
-        print(f"Directory exists, contents: {list(expected_preprocessing_dir.iterdir())}")
+        print(
+            "Directory exists, contents: "
+            f"{list(expected_preprocessing_dir.iterdir())}"
+        )
     else:
         print("Directory does not exist")
 
