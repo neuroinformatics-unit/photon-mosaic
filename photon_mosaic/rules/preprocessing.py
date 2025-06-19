@@ -1,11 +1,11 @@
 """
 Snakemake rule for preprocessing image data.
 
-This module provides a function to run preprocessing on image data using the
-preprocessing registry.
+This module provides a function to run preprocessing on image data by directly
+importing preprocessing modules based on step names.
 """
 
-from photon_mosaic.preprocessing import get_step
+import importlib
 
 
 def run_preprocessing(
@@ -49,8 +49,12 @@ def run_preprocessing(
         if step_name == "contrast":
             kwargs["output_path"] = output_path
 
-        # Get the preprocessing function from the registry
-        func = get_step(step_name)
+        # Import the preprocessing module and get the run function
+        try:
+            module = importlib.import_module(f"photon_mosaic.preprocessing.{step_name}")
+            func = getattr(module, "run")
+        except (ImportError, AttributeError) as e:
+            raise ValueError(f"Could not find preprocessing step '{step_name}': {e}")
 
         # Apply the preprocessing step
         func(**kwargs)

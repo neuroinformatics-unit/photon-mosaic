@@ -11,10 +11,7 @@ import numpy as np
 import tifffile
 from skimage import exposure
 
-from .registry import register_step
 
-
-@register_step("contrast")
 def run(
     dataset_folder: Union[str, Path],
     output_folder: Union[str, Path],

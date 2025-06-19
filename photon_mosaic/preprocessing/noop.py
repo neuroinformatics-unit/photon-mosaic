@@ -8,10 +8,7 @@ This is useful when preprocessing should be skipped.
 import shutil
 from pathlib import Path
 
-from .registry import register_step
 
-
-@register_step("noop")
 def run(**kwargs):
     """
     No-operation preprocessing step.

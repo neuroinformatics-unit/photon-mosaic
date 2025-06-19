@@ -103,17 +103,17 @@ preprocessing:
 
 To add a new preprocessing step:
 
-1. Create a new module in the `photon_mosaic/preprocessing` directory
-2. Define a function that takes a numpy array as input and returns a processed numpy array
-3. Use the `@register_step` decorator to register the function
-4. Import the module in `__init__.py` to ensure it's registered
+1. Create a new module in the `photon_mosaic/preprocessing` directory (e.g., `my_step.py`)
+2. Define a function named `run` that takes the required parameters and processes the data
+3. Import the module in `__init__.py` to make it available
 
 Example:
 ```python
-from photon_mosaic.preprocessing import register_step
-
-@register_step("my_step")
-def run(data, **kwargs):
+# photon_mosaic/preprocessing/my_step.py
+def run(dataset_folder, output_folder, ses_idx, **kwargs):
     # Process the data
-    return processed_data
+    # Save results to output_folder
+    pass
 ```
+
+The step will be automatically available by its module name (e.g., `my_step`) in your configuration.

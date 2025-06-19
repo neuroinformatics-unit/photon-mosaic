@@ -11,10 +11,7 @@ from typing import List, Optional, Union
 
 from derotation.derotate_batch import derotate
 
-from .registry import register_step
 
-
-@register_step("derotation")
 def run(
     dataset_folder: Optional[Path] = None,
     output_folder: Optional[Path] = None,
