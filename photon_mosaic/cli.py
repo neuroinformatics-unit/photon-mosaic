@@ -4,11 +4,11 @@ Command line interface for photon-mosaic.
 
 import argparse
 import importlib.resources as pkg_resources
+import logging
 import subprocess
 from datetime import datetime
 from pathlib import Path
-import shutil
-import logging
+
 import yaml
 
 from photon_mosaic import get_snakefile_path
@@ -48,6 +48,10 @@ def main():
         Time to wait before checking if output files are ready.
     --executor : str, default="slurm"
         Executor to use.
+    --log-level : str, default="INFO"
+        Log level.
+    --reset-config : bool, optional
+        Reset the config file to the default values.
     extra : list
         Additional arguments to pass to snakemake.
 
@@ -118,6 +122,11 @@ def main():
         nargs=argparse.REMAINDER,
         help="Additional arguments to snakemake",
     )
+    parser.add_argument(
+        "--reset-config",
+        default=False,
+        help="Reset the config file to the default values",
+    )
 
     args = parser.parse_args()
 
@@ -128,13 +137,16 @@ def main():
     # Ensure ~/.photon_mosaic/config.yaml exists, if not, create it
     default_config_dif = Path.home() / ".photon_mosaic"
     default_config_path = default_config_dif / "config.yaml"
-    if not default_config_path.exists():
+    if not default_config_path.exists() or args.reset_config:
         logger.debug("Creating default config file")
         default_config_dif.mkdir(parents=True, exist_ok=True)
         source_config_path = pkg_resources.files("photon_mosaic").joinpath(
             "workflow", "config.yaml"
         )
-        with source_config_path.open("rb") as src, open(default_config_path, "wb") as dst:
+        with (
+            source_config_path.open("rb") as src,
+            open(default_config_path, "wb") as dst,
+        ):
             dst.write(src.read())
 
     # Determine which config to use
@@ -156,24 +168,42 @@ def main():
         logger.debug(f"Overriding raw_data_base to: {args.raw_data_base}")
         config["raw_data_base"] = args.raw_data_base
     else:
-        logger.debug(f"Using raw_data_base from config file: {config['raw_data_base']}")
+        logger.debug(
+            f"Using raw_data_base from config file: {config['raw_data_base']}"
+        )
 
     if args.processed_data_base is not None:
-        logger.debug(f"Overriding processed_data_base to: {args.processed_data_base}")
+        logger.debug(
+            f"Overriding processed_data_base to: {args.processed_data_base}"
+        )
         config["processed_data_base"] = args.processed_data_base
     else:
-        logger.debug(f"Using processed_data_base from config file: {config['processed_data_base']}")
+        logger.debug(
+            f"Using processed_data_base from config file: {config['processed_data_base']}"
+        )
+
+    raw_data_base = Path(config["raw_data_base"]).resolve()
 
     # Append derivatives to the processed_data_base if it doesn't end with /derivatives
-    processed_data_base = Path(config['processed_data_base']).resolve()
+    processed_data_base = Path(config["processed_data_base"]).resolve()
     if processed_data_base.name != "derivatives":
         processed_data_base = processed_data_base / "derivatives"
-    config['processed_data_base'] = str(processed_data_base)
+    config["processed_data_base"] = str(processed_data_base)
+
+    # Change the values of processed_data_base in the config file saved in the .photon_mosaic/config.yaml without changing the other values and losing the comments
+    with open(default_config_path, "r") as f:
+        config_lines = f.readlines()
+    with open(default_config_path, "w") as f:
+        for line in config_lines:
+            if line.startswith("processed_data_base:"):
+                f.write(f"processed_data_base: {processed_data_base}\n")
+            elif line.startswith("raw_data_base:"):
+                f.write(f"raw_data_base: {raw_data_base}\n")
+            else:
+                f.write(line)
 
     # Create photon-mosaic directory with logs and configs subdirectories
-    output_dir = (
-        processed_data_base / "photon-mosaic"
-    )
+    output_dir = processed_data_base / "photon-mosaic"
     logger.debug(f"Creating output directory: {output_dir}")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     logs_dir = output_dir / "logs"
@@ -230,7 +260,6 @@ def main():
         if result.returncode == 0:
             logging.info("Snakemake pipeline completed successfully.")
         else:
-            logging.info(f"Snakemake pipeline failed with exit code {result.returncode}. Check the log file at {log_path} for details.")
-        
-
-
+            logging.info(
+                f"Snakemake pipeline failed with exit code {result.returncode}. Check the log file at {log_path} for details."
+            )

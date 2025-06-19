@@ -5,6 +5,7 @@ This module provides functions to discover datasets using regex patterns.
 All filtering and transformations are handled through regex substitutions.
 """
 
+import logging
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
@@ -15,7 +16,7 @@ def discover_datasets(
     pattern: str = ".*",
     exclude_patterns: Optional[List[str]] = None,
     substitutions: Optional[List[Dict[str, str]]] = None,
-    tiff_pattern: str = "*.tif",
+    tiff_patterns: list = ["*.tif"],
 ) -> Tuple[List[str], List[str], Dict[str, List[str]]]:
     """
     Discover datasets and their TIFF files in a directory using regex patterns.
@@ -32,7 +33,7 @@ def discover_datasets(
     substitutions : List[Dict[str, str]], optional
         List of regex substitution pairs to transform dataset names.
         Each dict should have 'pattern' and 'repl' keys for re.sub().
-    tiff_pattern : str, optional
+    tiff_patterns : list, optional
         Glob pattern for TIFF files (default: '*.tif').
 
     Returns
@@ -70,13 +71,36 @@ def discover_datasets(
                 re.sub(sub["pattern"], sub["repl"], ds) for ds in datasets
             ]
 
+    datasets = sorted(datasets)
+    original_datasets = sorted(original_datasets)
+
     # Discover TIFF files for each dataset
     tiff_files = {}
+    tiff_files_flat = []
     for dataset in original_datasets:
         dataset_path = base_path_obj / dataset
-        tiff_files[dataset] = sorted([
-            f.name for f in dataset_path.glob(tiff_pattern)
-        ])
+        for session, tiff_pattern in enumerate(tiff_patterns):
+            logging.debug(
+                f"Searching for tiff files in {dataset_path} with pattern {tiff_pattern}"
+            )
+            files_found = sorted(
+                [
+                    f.name
+                    for f in dataset_path.rglob(tiff_pattern)
+                    if f.is_file()
+                ]
+            )
 
-    return sorted(original_datasets), sorted(datasets), tiff_files
+            if not files_found:
+                logging.info(
+                    f"No files found for pattern {tiff_pattern} in {dataset_path}"
+                )
+                idx = datasets.index(dataset)
+                datasets.pop(idx)
+                original_datasets.pop(idx)
+            else:
+                tiff_files[dataset] = {}
+                tiff_files[dataset][session] = files_found
+                tiff_files_flat.extend(files_found)
 
+    return original_datasets, datasets, tiff_files, tiff_files_flat

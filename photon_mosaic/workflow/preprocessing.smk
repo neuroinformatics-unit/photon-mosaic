@@ -3,16 +3,14 @@ from photon_mosaic.rules.preprocessing import run_preprocessing
 import re
 import logging
 
-tiff_regex = "|".join(TIFF_NAMES)
-logging.debug(f"TIFF regex: {tiff_regex}")
 
 # Preprocessing rule
 rule preprocessing:
     input:
-        img=lambda wildcards: get_input_files(
-            dataset_folder = raw_data_base / datasets_old_names[int(wildcards.sub_idx)],
-            config = config,
-            ses_idx = int(wildcards.ses_idx),
+        img=lambda wildcards: str(
+            raw_data_base /
+            datasets_old_names[int(wildcards.sub_idx)] /
+            wildcards.tiff
         )
     output:
         processed=str(
@@ -31,8 +29,8 @@ rule preprocessing:
             / "funcimg"
         ),
     wildcard_constraints:
-        tiff=tiff_regex,
-        dataset="|".join(datasets_new_names)
+        tiff="|".join(sorted(tiff_files_flat)),
+        dataset="|".join(datasets_new_names),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
@@ -42,4 +40,5 @@ rule preprocessing:
             config["preprocessing"],
             Path(params.dataset_folder),
             ses_idx=int(wildcards.ses_idx),
+            tiff_name=wildcards.tiff,
         )

@@ -2,7 +2,6 @@ configfile: "workflow/config.yaml"
 
 from pathlib import Path
 from photon_mosaic.dataset_discovery import discover_datasets
-from photon_mosaic.rules.preprocessing import get_input_files
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -16,19 +15,24 @@ logger.debug(f"Raw data base: {raw_data_base}")
 logger.debug(f"Processed data base: {processed_data_base}")
 
 # Discover datasets and their TIFF files
-datasets_old_names, datasets_new_names, tiff_files = discover_datasets(
+datasets_old_names, datasets_new_names, tiff_files, tiff_files_flat = discover_datasets(
     str(raw_data_base),
     pattern=config["dataset_discovery"]["pattern"],
     exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
     substitutions=config["dataset_discovery"].get("substitutions"),
+    tiff_patterns=config["dataset_discovery"].get("tiff_patterns"),
 )
 
 logger.debug(f"Discovered datasets (old names): {datasets_old_names}")
 logger.debug(f"Discovered datasets (new names): {datasets_new_names}")
 logger.debug(f"TIFF files: {tiff_files}")
+logger.debug(f"TIFF files flat: {tiff_files_flat}")
+
+# This is a dictionary with the dataset new names as the key and the list of TIFF files as the value
 
 # Create a mapping from dataset index to TIFF files
 tiff_files_map = {i: tiff_files[dataset] for i, dataset in enumerate(datasets_old_names)}
+logger.info(f"TIFF files map: {tiff_files_map}")
 
 preproc_targets = [
     str(
@@ -39,7 +43,8 @@ preproc_targets = [
         / f"{tiff_name}"
     )
     for i in range(len(datasets_new_names))
-    for j, tiff_name in enumerate(tiff_files_map[i])
+    for j in range(len(tiff_files_map[i]))
+    for tiff_name in tiff_files_map[i][j]
 ]
 
 logger.debug(f"Preprocessing targets: {preproc_targets}")
@@ -60,11 +65,6 @@ suite2p_targets = [
 ]
 
 logger.debug(f"Suite2p targets: {suite2p_targets}")
-
-# Flatten all tiff names for regex trick in preprocessing.smk
-tiff_names_flat = sorted(set(tiff for tiffs in tiff_files.values() for tiff in tiffs))
-
-TIFF_NAMES = tiff_names_flat
 
 include: "preprocessing.smk"
 include: "suite2p.smk"
