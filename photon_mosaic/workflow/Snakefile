@@ -7,8 +7,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("snakemake.workflow")
 
-raw_data_base = Path(config["raw_data_base"])
-processed_data_base = Path(config["processed_data_base"])
+raw_data_base = Path(config["raw_data_base"]).resolve()
+processed_data_base = Path(config["processed_data_base"]).resolve()
 slurm_config = config.get("slurm", {})
 output_pattern = config["preprocessing"]["output_pattern"]
 

@@ -6,27 +6,23 @@ import logging
 # Preprocessing rule
 rule preprocessing:
     input:
-        img=lambda wildcards: str(
-            raw_data_base /
-            datasets_old_names[int(wildcards.sub_idx)] #/
-            #wildcards.tiff
-        )
+        img=lambda wildcards: (raw_data_base / datasets_old_names[int(wildcards.sub_idx)]).as_posix()
     output:
-        processed=str(
+        processed=(
             Path(processed_data_base).resolve()
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
             / (f"{output_pattern}"+ "{tiff}")
-        )
+        ).as_posix()
     params:
-        dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),
-        output_folder=lambda wildcards: str(
+        dataset_folder=lambda wildcards: (raw_data_base / datasets_old_names[int(wildcards.sub_idx)]).as_posix(),
+        output_folder=lambda wildcards: (
             Path(processed_data_base).resolve()
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
-        ),
+        ).as_posix(),
     wildcard_constraints:
         tiff="|".join(sorted(tiff_files_flat)),
         dataset="|".join(datasets_new_names),
