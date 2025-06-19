@@ -10,6 +10,7 @@ logger = logging.getLogger("snakemake.workflow")
 raw_data_base = Path(config["raw_data_base"])
 processed_data_base = Path(config["processed_data_base"])
 slurm_config = config.get("slurm", {})
+output_pattern = config["preprocessing"]["output_pattern"]
 
 logger.debug(f"Raw data base: {raw_data_base}")
 logger.debug(f"Processed data base: {processed_data_base}")
@@ -40,7 +41,7 @@ preproc_targets = [
         / f"sub-{i}_{datasets_new_names[i]}"
         / f"ses-{j}"
         / "funcimg"
-        / f"{tiff_name}"
+        / f"{output_pattern}{tiff_name}"
     )
     for i in range(len(datasets_new_names))
     for j in range(len(tiff_files_map[i]))

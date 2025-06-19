@@ -42,12 +42,8 @@ def run_preprocessing(
         kwargs["output_folder"] = output_path
         kwargs["ses_idx"] = ses_idx  # maybe not needed
 
-        if step_name == "noop":
+        if step_name == "noop" or step_name == "contrast":
             kwargs["tiff_name"] = tiff_name
-
-        # Add output path for contrast enhancement
-        if step_name == "contrast":
-            kwargs["output_path"] = output_path
 
         # Import the preprocessing module and get the run function
         try:

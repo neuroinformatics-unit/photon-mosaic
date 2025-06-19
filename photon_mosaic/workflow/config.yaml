@@ -38,7 +38,7 @@ dataset_discovery:
 preprocessing:
   # Output file naming pattern for preprocessed files
   # Use {tiff_name} as a placeholder for the original tiff filename
-  output_pattern: "contrast_" # "" for noop, "enhanced_" for contrast and "derotated_" for derotation
+  output_pattern: "enhanced_" # "" for noop, "enhanced_" for contrast and "derotated_" for derotation
 
   # Define preprocessing steps and their parameters
   steps:
@@ -50,14 +50,12 @@ preprocessing:
     #     glob_naming_pattern_bin: ["*.bin"]
     #     path_to_stimulus_randperm: "/path/to/stimulus_randperm.npy"
 
-    # # Step 2: Contrast Enhancement (optional if using refImg_min_percentile in Suite2p)
-    # - name: contrast
-    #   kwargs:
-    #     # File pattern matching for input files
-    #     glob_naming_pattern_tif: ["*.tif"]
-    #     # Contrast enhancement parameters
-    #     percentile_low: 1    # Lower percentile for contrast stretching
-    #     percentile_high: 99  # Upper percentile for contrast stretching
+    # Step 2: Contrast Enhancement (optional if using refImg_min_percentile in Suite2p)
+    - name: contrast
+      kwargs:
+        # Contrast enhancement parameters
+        percentile_low: 1    # Lower percentile for contrast stretching
+        percentile_high: 99  # Upper percentile for contrast stretching
     # - name: noop
 
 # ============================================================================

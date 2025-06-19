@@ -3,8 +3,6 @@ from photon_mosaic.rules.preprocessing import run_preprocessing
 import re
 import logging
 
-output_pattern = config["preprocessing"]["output_pattern"]
-
 # Preprocessing rule
 rule preprocessing:
     input:

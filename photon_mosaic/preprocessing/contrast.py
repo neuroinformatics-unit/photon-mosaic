@@ -13,11 +13,6 @@ from skimage import exposure
 
 
 def run(
-    dataset_folder: Union[str, Path],
-    output_folder: Union[str, Path],
-    ses_idx: int,
-    glob_naming_pattern_tif: List[str],
-    output_path: Optional[Union[str, Path]] = None,
     **kwargs,
 ) -> None:
     """
@@ -50,28 +45,12 @@ def run(
         nothing.
     """
     # Convert paths to Path objects
-    dataset_folder = Path(dataset_folder)
-    output_folder = Path(output_folder)
-    if output_path is not None:
-        output_path = Path(output_path)
-
-    # Find the input TIFF file
-    tiff_files = []
-    for pattern in glob_naming_pattern_tif:
-        matched_files = [
-            f for f in dataset_folder.rglob(pattern) if f.is_file()
-        ]
-        tiff_files.extend(matched_files)
-        if not matched_files:
-            raise FileNotFoundError(
-                f"No files found for pattern {pattern} in {dataset_folder}"
-            )
-
-    # Get the specific session file
-    input_path = tiff_files[ses_idx]
+    dataset_folder = Path(kwargs["dataset_folder"])
+    output_folder = Path(kwargs["output_folder"])
+    tiff_file = dataset_folder / kwargs["tiff_name"]
 
     # Load the image
-    img = tifffile.imread(input_path)
+    img = tifffile.imread(tiff_file)
 
     # Get contrast parameters
     percentile_low = kwargs.get("percentile_low", 1)
@@ -82,7 +61,7 @@ def run(
     img_enhanced = exposure.rescale_intensity(img, in_range=(p_low, p_high))
 
     # Append filename to output path
-    output_path = output_folder / f"enhanced_{input_path.name}"
+    output_path = output_folder / f"enhanced_{kwargs['tiff_name']}"
 
     # Save the enhanced image
     tifffile.imwrite(output_path, img_enhanced)
