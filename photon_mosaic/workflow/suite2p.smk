@@ -7,7 +7,7 @@ rule suite2p:
             / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
             / f"ses-{wildcards.ses_idx}"
             / "funcimg"
-            / tiff_files_map[int(wildcards.sub_idx)][int(wildcards.ses_idx)][0]
+            / f"{output_pattern}{tiff_files_map[int(wildcards.sub_idx)][int(wildcards.ses_idx)][0]}"
         ),
     output:
         F=str(

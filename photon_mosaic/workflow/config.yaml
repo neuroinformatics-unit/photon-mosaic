@@ -38,7 +38,7 @@ dataset_discovery:
 preprocessing:
   # Output file naming pattern for preprocessed files
   # Use {tiff_name} as a placeholder for the original tiff filename
-  output_patterns: ["{tiff_name}.tif"]
+  output_pattern: "contrast_" # "" for noop, "enhanced_" for contrast and "derotated_" for derotation
 
   # Define preprocessing steps and their parameters
   steps:
@@ -58,7 +58,7 @@ preprocessing:
     #     # Contrast enhancement parameters
     #     percentile_low: 1    # Lower percentile for contrast stretching
     #     percentile_high: 99  # Upper percentile for contrast stretching
-    - name: noop
+    # - name: noop
 
 # ============================================================================
 # Suite2p Configuration

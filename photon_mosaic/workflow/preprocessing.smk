@@ -3,6 +3,7 @@ from photon_mosaic.rules.preprocessing import run_preprocessing
 import re
 import logging
 
+output_pattern = config["preprocessing"]["output_pattern"]
 
 # Preprocessing rule
 rule preprocessing:
@@ -18,7 +19,7 @@ rule preprocessing:
             / "sub-{sub_idx}_{dataset}"
             / "ses-{ses_idx}"
             / "funcimg"
-            / "{tiff}"
+            / (f"{output_pattern}"+ "{tiff}") 
         )
     params:
         dataset_folder=lambda wildcards: str(raw_data_base / datasets_old_names[int(wildcards.sub_idx)]),
