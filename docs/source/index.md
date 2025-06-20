@@ -11,13 +11,14 @@
 ```
 
 ```{include} ../../README.md
-:start-after: 'png)'
+:start-after: '&nbsp;'
 :end-before: '## Installation'
 ```
 
 ## Contributing
 ```{include} ../../README.md
 :start-after: '## Contributing'
+:end-before: '## References & Links'
 ```
 
 ```{toctree}

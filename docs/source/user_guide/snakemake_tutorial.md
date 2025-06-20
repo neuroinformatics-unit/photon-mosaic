@@ -19,21 +19,26 @@ A dry run is a simulation that shows what would happen if the workflow were exec
 To preview the workflow without running it:
 
 ```bash
-photon-mosaic --jobs 1 --dry-run
-```
-
-By default, the workflow uses the configuration file included in the package. To run with your own configuration:
-
-```bash
-photon-mosaic --config path/to/config.yaml --jobs 1 --dry-run
+photon-mosaic --dry-run
 ```
 
 `--jobs` specifies the number of jobs to run in parallel. You can increase this number to parallelize execution across datasets. A dry run can also be abbreviated to `-np` if using Snakemake directly.
 
 ## Running the Workflow
 
-To run the full workflow:
+On the first run, you need to specify the paths to the raw and processed data:
 
+```bash
+photon-mosaic --raw_data_base /path/to/raw --processed_data_base /path/to/processed
+```
+For more details, see the [configuration documentation](configuration.md).
+
+To run the full workflow after the first run, you can simply run:
+
+```bash
+photon-mosaic
+```
+You can also specify how many jobs you want to run in parallel with the `--jobs` flag.
 ```bash
 photon-mosaic --jobs 5
 ```
@@ -41,22 +46,16 @@ photon-mosaic --jobs 5
 To force the re-execution of a specific rule:
 
 ```bash
-photon-mosaic --jobs 5 --forcerun suite2p
+photon-mosaic --forcerun suite2p
 ```
 
 To reprocess a specific dataset, you can specify a target output file (e.g., `F.npy`):
 
 ```bash
-photon-mosaic --jobs 1 /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
+photon-mosaic /path/to/derivatives/dataset_name/suite2p/plane_0/F.npy
 ```
 
-## Cluster Execution
-
-Once you have tested the workflow locally, you can also submit jobs to a cluster. If you are using SLURM:
-
-```bash
-photon-mosaic --jobs 5 --executor slurm
-```
+To run the workflow on a cluster, check instructions in the [configuration documentation](configuration.md).
 
 ## Additional Options
 
@@ -73,27 +72,7 @@ You can also run the workflow directly with `snakemake`, using the programmatic 
 ```bash
 snakemake --snakefile $(python -c 'import photon_mosaic; print(photon_mosaic.get_snakefile_path())') \
           --configfile path/to/config.yaml \
-          --jobs 5
+          --jobs 1
 ```
 
 This is equivalent to using the `photon-mosaic` CLI but gives full control over the Snakemake interface.
-
-## Path and Wildcard Handling in Snakemake
-
-Key considerations for handling paths and wildcards in Snakemake:
-
-### Wildcard Syntax
-Wildcards are used to define the pattern of the output files and are inferred via the outputs paths. Use single curly braces for wildcards in output paths: `{wildcard_name}`. You can use the `wildcards` object to access the values of the wildcards in the rule by constructing a lambda function: `lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")`. In the parameters, you can use the wildcards to construct the path to the input files.
-
-Use `pathlib.Path` for cross-platform compatibility and convert paths to strings when using in Snakemake rules.
-
-Example:
-```python
-rule example:
-    input:
-        file=lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")
-    output:
-        result=str(Path(output_dir) / "sub-{sub_idx}" / "processed.npy")
-    params:
-        folder=lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}")
-```

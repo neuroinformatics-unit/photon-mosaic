@@ -46,11 +46,9 @@ def main():
         Unlock the workflow if it's in a locked state.
     --latency-wait : int, default=10
         Time to wait before checking if output files are ready.
-    --executor : str, default="slurm"
-        Executor to use.
     --log-level : str, default="INFO"
         Log level.
-    --reset-config : bool, optional
+    --reset-config : flag, optional
         Reset the config file to the default values.
     extra : list
         Additional arguments to pass to snakemake.
@@ -108,11 +106,6 @@ def main():
         help="Time to wait before checking if output files are ready",
     )
     parser.add_argument(
-        "--executor",
-        default=None,
-        help="Executor to use",
-    )
-    parser.add_argument(
         "--log-level",
         default="INFO",
         help="Log level",
@@ -124,7 +117,7 @@ def main():
     )
     parser.add_argument(
         "--reset-config",
-        default=False,
+        action="store_true",
         help="Reset the config file to the default values",
     )
 
@@ -249,8 +242,8 @@ def main():
         cmd.append("--unlock")
     if args.latency_wait:
         cmd.extend(["--latency-wait", str(args.latency_wait)])
-    if args.executor:
-        cmd.extend(["--executor", args.executor])
+    if config["use_slurm"] == "slurm":
+        cmd.extend(["--executor", "slurm"])
     if args.extra:
         cmd.extend(args.extra)
 

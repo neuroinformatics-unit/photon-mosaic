@@ -56,10 +56,10 @@ def run_suite2p(
 def get_edited_options(
     input_path: Path, save_folder: Path, user_ops_dict: Optional[dict] = None
 ) -> dict:
-    """This function generates a dictionary of options for Suite2P
-    by loading the default options and then modifying them with
-    user-provided options. The function also sets the required
-    runtime paths for saving the results.
+    """Generate a dictionary of options for Suite2P by loading the default
+    options and then modifying them with user-provided options.
+
+    The function also sets the required runtime paths for saving the results.
 
     Parameters
     ----------

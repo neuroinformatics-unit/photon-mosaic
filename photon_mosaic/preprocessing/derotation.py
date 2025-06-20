@@ -7,7 +7,7 @@ package.
 
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from derotation.derotate_batch import derotate
 
@@ -15,8 +15,8 @@ from derotation.derotate_batch import derotate
 def run(
     dataset_folder: Path,
     output_folder: Path,
-    glob_naming_pattern_tif: str | List[str],
-    glob_naming_pattern_bin: str | List[str],
+    glob_naming_pattern_tif: Union[str, List[str]],
+    glob_naming_pattern_bin: Union[str, List[str]],
     path_to_stimulus_randperm: str,
     ses_idx: int = 0,
     **kwargs,
@@ -30,10 +30,10 @@ def run(
         The path to the dataset folder.
     output_folder : Path
         The path to the output folder.
-    glob_naming_pattern_tif : str or List[str]
+    glob_naming_pattern_tif : Union[str, List[str]]
         Pattern(s) to match tif files. Can be a single pattern or a list of
         patterns where the session index selects the appropriate pattern.
-    glob_naming_pattern_bin : str or List[str]
+    glob_naming_pattern_bin : Union[str, List[str]]
         Pattern(s) to match bin files. Can be a single pattern or a list of
         patterns where the session index selects the appropriate pattern.
     path_to_stimulus_randperm : str

@@ -1,3 +1,9 @@
+"""
+Pathing utilities for photon-mosaic.
+
+This module provides functions for handling paths and wildcards in Snakemake.
+"""
+
 import os
 
 
