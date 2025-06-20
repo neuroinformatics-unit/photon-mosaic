@@ -1,0 +1,12 @@
+﻿photon\_mosaic.preprocessing.noop
+=================================
+
+.. automodule:: photon_mosaic.preprocessing.noop
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      run
+   

@@ -1,0 +1,12 @@
+﻿photon\_mosaic.rules.preprocessing
+==================================
+
+.. automodule:: photon_mosaic.rules.preprocessing
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      run_preprocessing
+   

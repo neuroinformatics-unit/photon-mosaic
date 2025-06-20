@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=360bc84d"></script>
+    <script src="_static/documentation_options.js?v=938c9ccc"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
@@ -115,7 +115,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.3</p>
+    <p class="title logo__title">photon-mosaic v0.2.0</p>
   
 </a></div>
     
@@ -410,12 +410,35 @@ to the cloned repository and run pip install with the developer tag:</p>
 </section>
 <section id="adding-a-new-feature">
 <h2>Adding a New Feature<a class="headerlink" href="#adding-a-new-feature" title="Link to this heading">#</a></h2>
-<p>To add a new feature, start by creating a new <code class="docutils literal notranslate"><span class="pre">.smk</span></code> rule file inside the <code class="docutils literal notranslate"><span class="pre">workflow/</span></code> folder. This rule should either call an installed package or use a wrapper function defined in the <code class="docutils literal notranslate"><span class="pre">rules/</span></code> Python module.</p>
+<p>To add a new feature, start by creating a new <code class="docutils literal notranslate"><span class="pre">.smk</span></code> rule file inside the <code class="docutils literal notranslate"><span class="pre">photon_mosaic/workflow/</span></code> folder. This rule should either call an installed package or use a wrapper function defined in the <code class="docutils literal notranslate"><span class="pre">photon_mosaic/rules/</span></code> Python module.</p>
 <p>If your feature needs specific parameters, make sure these are read from the <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file, so they can be easily adjusted by the user.</p>
 <p>If the feature requires additional Python packages, you must add them to the <code class="docutils literal notranslate"><span class="pre">project.dependencies</span></code> section of the <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file. Please make sure the package is compatible with the rest of the environment. If the latest version is not suitable or you’re unsure which version to use, feel free to ask for help in the Zulip chat or open a discussion in your pull request.</p>
 <p>You should also add tests under the <code class="docutils literal notranslate"><span class="pre">tests/</span></code> folder to ensure the rule runs correctly, produces the expected output, and handles edge cases.</p>
 <p>Finally, document your feature. If you’re writing a wrapper function, include a clear docstring: it will be automatically included in the API reference docs. For user-facing features, add a short section to the <code class="docutils literal notranslate"><span class="pre">docs/</span></code> folder describing what the feature does, what inputs and config options it expects, and what outputs it generates. An example usage is helpful, but optional.</p>
 <p>Making sure each feature is modular, tested, and documented keeps the project clean and easy to maintain.</p>
+</section>
+<section id="path-and-wildcard-handling-in-snakemake">
+<h2>Path and Wildcard Handling in Snakemake<a class="headerlink" href="#path-and-wildcard-handling-in-snakemake" title="Link to this heading">#</a></h2>
+<p>Key considerations for handling paths and wildcards in Snakemake:</p>
+<section id="wildcard-syntax">
+<h3>Wildcard Syntax<a class="headerlink" href="#wildcard-syntax" title="Link to this heading">#</a></h3>
+<p>Wildcards are used to define the pattern of the output files and are inferred via the outputs paths. Use single curly braces for wildcards in output paths: <code class="docutils literal notranslate"><span class="pre">{wildcard_name}</span></code>. You can use the <code class="docutils literal notranslate"><span class="pre">wildcards</span></code> object to access the values of the wildcards in the rule by constructing a lambda function: <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">wildcards:</span> <span class="pre">str(Path(base_dir)</span> <span class="pre">/</span> <span class="pre">f&quot;sub-{wildcards.sub_idx}&quot;</span> <span class="pre">/</span> <span class="pre">&quot;data.npy&quot;)</span></code>. In the parameters, you can use the wildcards to construct the path to the input files. Wildcards can be constrained to a specific set of values using the <code class="docutils literal notranslate"><span class="pre">wildcard_constraints</span></code> section.</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">cross_platform_path</span></code> function to construct paths that are compatible with different operating systems.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">photon_mosaic.pathing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_platform_path</span>
+
+<span class="n">rule</span> <span class="n">example</span><span class="p">:</span>
+    <span class="nb">input</span><span class="p">:</span>
+        <span class="n">file</span><span class="o">=</span><span class="k">lambda</span> <span class="n">wildcards</span><span class="p">:</span> <span class="n">cross_platform_path</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;sub-</span><span class="si">{</span><span class="n">wildcards</span><span class="o">.</span><span class="n">sub_idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">/</span> <span class="s2">&quot;data.npy&quot;</span><span class="p">)</span>
+    <span class="n">output</span><span class="p">:</span>
+        <span class="n">result</span><span class="o">=</span><span class="n">cross_platform_path</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;sub-</span><span class="si">{sub_idx}</span><span class="s2">&quot;</span> <span class="o">/</span> <span class="s2">&quot;</span><span class="si">{my_file_name}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">params</span><span class="p">:</span>
+        <span class="n">folder</span><span class="o">=</span><span class="k">lambda</span> <span class="n">wildcards</span><span class="p">:</span> <span class="n">cross_platform_path</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;sub-</span><span class="si">{</span><span class="n">wildcards</span><span class="o">.</span><span class="n">sub_idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">wildcard_constraints</span><span class="p">:</span>
+        <span class="n">my_file_name</span><span class="o">=</span><span class="s2">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;data_1.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;data_2.bin&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="pull-requests">
 <h2>Pull requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
@@ -563,6 +586,10 @@ Most content is found under <code class="docutils literal notranslate"><span cla
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-development-environment">Creating a development environment</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-a-new-feature">Adding a New Feature</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#path-and-wildcard-handling-in-snakemake">Path and Wildcard Handling in Snakemake</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wildcard-syntax">Wildcard Syntax</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull requests</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#formatting-and-pre-commit-hooks">Formatting and pre-commit hooks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing-documentation">Contributing documentation</a><ul class="nav section-nav flex-column">

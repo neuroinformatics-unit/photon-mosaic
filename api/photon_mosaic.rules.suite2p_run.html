@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Installation &#8212; photon-mosaic</title>
+    <title>photon_mosaic.rules.suite2p_run &#8212; photon-mosaic</title>
   
   
   
@@ -44,11 +44,12 @@
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/installation';</script>
-    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/user_guide/installation.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/photon_mosaic.rules.suite2p_run';</script>
+    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/api/photon_mosaic.rules.suite2p_run.html" />
     <link rel="icon" href="../_static/light-logo-niu.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="photon_mosaic.rules.preprocessing" href="photon_mosaic.rules.preprocessing.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -128,7 +129,7 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="index.html">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
     User Guide
   </a>
 </li>
@@ -141,7 +142,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../api_index.html">
     API Reference
   </a>
@@ -218,6 +219,10 @@
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -228,10 +233,8 @@
       
       
       
-        
-      
       <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -247,7 +250,7 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="index.html">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
     User Guide
   </a>
 </li>
@@ -260,7 +263,7 @@
 </li>
 
 
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../api_index.html">
     API Reference
   </a>
@@ -316,6 +319,25 @@
     
   </div>
   
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.cli.html">photon_mosaic.cli</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.dataset_discovery.html">photon_mosaic.dataset_discovery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.pathing.html">photon_mosaic.pathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.noop.html">photon_mosaic.preprocessing.noop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.rules.suite2p_run</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
       <div class="sidebar-primary-item">
@@ -351,7 +373,10 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Installation</span></li>
+    
+    <li class="breadcrumb-item"><a href="../api_index.html" class="nav-link">API Reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.rules.suite2p_run</span></li>
   </ul>
 </nav>
 </div>
@@ -368,18 +393,76 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="installation">
-<span id="user-guide-installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
-<p>Photon-mosaic requires <strong>Python 3.11</strong> or <strong>3.12</strong>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>photon-mosaic<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.12
-conda<span class="w"> </span>activate<span class="w"> </span>photon-mosaic
-pip<span class="w"> </span>install<span class="w"> </span>photon-mosaic
-</pre></div>
+  <section id="module-photon_mosaic.rules.suite2p_run">
+<span id="photon-mosaic-rules-suite2p-run"></span><h1>photon_mosaic.rules.suite2p_run<a class="headerlink" href="#module-photon_mosaic.rules.suite2p_run" title="Link to this heading">#</a></h1>
+<p>Snakemake rule for running Suite2P.</p>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.rules.suite2p_run.get_edited_options" title="photon_mosaic.rules.suite2p_run.get_edited_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edited_options</span></code></a>(input_path, save_folder)</p></td>
+<td><p>Generate a dictionary of options for Suite2P by loading the default options and then modifying them with user-provided options.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.rules.suite2p_run.run_suite2p" title="photon_mosaic.rules.suite2p_run.run_suite2p"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_suite2p</span></code></a>(stat_path, dataset_folder[, ...])</p></td>
+<td><p>This function runs Suite2P on a given dataset folder and saves the results in the specified paths.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>To install developer tools (e.g., testing and linting):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;photon-mosaic[dev]&#39;</span>
-</pre></div>
-</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.rules.suite2p_run.run_suite2p">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.rules.suite2p_run.</span></span><span class="sig-name descname"><span class="pre">run_suite2p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stat_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_ops_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/rules/suite2p_run.html#run_suite2p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.rules.suite2p_run.run_suite2p" title="Link to this definition">#</a></dt>
+<dd><p>This function runs Suite2P on a given dataset folder and saves the
+results in the specified paths. It also handles any exceptions
+that may occur during the process and logs them in an error
+file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stat_path</strong> (<em>str</em>) – The path where the Suite2P statistics will be saved.</p></li>
+<li><p><strong>dataset_folder</strong> (<em>Path</em>) – The path to the folder containing the dataset.</p></li>
+<li><p><strong>user_ops_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary containing user-provided options to override
+the default Suite2P options. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function runs Suite2P and saves results to the specified paths.
+If an error occurs, it logs the error to an error.txt file in the
+dataset folder.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.rules.suite2p_run.get_edited_options">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.rules.suite2p_run.</span></span><span class="sig-name descname"><span class="pre">get_edited_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_ops_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/rules/suite2p_run.html#get_edited_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.rules.suite2p_run.get_edited_options" title="Link to this definition">#</a></dt>
+<dd><p>Generate a dictionary of options for Suite2P by loading the default
+options and then modifying them with user-provided options.</p>
+<p>The function also sets the required runtime paths for saving the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_path</strong> (<em>Path</em>) – The path to the input data folder.</p></li>
+<li><p><strong>save_folder</strong> (<em>Path</em>) – The path to the folder where the results will be saved.</p></li>
+<li><p><strong>user_ops_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary containing user-provided options to override
+the default options. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the Suite2P options, including
+the user-provided options and the required runtime paths.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If a user-provided option is not valid for Suite2P.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -392,12 +475,40 @@ pip<span class="w"> </span>install<span class="w"> </span>photon-mosaic
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="photon_mosaic.rules.preprocessing.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">photon_mosaic.rules.preprocessing</p>
+      </div>
+    </a>
 </div>
                 </footer>
               
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.rules.suite2p_run.run_suite2p"><code class="docutils literal notranslate"><span class="pre">run_suite2p()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.rules.suite2p_run.get_edited_options"><code class="docutils literal notranslate"><span class="pre">get_edited_options()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

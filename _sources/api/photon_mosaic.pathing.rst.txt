@@ -1,0 +1,12 @@
+﻿photon\_mosaic.pathing
+======================
+
+.. automodule:: photon_mosaic.pathing
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cross_platform_path
+   

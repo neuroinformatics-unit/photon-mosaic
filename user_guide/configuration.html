@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=360bc84d"></script>
+    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.1.3</p>
+    <p class="title logo__title">photon-mosaic v0.2.0</p>
   
 </a></div>
     
@@ -217,6 +217,10 @@
     </div>
   
 
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
   
 </div>
 
@@ -368,50 +372,147 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="configuration">
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration">
 <span id="user-guide-configuration"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h1>
-<p>On first run, photon-mosaic will create a user config at <code class="docutils literal notranslate"><span class="pre">~/.photon_mosaic/config.yaml</span></code> if it does not exist.</p>
-<p>You can:</p>
-<ul>
-<li><p>Edit this file directly for user-wide defaults.</p></li>
-<li><p>Override key paths at the command line:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--raw_data_base<span class="w"> </span>/my/data<span class="w"> </span>--processed_data_base<span class="w"> </span>/my/processed<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span>
+<p>The configuration system in <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> is designed to be flexible and user-friendly. It allows you to customize the behavior of the pipeline at different levels.</p>
+<section id="configuration-files">
+<h2>Configuration Files<a class="headerlink" href="#configuration-files" title="Link to this heading">#</a></h2>
+<section id="user-configuration">
+<h3>User Configuration<a class="headerlink" href="#user-configuration" title="Link to this heading">#</a></h3>
+<p>On first run, photon-mosaic will create a user config at <code class="docutils literal notranslate"><span class="pre">~/.photon_mosaic/config.yaml</span></code> if it does not exist. This serves as your default configuration.</p>
+<p>The default config expects you to run the pipeline in the directory that contains the raw data and will create a <code class="docutils literal notranslate"><span class="pre">derivatives</span></code> directory its root directory, following <code class="docutils literal notranslate"><span class="pre">NeuroBlueprint</span></code> conventions. It is advised to specify the paths for the raw and processed data using the <code class="docutils literal notranslate"><span class="pre">raw_data_base</span></code> and <code class="docutils literal notranslate"><span class="pre">processed_data_base</span></code> parameters on the first run via the command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--raw_data_base<span class="w"> </span>/my/raw_data<span class="w"> </span>--processed_data_base<span class="w"> </span>/my/derivatives
 </pre></div>
 </div>
-</li>
-<li><p>Use a project-specific config:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>photon-mosaic<span class="w"> </span>--config<span class="w"> </span>./my/path/to/config.yaml<span class="w"> </span>--jobs<span class="w"> </span><span class="m">5</span>
-</pre></div>
-</div>
-</li>
-</ul>
-<p><strong>Note:</strong></p>
-<ul class="simple">
-<li><p>The config used for the run (with any overrides) is always exported to a timestamped file in the <code class="docutils literal notranslate"><span class="pre">derivatives/photon-mosaic/configs/</span></code> directory.</p></li>
-<li><p>Snakemake logs are always dumped to a timestamped file in the <code class="docutils literal notranslate"><span class="pre">derivatives/photon-mosaic/logs/</span></code> directory.</p></li>
-<li><p>Both logs and configs are organized with timestamps (format: YYYYMMDD_HHMMSS) for easy tracking of different runs.</p></li>
-</ul>
-<p>Here is an example of a <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> file:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">raw_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/raw/&quot;</span>
-<span class="nt">processed_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/path/to/processed/&quot;</span>
+<p>After the first run, you can edit the config file to your liking by manually opening the file and editing it or using command line arguments. You will be able to run photon-mosaic without specifying the paths again, by just running <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code>.</p>
+<p>In case you want to reset the config to the default values, you can run <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span> <span class="pre">--reset-config</span></code>. You can also specify the paths to raw and derivative again with the appropriate flags.</p>
+<p>If you want to store your config file somewhere else, you can specify the path to the config file with the <code class="docutils literal notranslate"><span class="pre">--config</span></code> flag.</p>
+<p>The config file that is used for each run (with any overrides) is exported to <code class="docutils literal notranslate"><span class="pre">derivatives/photon-mosaic/configs/YYYYMMDD_HHMMSS_config.yaml</span></code>.</p>
+</section>
+</section>
+<section id="configuration-structure">
+<h2>Configuration Structure<a class="headerlink" href="#configuration-structure" title="Link to this heading">#</a></h2>
+<p>The configuration file is organized into several main sections. Here is a simplified example showing the key sections:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data paths</span>
+<span class="nt">raw_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path/to/raw_data/&quot;</span>
+<span class="nt">processed_data_base</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;path/to/derivatives/&quot;</span>
 
+<span class="c1"># Dataset discovery settings</span>
+<span class="nt">dataset_discovery</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^.*$&quot;</span>
+<span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">exclude_patterns</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*_test$&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*_backup$&quot;</span>
+<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;_&quot;</span>
+<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+
+<span class="c1"># Preprocessing configuration</span>
+<span class="nt">preprocessing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">output_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w">  </span><span class="c1"># &quot;&quot; for noop, &quot;enhanced_&quot; for contrast, &quot;derotated_&quot; for derotation</span>
+<span class="w">  </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">noop</span><span class="w">  </span><span class="c1"># Only one step should be active at a time</span>
+
+<span class="c1"># Suite2p settings</span>
 <span class="nt">suite2p_ops</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">fs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7.5</span>
+<span class="w">  </span><span class="c1"># Acquisition parameters</span>
 <span class="w">  </span><span class="nt">nplanes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="w">  </span><span class="nt">tau</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
-<span class="w">  </span><span class="nt">nonrigid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">diameter</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">  </span><span class="nt">nchannels</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">fs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
+<span class="w">  </span><span class="nt">tau</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
 
+<span class="w">  </span><span class="c1"># Registration settings</span>
+<span class="w">  </span><span class="nt">do_registration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">nonrigid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="w">  </span><span class="c1"># Custom registration parameters (our fork)</span>
+<span class="w">  </span><span class="nt">refImg_min_percentile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">refImg_max_percentile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">99</span>
+
+<span class="w">  </span><span class="c1"># ROI detection</span>
+<span class="w">  </span><span class="nt">roidetect</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">anatomical_only</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+
+<span class="c1"># SLURM settings</span>
+<span class="nt">use_slurm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <span class="nt">slurm</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">use_slurm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">partition</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cpu&quot;</span>
-<span class="w">  </span><span class="nt">mem_mb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16000</span>
-<span class="w">  </span><span class="nt">cpu_per_task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">slurm_partition</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gpu&quot;</span>
+<span class="w">  </span><span class="nt">mem_mb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32000</span>
 <span class="w">  </span><span class="nt">tasks</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">  </span><span class="nt">nodes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 </pre></div>
 </div>
-<p>If you don’t have access to a cluster or SLURM, set <code class="docutils literal notranslate"><span class="pre">use_slurm:</span> <span class="pre">false</span></code> to run locally.</p>
+<p>For the complete configuration file with all available parameters and detailed comments, see <a class="reference external" href="https://github.com/neuroinformatics-unit/photon-mosaic/blob/main/photon_mosaic/workflow/config.yaml">photon_mosaic/workflow/config.yaml</a> or the YAML file in <code class="docutils literal notranslate"><span class="pre">~/.photon_mosaic/config.yaml</span></code> generated on first run.</p>
+</section>
+<section id="key-configuration-notes">
+<h2>Key Configuration Notes<a class="headerlink" href="#key-configuration-notes" title="Link to this heading">#</a></h2>
+<section id="dataset-discovery">
+<h3>Dataset Discovery<a class="headerlink" href="#dataset-discovery" title="Link to this heading">#</a></h3>
+<p>See the <a class="reference internal" href="dataset_discovery.html"><span class="std std-doc">dataset discovery documentation</span></a> for detailed information about configuring dataset discovery.</p>
+</section>
+<section id="preprocessing">
+<h3>Preprocessing<a class="headerlink" href="#preprocessing" title="Link to this heading">#</a></h3>
+<p>See the <a class="reference internal" href="preprocessing.html"><span class="std std-doc">preprocessing documentation</span></a> for step-specific configuration</p>
+</section>
+<section id="suite2p-parameters">
+<h3>Suite2p Parameters<a class="headerlink" href="#suite2p-parameters" title="Link to this heading">#</a></h3>
+<p>The configuration includes all standard Suite2p parameters plus custom additions:</p>
+<section id="custom-registration-parameters">
+<h4>Custom Registration Parameters<a class="headerlink" href="#custom-registration-parameters" title="Link to this heading">#</a></h4>
+<p>Our fork includes additional parameters for improved registration:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">refImg_min_percentile</span></code>: Minimum percentile for reference image selection (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">refImg_max_percentile</span></code>: Maximum percentile for reference image selection (default: 99)</p></li>
+</ul>
+<p>These parameters control contrast normalization during registration and are especially useful for low SNR datasets like three-photon imaging.</p>
+</section>
+<section id="cell-detection">
+<h4>Cell Detection<a class="headerlink" href="#cell-detection" title="Link to this heading">#</a></h4>
+<p>To use Cellpose for cell detection, set <code class="docutils literal notranslate"><span class="pre">anatomical_only</span></code> to a value greater than 0:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">suite2p_ops</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">anatomical_only</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w">  </span><span class="c1"># Use maximum projection image for cell detection</span>
+</pre></div>
+</div>
+<p>Choose the value of <code class="docutils literal notranslate"><span class="pre">anatomical_only</span></code> based on the following table:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>Use max projection image divided by mean image</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Use mean image</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Use enhanced mean image</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Use maximum projection image</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For a complete list of all available Suite2p parameters, refer to the <a class="reference external" href="https://suite2p.readthedocs.io/en/latest/settings.html">official Suite2p documentation</a>.</p>
+</section>
+</section>
+<section id="slurm">
+<h3>SLURM<a class="headerlink" href="#slurm" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">use_slurm</span></code>: Enable/disable SLURM job scheduling (default: false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slurm_partition</span></code>: Compute partition to use</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mem_mb</span></code>: Memory allocation per job</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tasks</span></code>: Number of parallel tasks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code>: Number of compute nodes</p></li>
+</ul>
+<p>In order for SLURM jobs to be executed, you have to launch <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> inside an environment in an interactive job in your cluster.</p>
+<p>For more details about SLURM configuration options, see the <a class="reference external" href="https://github.com/snakemake/snakemake-executor-plugin-slurm">Snakemake SLURM executor plugin documentation</a>.</p>
+</section>
+</section>
 </section>
 
 
@@ -430,6 +531,39 @@
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-files">Configuration Files</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#user-configuration">User Configuration</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-structure">Configuration Structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-configuration-notes">Key Configuration Notes</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dataset-discovery">Dataset Discovery</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessing">Preprocessing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suite2p-parameters">Suite2p Parameters</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-registration-parameters">Custom Registration Parameters</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cell-detection">Cell Detection</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#slurm">SLURM</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

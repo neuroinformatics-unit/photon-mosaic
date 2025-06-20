@@ -1,0 +1,12 @@
+﻿photon\_mosaic.dataset\_discovery
+=================================
+
+.. automodule:: photon_mosaic.dataset_discovery
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      discover_datasets
+   
