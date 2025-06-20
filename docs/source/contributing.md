@@ -34,7 +34,7 @@ pre-commit install
 
 ## Adding a New Feature
 
-To add a new feature, start by creating a new `.smk` rule file inside the `workflow/` folder. This rule should either call an installed package or use a wrapper function defined in the `rules/` Python module.
+To add a new feature, start by creating a new `.smk` rule file inside the `photon_mosaic/workflow/` folder. This rule should either call an installed package or use a wrapper function defined in the `photon_mosaic/rules/` Python module.
 
 If your feature needs specific parameters, make sure these are read from the `config.yaml` file, so they can be easily adjusted by the user.
 
@@ -46,6 +46,30 @@ Finally, document your feature. If you’re writing a wrapper function, include 
 
 Making sure each feature is modular, tested, and documented keeps the project clean and easy to maintain.
 
+
+## Path and Wildcard Handling in Snakemake
+
+Key considerations for handling paths and wildcards in Snakemake:
+
+### Wildcard Syntax
+Wildcards are used to define the pattern of the output files and are inferred via the outputs paths. Use single curly braces for wildcards in output paths: `{wildcard_name}`. You can use the `wildcards` object to access the values of the wildcards in the rule by constructing a lambda function: `lambda wildcards: str(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")`. In the parameters, you can use the wildcards to construct the path to the input files. Wildcards can be constrained to a specific set of values using the `wildcard_constraints` section.
+
+Use the `cross_platform_path` function to construct paths that are compatible with different operating systems.
+
+Example:
+```python
+from photon_mosaic.pathing import cross_platform_path
+
+rule example:
+    input:
+        file=lambda wildcards: cross_platform_path(Path(base_dir) / f"sub-{wildcards.sub_idx}" / "data.npy")
+    output:
+        result=cross_platform_path(Path(output_dir) / "sub-{sub_idx}" / "{my_file_name}")
+    params:
+        folder=lambda wildcards: cross_platform_path(Path(base_dir) / f"sub-{wildcards.sub_idx}")
+    wildcard_constraints:
+        my_file_name="|".join(["data_1.npy", "data_2.bin"])
+```
 
 ## Pull requests
 

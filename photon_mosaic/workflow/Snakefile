@@ -1,47 +1,92 @@
-configfile: "workflow/config.yaml"
+"""
+Photon Mosaic Main Workflow
+
+This is the main Snakefile that orchestrates the entire photon mosaic processing pipeline.
+It handles dataset discovery, target generation, and coordinates the preprocessing and
+suite2p analysis workflows.
+
+The workflow:
+1. Discovers datasets and their TIFF files from the raw data directory
+2. Generates preprocessing targets for each dataset/session combination
+3. Generates suite2p analysis targets for processed data
+4. Includes preprocessing.smk and suite2p.smk modules to execute the actual processing
+"""
 
 from pathlib import Path
+from photon_mosaic.dataset_discovery import discover_datasets
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("snakemake.workflow")
 
-raw_data_base = Path(config["raw_data_base"])
-processed_data_base = Path(config["processed_data_base"])
+raw_data_base = Path(config["raw_data_base"]).resolve()
+processed_data_base = Path(config["processed_data_base"]).resolve()
 slurm_config = config.get("slurm", {})
+output_pattern = config["preprocessing"]["output_pattern"]
 
+logger.debug(f"Raw data base: {raw_data_base}")
+logger.debug(f"Processed data base: {processed_data_base}")
 
-# discover datasets
-datasets = [f.name for f in raw_data_base.iterdir() if f.is_dir()]
-tiff_paths = {
-    dataset: list((raw_data_base / dataset).rglob("*.tif?"))
-    for dataset in datasets
-}
+# Discover datasets and their TIFF files
+datasets_old_names, datasets_new_names, tiff_files, tiff_files_flat = discover_datasets(
+    str(raw_data_base),
+    pattern=config["dataset_discovery"]["pattern"],
+    exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
+    substitutions=config["dataset_discovery"].get("substitutions"),
+    tiff_patterns=config["dataset_discovery"].get("tiff_patterns"),
+)
+
+logger.debug(f"Discovered datasets (old names): {datasets_old_names}")
+logger.debug(f"Discovered datasets (new names): {datasets_new_names}")
+logger.debug(f"TIFF files: {tiff_files}")
+logger.debug(f"TIFF files flat: {tiff_files_flat}")
+
+# This is a dictionary with the dataset new names as the key and the list of TIFF files as the value
+
+# Create a mapping from dataset index to TIFF files
+tiff_files_map = {i: tiff_files[dataset] for i, dataset in enumerate(datasets_old_names)}
+logger.info(f"TIFF files map: {tiff_files_map}")
+
+# Get the number of sessions from the tiff_patterns configuration
+num_sessions = len(config["dataset_discovery"].get("tiff_patterns", ["*.tif"]))
+
+preproc_targets = [
+    str(
+        Path(processed_data_base)
+        / f"sub-{i}_{datasets_new_names[i]}"
+        / f"ses-{j}"
+        / "funcimg"
+        / f"{output_pattern}{tiff_name}"
+    )
+    for i in range(len(datasets_new_names))
+    for j in range(num_sessions)
+    for tiff_name in tiff_files_map[i].get(j, [])
+]
+
+logger.debug(f"Preprocessing targets: {preproc_targets}")
+
+suite2p_targets = [
+    str(
+        Path(processed_data_base)
+        / f"sub-{i}_{datasets_new_names[i]}"
+        / f"ses-{j}"
+        / "funcimg"
+        / "suite2p"
+        / "plane0"
+        / fname
+    )
+    for i in range(len(datasets_new_names))
+    for j in range(num_sessions)
+    for fname in ["F.npy", "data.bin"]
+    if tiff_files_map[i].get(j, [])  # Only create targets for sessions that have files
+]
+
+logger.debug(f"Suite2p targets: {suite2p_targets}")
+
+include: "preprocessing.smk"
+include: "suite2p.smk"
 
 rule all:
     input:
-        expand(
-            [
-                f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
-            ],
-            zip,
-            index=range(len(datasets)),
-            datasets=datasets,
-        )
-
-rule suite2p:
-    input:
-        tiff=lambda wildcards: tiff_paths[wildcards.datasets],
-    output:
-        stat=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/stat.npy",
-        bin=f"{processed_data_base}/sub-{{index}}_{{datasets}}/ses-0/funcimg/suite2p/plane0/data.bin"
-    params:
-        dataset_folder=lambda wildcards: raw_data_base / wildcards.datasets,
-    resources:
-        **(slurm_config if slurm_config.get("use_slurm") else {}),
-    run:
-        from photon_mosaic.rules.suite2p_run import run_suite2p
-        run_suite2p(
-            input["tiff"],
-            output["stat"],
-            output["bin"],
-            Path(params["dataset_folder"]),
-            config["suite2p_ops"],
-        )
+        preproc_targets,
+        suite2p_targets

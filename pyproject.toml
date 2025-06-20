@@ -11,6 +11,8 @@ dependencies = [
   "numpy",
   "snakemake-executor-plugin-slurm",
   "PyYAML",
+  "derotation",
+  "suite2p-NIU"
 ]
 
 license = {text = "BSD-3-Clause"}
@@ -35,6 +37,18 @@ classifiers = [
 
 [project.scripts]
 photon-mosaic = "photon_mosaic.cli:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "coverage",
+  "tox",
+  "mypy",
+  "pre-commit",
+  "ruff",
+  "setuptools_scm",
+]
 
 [build-system]
 requires = [
@@ -103,7 +117,8 @@ python =
     3.12: py312
 
 [testenv]
-deps = -r requirements-dev.txt
+deps =
+    .[dev]
 commands =
     pytest -v --color=yes --cov=photon_mosaic --cov-report=xml
 """
