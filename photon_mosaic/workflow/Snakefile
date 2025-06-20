@@ -1,4 +1,16 @@
-configfile: "workflow/config.yaml"
+"""
+Photon Mosaic Main Workflow
+
+This is the main Snakefile that orchestrates the entire photon mosaic processing pipeline.
+It handles dataset discovery, target generation, and coordinates the preprocessing and
+suite2p analysis workflows.
+
+The workflow:
+1. Discovers datasets and their TIFF files from the raw data directory
+2. Generates preprocessing targets for each dataset/session combination
+3. Generates suite2p analysis targets for processed data
+4. Includes preprocessing.smk and suite2p.smk modules to execute the actual processing
+"""
 
 from pathlib import Path
 from photon_mosaic.dataset_discovery import discover_datasets

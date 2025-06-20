@@ -1,3 +1,19 @@
+"""
+Suite2p Analysis Module
+
+This Snakefile module handles the Suite2p analysis step of the photon mosaic pipeline.
+It takes preprocessed TIFF files and runs Suite2p to extract neural activity traces.
+
+The suite2p rule:
+- Takes preprocessed TIFF files as input (from preprocessing step)
+- Runs Suite2p analysis with parameters from config["suite2p_ops"]
+- Outputs F.npy (fluorescence traces) and data.bin (binary data) files
+- Supports SLURM cluster execution with configurable resources
+
+Input: Preprocessed TIFF files from the preprocessing step
+Output: Suite2p analysis results (F.npy, data.bin) in suite2p/plane0/ directory
+"""
+
 import re
 from photon_mosaic.pathing import cross_platform_path
 

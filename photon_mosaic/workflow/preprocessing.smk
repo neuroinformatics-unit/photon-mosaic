@@ -1,3 +1,20 @@
+"""
+Preprocessing Module
+
+This Snakefile module handles the preprocessing step of the photon mosaic pipeline.
+It processes raw TIFF files from discovered datasets and applies preprocessing
+operations defined in the configuration.
+
+The preprocessing rule:
+- Takes raw TIFF files as input from the dataset discovery
+- Applies preprocessing operations (defined in config["preprocessing"])
+- Outputs processed files in a standardized NeuroBlueprint format
+- Supports SLURM cluster execution with configurable resources
+
+Input: Raw TIFF files from discovered datasets
+Output: Preprocessed TIFF files organized by subject/session
+"""
+
 from pathlib import Path
 from photon_mosaic.rules.preprocessing import run_preprocessing
 from photon_mosaic.pathing import cross_platform_path
