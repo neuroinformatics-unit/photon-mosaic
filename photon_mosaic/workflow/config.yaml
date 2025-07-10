@@ -35,6 +35,7 @@ dataset_discovery:
 # ============================================================================
 # Settings for Poisson-numcodecs compression pipeline
 numcodecs_ops:
+  scanimage: True # Is this ScanImage TIFF file?
   crop: 20 # Number of pixels to crop from image edges (pixels)
 
 # ============================================================================
