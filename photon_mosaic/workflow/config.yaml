@@ -143,9 +143,9 @@ suite2p_ops:
   anatomical_only: 0  # Use Cellpose if > 0
   diameter: 0  # Cellpose diameter (0 for auto)
   cellprob_threshold: 0.0  # Cellpose detection threshold
-  flow_threshold: 1.5  # Cellpose flow threshold
+  flow_threshold: 0.4  # Cellpose-SAM flow threshold
   spatial_hp_cp: 0  # Window for Cellpose high-pass
-  pretrained_model: 'cyto'  # Cellpose model
+  pretrained_model: 'cpsam'  # Cellpose-SAM model
 
   # Neuropil extraction settings
   soma_crop: true  # Crop dendrites for stats
