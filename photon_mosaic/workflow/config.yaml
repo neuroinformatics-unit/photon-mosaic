@@ -30,6 +30,12 @@ dataset_discovery:
     - pattern: "([^/]+)/.*"
       repl: '\\1'
 
+# ============================================================================
+# Poisson-numcodecs Configuration
+# ============================================================================
+# Settings for Poisson-numcodecs compression pipeline
+numcodecs_ops:
+  crop: 20 # Number of pixels to crop from image edges (pixels)
 
 # ============================================================================
 # Preprocessing Configuration
