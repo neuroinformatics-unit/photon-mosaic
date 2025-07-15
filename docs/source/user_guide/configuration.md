@@ -114,6 +114,9 @@ Choose the value of `anatomical_only` based on the following table:
 
 For a complete list of all available Suite2p parameters, refer to the [official Suite2p documentation](https://suite2p.readthedocs.io/en/latest/settings.html).
 
+#### Cellpose 3 vs Cellpose 4
+Photon-mosaic uses Cellpose 4 by default, with `cpsam` model. If you want to use Cellpose 3, you can uninstall the Cellpose 4 from your conda environment and install Cellpose 3: `pip uninstall cellpose` and `pip install cellpose==3.0.0`. In such a case remember to change the `flow_threshold` to 1.5.
+
 ### SLURM
 - `use_slurm`: Enable/disable SLURM job scheduling (default: false)
 - `slurm_partition`: Compute partition to use
