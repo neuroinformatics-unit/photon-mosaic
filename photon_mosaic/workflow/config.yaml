@@ -140,7 +140,7 @@ suite2p_ops:
   high_pass: 100  # Running mean window
   spatial_hp_detect: 25  # Window for spatial high-pass
   denoise: false  # Denoise before detection
-  anatomical_only: 0  # Use Cellpose if > 0
+  anatomical_only: 4  # Use Cellpose if > 0
   diameter: 0  # Cellpose diameter (0 for auto)
   cellprob_threshold: 0.0  # Cellpose detection threshold
   flow_threshold: 0.4  # Cellpose-SAM flow threshold
