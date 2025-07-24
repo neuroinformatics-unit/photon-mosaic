@@ -35,6 +35,8 @@ def run_snakemake(workdir, configfile, dry_run=False):
         cwd=workdir,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
 
     return result
