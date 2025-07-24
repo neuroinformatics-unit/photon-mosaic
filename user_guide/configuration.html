@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/documentation_options.js?v=37f418d5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -113,7 +113,7 @@
   
   
   
-    <p class="title logo__title">photon-mosaic v0.2.0</p>
+    <p class="title logo__title">photon-mosaic v0.2.1</p>
   
 </a></div>
     
@@ -499,6 +499,10 @@
 </div>
 <p>For a complete list of all available Suite2p parameters, refer to the <a class="reference external" href="https://suite2p.readthedocs.io/en/latest/settings.html">official Suite2p documentation</a>.</p>
 </section>
+<section id="cellpose-3-vs-cellpose-4">
+<h4>Cellpose 3 vs Cellpose 4<a class="headerlink" href="#cellpose-3-vs-cellpose-4" title="Link to this heading">#</a></h4>
+<p>Photon-mosaic uses Cellpose 4 by default, with <code class="docutils literal notranslate"><span class="pre">cpsam</span></code> model. If you want to use Cellpose 3, you can uninstall the Cellpose 4 from your conda environment and install Cellpose 3: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">cellpose</span></code> and <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">cellpose==3.0.0</span></code>. In such a case remember to change the <code class="docutils literal notranslate"><span class="pre">flow_threshold</span></code> to 1.5.</p>
+</section>
 </section>
 <section id="slurm">
 <h3>SLURM<a class="headerlink" href="#slurm" title="Link to this heading">#</a></h3>
@@ -555,6 +559,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#suite2p-parameters">Suite2p Parameters</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-registration-parameters">Custom Registration Parameters</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cell-detection">Cell Detection</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#cellpose-3-vs-cellpose-4">Cellpose 3 vs Cellpose 4</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#slurm">SLURM</a></li>
