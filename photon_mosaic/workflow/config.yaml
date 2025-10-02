@@ -10,25 +10,34 @@ processed_data_base: "path/to/processed/data/"
 # ============================================================================
 # This section controls how datasets are discovered and processed in the pipeline
 dataset_discovery:
-  # Match all directories
-  pattern: "^.*$"
+  # Data format specification
+  # Set to true if your data is already in NeuroBlueprint format (sub-XXX_key-value/ses-XXX_key-value/)
+  # If true: automatic metadata extraction from folder names
+  # If false: fallback to ses-XXX_id-old_folder_name pattern with optional transformations
+  neuroblueprint_format: false
 
   # Find tiffs. Different patterns will correspond to different sessions
   tiff_patterns: ["*.tif"]
+
+  # Configuration for custom format data (neuroblueprint_format: false)
+  # Applies the original behavior with ses-XXX_id-old_folder_name pattern
+
+  # Match all directories by default
+  pattern: "^.*$"
 
   # Exclude specific patterns from processing
   exclude_patterns:
     - ".*_test$"    # Exclude test datasets
     - ".*_backup$"  # Exclude backup datasets
 
-  # Transform dataset names using regex substitutions
+  # Transform dataset names using regex substitutions (applied before creating ses-XXX_id-name)
   substitutions:
-    # Remove underscores from names
-    - pattern: "_"
-      repl: ""
-    # Take the first part of the path
-    - pattern: "([^/]+)/.*"
-      repl: '\\1'
+    # Example: Remove underscores from names
+    # - pattern: "_"
+    #   repl: ""
+    # Example: Take the first part of the path
+    # - pattern: "([^/]+)/.*"
+    #   repl: '\\1'
 
 
 # ============================================================================

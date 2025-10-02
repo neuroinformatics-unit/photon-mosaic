@@ -1,112 +1,619 @@
 """
 Dataset discovery module.
 
-This module provides functions to discover datasets using regex patterns.
+This module provides a class-based approach to discover datasets using regex
+patterns.
 All filtering and transformations are handled through regex substitutions.
 """
 
 import logging
 import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 
-def discover_datasets(
-    base_path: Union[str, Path],
-    pattern: str = ".*",
-    exclude_patterns: Optional[List[str]] = None,
-    substitutions: Optional[List[Dict[str, str]]] = None,
-    tiff_patterns: list = ["*.tif"],
-) -> Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]:
+@dataclass
+class DatasetInfo:
+    """Container for dataset information."""
+
+    original_name: str
+    transformed_name: str
+    tiff_files: Dict[int, List[str]]  # session_idx -> list of files
+    subject_metadata: str
+    session_metadata: Dict[int, str]  # session_idx -> metadata string
+
+
+class DatasetDiscoverer:
     """
-    Discover datasets and their TIFF files in a directory using regex patterns.
+    A class for discovering and organizing datasets with TIFF files.
 
-    Parameters
-    ----------
-    base_path : str or Path
-        Base path to search for datasets.
-    pattern : str, optional
-        Regex pattern to match dataset names, defaults to ".*"
-        (all directories).
-    exclude_patterns : List[str], optional
-        List of regex patterns for datasets to exclude.
-    substitutions : List[Dict[str, str]], optional
-        List of regex substitution pairs to transform dataset names.
-        Each dict should have 'pattern' and 'repl' keys for re.sub().
-    tiff_patterns : list, optional
-        List of glob patterns for TIFF files. Each pattern corresponds to a
-        session. Defaults to ["*.tif"] for a single session.
-
-    Returns
-    -------
-    Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]
-        - List of original dataset names (sorted)
-        - List of transformed dataset names (sorted)
-        - Dictionary mapping original dataset names to their TIFF files by
-          session (session index as key)
-        - List of all TIFF files found across all datasets
-
-    Notes
-    -----
-    - Datasets without any TIFF files are automatically excluded from the
-      results
-    - Both original and transformed dataset lists are sorted alphabetically
-    - Sessions are numbered starting from 0 based on the order in tiff_patterns
-    - Empty sessions (no files found) are included with empty lists
+    This class handles both NeuroBlueprint format and custom format datasets,
+    providing methods to discover datasets, extract metadata, and organize
+    TIFF files by sessions.
     """
-    # Convert base_path to Path if it's a string
-    base_path_obj = (
-        Path(base_path) if isinstance(base_path, str) else base_path
-    )
 
-    # Find all directories matching the pattern
-    datasets = [
-        d.name
-        for d in base_path_obj.iterdir()
-        if d.is_dir() and re.match(pattern, d.name)
-    ]
+    def __init__(
+        self,
+        base_path: Union[str, Path],
+        pattern: str = ".*",
+        exclude_patterns: Optional[List[str]] = None,
+        substitutions: Optional[List[Dict[str, str]]] = None,
+        tiff_patterns: Optional[List[str]] = None,
+        neuroblueprint_format: bool = False,
+    ):
+        """
+        Initialize the dataset discoverer.
 
-    # Apply exclusion patterns
-    if exclude_patterns:
-        for exclude in exclude_patterns:
-            datasets = [ds for ds in datasets if not re.match(exclude, ds)]
+        Parameters
+        ----------
+        base_path : str or Path
+            Base path to search for datasets.
+        pattern : str, optional
+            Regex pattern to match dataset names, defaults to ".*"
+            (all directories). Only used when neuroblueprint_format is False.
+        exclude_patterns : List[str], optional
+            List of regex patterns for datasets to exclude.
+            Only used when neuroblueprint_format is False.
+        substitutions : List[Dict[str, str]], optional
+            List of regex substitution pairs to transform dataset names.
+            Each dict should have 'pattern' and 'repl' keys for re.sub().
+            Only used when neuroblueprint_format is False.
+        tiff_patterns : List[str], optional
+            List of glob patterns for TIFF files. Each pattern corresponds to a
+            session. Defaults to ["*.tif"] for a single session.
+        neuroblueprint_format : bool, optional
+            If True, validates and uses NeuroBlueprint format
+            (sub-XXX_key-value/ses-XXX_key-value/)
+            with automatic metadata extraction. If False or if validation
+            fails, transforms folder names to NeuroBlueprint compliant
+            format. Defaults to False.
+        """
+        self.base_path = Path(base_path)
+        self.pattern = pattern
+        self.exclude_patterns = exclude_patterns or []
+        self.substitutions = substitutions or []
+        self.tiff_patterns = tiff_patterns or ["*.tif"]
+        self.neuroblueprint_format = neuroblueprint_format
 
-    # Store original dataset names
-    original_datasets = datasets.copy()
+        # Will be populated by discover()
+        self.datasets: List[DatasetInfo] = []
+        self._all_tiff_files: List[str] = []
 
-    # Apply regex substitutions to get new names
-    if substitutions:
-        for sub in substitutions:
-            datasets = [
-                re.sub(sub["pattern"], sub["repl"], ds) for ds in datasets
+    @property
+    def original_datasets(self) -> List[str]:
+        """Get list of original dataset names."""
+        return [ds.original_name for ds in self.datasets]
+
+    @property
+    def transformed_datasets(self) -> List[str]:
+        """Get list of transformed dataset names."""
+        return [ds.transformed_name for ds in self.datasets]
+
+    @property
+    def tiff_files(self) -> Dict[str, Dict[int, List[str]]]:
+        """Get TIFF files organized by original dataset name and session."""
+        return {ds.original_name: ds.tiff_files for ds in self.datasets}
+
+    @property
+    def tiff_files_flat(self) -> List[str]:
+        """Get flat list of all TIFF files."""
+        return self._all_tiff_files.copy()
+
+    @property
+    def subject_metadata(self) -> Dict[str, str]:
+        """Get subject metadata by original dataset name."""
+        return {ds.original_name: ds.subject_metadata for ds in self.datasets}
+
+    @property
+    def session_metadata(self) -> Dict[str, Dict[int, str]]:
+        """Get session metadata by original dataset name and session."""
+        return {ds.original_name: ds.session_metadata for ds in self.datasets}
+
+    def get_session_name(self, dataset_idx: int, session_idx: int) -> str:
+        """
+        Get session name for given dataset and session indices.
+
+        Parameters
+        ----------
+        dataset_idx : int
+            Index of the dataset in the discovered datasets list
+        session_idx : int
+            Index of the session within the dataset
+
+        Returns
+        -------
+        str
+            Formatted session name like "ses-0_metadata" or
+            "ses-1_date-20250225"
+        """
+        if dataset_idx >= len(self.datasets):
+            raise IndexError(
+                f"Dataset index {dataset_idx} out of range "
+                f"(0-{len(self.datasets)-1})"
+            )
+
+        dataset = self.datasets[dataset_idx]
+        session_meta = dataset.session_metadata.get(session_idx, "")
+
+        # Format: ses-{session_idx}_{metadata}
+        if session_meta:
+            return f"ses-{session_idx}_{session_meta}"
+        else:
+            return f"ses-{session_idx}"
+
+    @staticmethod
+    def _infer_metadata_keys_from_folder_names(
+        folder_names: List[str],
+    ) -> Dict[str, str]:
+        """
+        Automatically infer metadata keys and patterns from actual folder
+        names.
+
+        Parameters
+        ----------
+        folder_names : list
+            List of folder names to analyze for metadata patterns
+
+        Returns
+        -------
+        dict
+            Dictionary of inferred metadata keys and regex patterns
+        """
+        metadata_patterns = {}
+
+        for folder_name in folder_names:
+            # Split by underscore and look for key-value patterns
+            parts = folder_name.split("_")
+            for part in parts:
+                # Look for patterns like "key-value"
+                if "-" in part:
+                    key, value = part.split("-", 1)
+                    # Skip 'sub' and 'ses' as they are structural, not metadata
+                    if key not in ["sub", "ses"]:
+                        # Create a flexible regex pattern for this key
+                        metadata_patterns[key] = f"{key}-([^_]+)"
+
+        return metadata_patterns
+
+    @staticmethod
+    def _is_neuroblueprint_format(
+        folder_name: str, expected_prefix: str
+    ) -> bool:
+        """
+        Check if a folder name follows NeuroBlueprint format.
+
+        Parameters
+        ----------
+        folder_name : str
+            Name of the folder to check
+        expected_prefix : str
+            Expected prefix ("sub" or "ses")
+
+        Returns
+        -------
+        bool
+            True if folder follows NeuroBlueprint format, False otherwise
+        """
+        # Check if it starts with the expected prefix followed by a dash
+        if not folder_name.startswith(f"{expected_prefix}-"):
+            return False
+
+        # Split by underscores and check each part
+        parts = folder_name.split("_")
+
+        # First part should be prefix-identifier
+        first_part = parts[0]
+        if not re.match(rf"{expected_prefix}-[a-zA-Z0-9]+", first_part):
+            return False
+
+        # Remaining parts should be key-value pairs
+        for part in parts[1:]:
+            if not re.match(r"[a-zA-Z][a-zA-Z0-9]*-[a-zA-Z0-9]+", part):
+                return False
+
+        return True
+
+    @staticmethod
+    def _extract_metadata_from_name(
+        folder_name: str, metadata_extraction: Optional[Dict[str, str]] = None
+    ) -> str:
+        """
+        Extract metadata from folder name and format as key-value pairs.
+
+        Parameters
+        ----------
+        folder_name : str
+            Name of the folder to extract metadata from
+        metadata_extraction : dict, optional
+            Dictionary of metadata keys and regex patterns.
+            If None, will infer from folder name.
+
+        Returns
+        -------
+        str
+            Formatted metadata string like "date-20250225_protocol-training"
+        """
+        # If no metadata extraction patterns provided, infer from folder name
+        if not metadata_extraction:
+            metadata_extraction = (
+                DatasetDiscoverer._infer_metadata_keys_from_folder_names(
+                    [folder_name]
+                )
+            )
+            if not metadata_extraction:
+                return ""
+
+        metadata_pairs = []
+        for key, pattern in metadata_extraction.items():
+            match = re.search(pattern, folder_name)
+            if match:
+                value = match.group(1)
+                metadata_pairs.append(f"{key}-{value}")
+
+        return "_".join(metadata_pairs)
+
+    def discover(self) -> None:
+        """
+        Discover datasets and their TIFF files in the directory.
+
+        This method populates the datasets list and all related metadata.
+        After calling this method, you can access the results through the
+        class properties.
+        """
+        # Clear any existing data
+        self.datasets.clear()
+        self._all_tiff_files.clear()
+
+        # Discover and transform dataset names
+        original_datasets, transformed_datasets = (
+            self._discover_dataset_folders()
+        )
+
+        # Process each dataset to extract TIFF files and metadata
+        for orig_name, trans_name in zip(
+            original_datasets, transformed_datasets
+        ):
+            dataset_info = self._process_dataset(orig_name, trans_name)
+            if dataset_info:
+                self.datasets.append(dataset_info)
+
+    def _discover_dataset_folders(self) -> tuple[List[str], List[str]]:
+        """
+        Discover dataset folders and return original and transformed names.
+
+        Returns
+        -------
+        tuple[List[str], List[str]]
+            Tuple of (original_datasets, transformed_datasets)
+        """
+        original_datasets: List[str] = []
+        transformed_datasets: List[str] = []
+
+        if self.neuroblueprint_format:
+            original_datasets, transformed_datasets = (
+                self._discover_neuroblueprint_datasets()
+            )
+
+            # If no valid NeuroBlueprint folders found,
+            # fallback to custom format
+            if not original_datasets:
+                logging.info(
+                    "No valid NeuroBlueprint format folders found in "
+                    f"{self.base_path}. "
+                    "Falling back to custom format processing."
+                )
+                self.neuroblueprint_format = False
+
+        if not self.neuroblueprint_format:
+            original_datasets, transformed_datasets = (
+                self._discover_custom_datasets()
+            )
+
+        # Sort the datasets as per original names to ensure consistent order
+        sorted_indices = sorted(
+            range(len(original_datasets)), key=lambda i: original_datasets[i]
+        )
+        original_datasets = [original_datasets[i] for i in sorted_indices]
+        transformed_datasets = [
+            transformed_datasets[i] for i in sorted_indices
+        ]
+
+        return original_datasets, transformed_datasets
+
+    def _discover_neuroblueprint_datasets(self) -> tuple[List[str], List[str]]:
+        """
+        Discover datasets in NeuroBlueprint format.
+
+        Returns
+        -------
+        tuple[List[str], List[str]]
+            Tuple of (original_datasets, transformed_datasets)
+        """
+        # For NeuroBlueprint format, look for sub-XXX
+        # directories and validate format
+        all_sub_folders = [
+            d.name
+            for d in self.base_path.iterdir()
+            if d.is_dir() and d.name.startswith("sub-")
+        ]
+
+        candidate_datasets = [
+            folder
+            for folder in all_sub_folders
+            if self._is_neuroblueprint_format(folder, "sub")
+        ]
+
+        # Names are already compliant, so original and
+        # transformed are identical
+        return candidate_datasets, candidate_datasets
+
+    def _discover_custom_datasets(self) -> tuple[List[str], List[str]]:
+        """
+        Discover datasets in custom format and transform to
+        NeuroBlueprint compliant names.
+
+        Returns
+        -------
+        tuple[List[str], List[str]]
+            Tuple of (original_datasets, transformed_datasets)
+        """
+        # For custom format, use pattern matching
+        candidate_datasets = [
+            d.name
+            for d in self.base_path.iterdir()
+            if d.is_dir() and re.match(self.pattern, d.name)
+        ]
+
+        # Apply exclusion patterns
+        for exclude in self.exclude_patterns:
+            candidate_datasets = [
+                ds for ds in candidate_datasets if not re.match(exclude, ds)
             ]
 
-    datasets = sorted(datasets)
-    original_datasets = sorted(original_datasets)
+        original_datasets = candidate_datasets.copy()
 
-    # Discover TIFF files for each dataset
-    tiff_files: Dict[str, Dict[int, List[str]]] = {}
-    tiff_files_flat = []
+        # Apply substitutions then create NeuroBlueprint compliant names
+        working_datasets = candidate_datasets.copy()
+        for sub in self.substitutions:
+            working_datasets = [
+                re.sub(sub["pattern"], sub["repl"], ds)
+                for ds in working_datasets
+            ]
 
-    for dataset in original_datasets:
-        dataset_path = base_path_obj / dataset
+        # Transform to NeuroBlueprint compliant format
+        transformed_datasets = []
+        for i, ds in enumerate(working_datasets):
+            # Use counter as subject ID and original name as metadata
+            transformed_name = f"sub-{i+1:03d}_id-{ds}"
+            transformed_datasets.append(transformed_name)
 
-        # check if there is at least one tiff in the dataset
-        if not any(dataset_path.rglob("*.tif")):
-            logging.info(f"No tiff files found in {dataset_path}")
-            idx = datasets.index(dataset)
-            datasets.pop(idx)
-            original_datasets.pop(idx)
-            continue
+        return original_datasets, transformed_datasets
 
-        # Initialize the dataset entry with all sessions
-        tiff_files[dataset] = {}
+    def _process_dataset(
+        self, orig_name: str, trans_name: str
+    ) -> Optional[DatasetInfo]:
+        """
+        Process a single dataset to extract TIFF files and metadata.
 
-        for session, tiff_pattern in enumerate(tiff_patterns):
-            logging.debug(
-                f"Searching for tiff files in {dataset_path} with pattern "
-                f"{tiff_pattern}"
+        Parameters
+        ----------
+        orig_name : str
+            Original dataset folder name
+        trans_name : str
+            Transformed NeuroBlueprint compliant name
+
+        Returns
+        -------
+        Optional[DatasetInfo]
+            DatasetInfo object if dataset has TIFF files, None otherwise
+        """
+        dataset_path = self.base_path / orig_name
+
+        # Check if there is at least one tiff in
+        # the dataset using configured patterns
+        has_tiff_files = any(
+            dataset_path.rglob(pattern) for pattern in self.tiff_patterns
+        )
+        if not has_tiff_files:
+            logging.info(
+                f"No tiff files found in {dataset_path} "
+                f"matching patterns {self.tiff_patterns}"
             )
+            return None
+
+        # Extract subject metadata
+        subject_meta, inferred_metadata = self._extract_subject_metadata(
+            orig_name, dataset_path
+        )
+
+        # Extract TIFF files and session metadata
+        tiff_files_by_session, session_meta_by_session = (
+            self._extract_tiff_files_and_metadata(
+                dataset_path, inferred_metadata
+            )
+        )
+
+        # Create DatasetInfo object
+        return DatasetInfo(
+            original_name=orig_name,
+            transformed_name=trans_name,
+            tiff_files=tiff_files_by_session,
+            subject_metadata=subject_meta,
+            session_metadata=session_meta_by_session,
+        )
+
+    def _extract_subject_metadata(
+        self, orig_name: str, dataset_path: Path
+    ) -> tuple[str, Dict[str, str]]:
+        """
+        Extract subject metadata from dataset folder name.
+
+        Parameters
+        ----------
+        orig_name : str
+            Original dataset folder name
+        dataset_path : Path
+            Path to the dataset folder
+
+        Returns
+        -------
+        tuple[str, Dict[str, str]]
+            Tuple of (subject_metadata, inferred_metadata_patterns)
+        """
+        if self.neuroblueprint_format:
+            # Auto-infer metadata patterns from all folder names in dataset
+            all_folder_names = [orig_name]
+            if dataset_path.is_dir():
+                session_folders = [
+                    d.name
+                    for d in dataset_path.iterdir()
+                    if d.is_dir()
+                    and self._is_neuroblueprint_format(d.name, "ses")
+                ]
+                all_folder_names.extend(session_folders)
+            inferred_metadata = self._infer_metadata_keys_from_folder_names(
+                all_folder_names
+            )
+            subject_meta = self._extract_metadata_from_name(
+                orig_name, inferred_metadata
+            )
+            return subject_meta, inferred_metadata
+        else:
+            # For custom format, no metadata extraction
+            return "", {}
+
+    def _extract_tiff_files_and_metadata(
+        self, dataset_path: Path, inferred_metadata: Dict[str, str]
+    ) -> tuple[Dict[int, List[str]], Dict[int, str]]:
+        """
+        Extract TIFF files and session metadata for a dataset.
+
+        Parameters
+        ----------
+        dataset_path : Path
+            Path to the dataset folder
+        inferred_metadata : Dict[str, str]
+            Inferred metadata patterns for extraction
+
+        Returns
+        -------
+        tuple[Dict[int, List[str]], Dict[int, str]]
+            Tuple of (tiff_files_by_session, session_metadata_by_session)
+        """
+        tiff_files_by_session: Dict[int, List[str]] = {}
+        session_meta_by_session: Dict[int, str] = {}
+
+        if self.neuroblueprint_format:
+            tiff_files_by_session, session_meta_by_session = (
+                self._extract_neuroblueprint_files(
+                    dataset_path, inferred_metadata
+                )
+            )
+        else:
+            tiff_files_by_session, session_meta_by_session = (
+                self._extract_custom_files(dataset_path)
+            )
+
+        return tiff_files_by_session, session_meta_by_session
+
+    def _extract_neuroblueprint_files(
+        self, dataset_path: Path, inferred_metadata: Dict[str, str]
+    ) -> tuple[Dict[int, List[str]], Dict[int, str]]:
+        """
+        Extract TIFF files from NeuroBlueprint format dataset.
+
+        Parameters
+        ----------
+        dataset_path : Path
+            Path to the dataset folder
+        inferred_metadata : Dict[str, str]
+            Inferred metadata patterns for extraction
+
+        Returns
+        -------
+        tuple[Dict[int, List[str]], Dict[int, str]]
+            Tuple of (tiff_files_by_session, session_metadata_by_session)
+        """
+        tiff_files_by_session = {}
+        session_meta_by_session = {}
+
+        # For NeuroBlueprint format, look for ses-XXX folders that are valid
+        session_folders = sorted(
+            [
+                d
+                for d in dataset_path.iterdir()
+                if d.is_dir() and self._is_neuroblueprint_format(d.name, "ses")
+            ]
+        )
+
+        logging.debug(
+            f"Found session folders in {dataset_path}: "
+            f"{[s.name for s in session_folders]}"
+        )
+
+        # Map TIFF patterns to session folders and extract metadata
+        for session_idx, tiff_pattern in enumerate(self.tiff_patterns):
+            session_files = []
+            session_meta = ""
+
+            for session_folder in session_folders:
+                files_in_session = sorted(
+                    [
+                        f.name
+                        for f in session_folder.rglob(tiff_pattern)
+                        if f.is_file()
+                    ]
+                )
+
+                if files_in_session:
+                    session_files.extend(files_in_session)
+                    # Extract metadata from session folder name
+                    # using pre-inferred patterns
+                    session_meta = self._extract_metadata_from_name(
+                        session_folder.name, inferred_metadata
+                    )
+                    logging.debug(
+                        f"Session {session_idx} matched "
+                        f"pattern {tiff_pattern} "
+                        f"in {session_folder.name} with "
+                        f"metadata: {session_meta}"
+                    )
+                    break
+
+            tiff_files_by_session[session_idx] = session_files
+            session_meta_by_session[session_idx] = session_meta
+            self._all_tiff_files.extend(session_files)
+
+            if not session_files:
+                logging.info(
+                    f"No files found for pattern {tiff_pattern} in "
+                    f"session folders of {dataset_path}"
+                )
+
+        return tiff_files_by_session, session_meta_by_session
+
+    def _extract_custom_files(
+        self, dataset_path: Path
+    ) -> tuple[Dict[int, List[str]], Dict[int, str]]:
+        """
+        Extract TIFF files from custom format dataset.
+
+        Parameters
+        ----------
+        dataset_path : Path
+            Path to the dataset folder
+
+        Returns
+        -------
+        tuple[Dict[int, List[str]], Dict[int, str]]
+            Tuple of (tiff_files_by_session, session_metadata_by_session)
+        """
+        tiff_files_by_session = {}
+        session_meta_by_session = {}
+
+        # Custom format: search directly in dataset folder
+        for session_idx, tiff_pattern in enumerate(self.tiff_patterns):
             files_found = sorted(
                 [
                     f.name
@@ -115,15 +622,11 @@ def discover_datasets(
                 ]
             )
 
-            if not files_found:
-                logging.info(
-                    f"No files found for pattern {tiff_pattern} in "
-                    f"{dataset_path}"
-                )
-                # Initialize empty list for this session
-                tiff_files[dataset][session] = []
-            else:
-                tiff_files[dataset][session] = files_found
-                tiff_files_flat.extend(files_found)
+            tiff_files_by_session[session_idx] = files_found
+            if files_found:
+                self._all_tiff_files.extend(files_found)
 
-    return original_datasets, datasets, tiff_files, tiff_files_flat
+            # No session metadata for custom format
+            session_meta_by_session[session_idx] = ""
+
+        return tiff_files_by_session, session_meta_by_session

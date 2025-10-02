@@ -22,18 +22,20 @@ rule suite2p:
         tiffs=lambda wildcards: [
             cross_platform_path(
                 Path(processed_data_base).resolve()
-                / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
-                / f"ses-{wildcards.ses_idx}"
+                / wildcards.subject_name
+                / wildcards.session_name
                 / "funcimg"
                 / f"{output_pattern}{tiff_name}"
             )
-            for tiff_name in tiff_files_map[int(wildcards.sub_idx)][int(wildcards.ses_idx)]
+            for tiff_name in discoverer.tiff_files[discoverer.original_datasets[discoverer.transformed_datasets.index(wildcards.subject_name)]][
+                int(wildcards.session_name.split("_")[0].replace("ses-", ""))
+            ]
         ],
     output:
         F=cross_platform_path(
             Path(processed_data_base).resolve()
-            / "sub-{sub_idx}_{dataset}"
-            / "ses-{ses_idx}"
+            / "{subject_name}"
+            / "{session_name}"
             / "funcimg"
             / "suite2p"
             / "plane0"
@@ -41,8 +43,8 @@ rule suite2p:
         ),
         bin=cross_platform_path(
             Path(processed_data_base).resolve()
-            / "sub-{sub_idx}_{dataset}"
-            / "ses-{ses_idx}"
+            / "{subject_name}"
+            / "{session_name}"
             / "funcimg"
             / "suite2p"
             / "plane0"
@@ -51,12 +53,14 @@ rule suite2p:
     params:
         dataset_folder=lambda wildcards: cross_platform_path(
             Path(processed_data_base).resolve()
-            / f"sub-{wildcards.sub_idx}_{datasets_new_names[int(wildcards.sub_idx)]}"
-            / f"ses-{wildcards.ses_idx}"
+            / wildcards.subject_name
+            / wildcards.session_name
             / "funcimg"
         ),
     wildcard_constraints:
-        dataset="|".join(datasets_new_names),
+        subject_name="|".join(discoverer.transformed_datasets),
+        session_name="|".join([discoverer.get_session_name(i, j) for i in range(len(discoverer.transformed_datasets))
+                              for j in range(len(discoverer.tiff_patterns))]),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:

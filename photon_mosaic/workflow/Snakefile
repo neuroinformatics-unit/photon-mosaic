@@ -13,7 +13,7 @@ The workflow:
 """
 
 from pathlib import Path
-from photon_mosaic.dataset_discovery import discover_datasets
+from photon_mosaic.dataset_discovery import DatasetDiscoverer
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -27,40 +27,32 @@ output_pattern = config["preprocessing"]["output_pattern"]
 logger.debug(f"Raw data base: {raw_data_base}")
 logger.debug(f"Processed data base: {processed_data_base}")
 
-# Discover datasets and their TIFF files
-datasets_old_names, datasets_new_names, tiff_files, tiff_files_flat = discover_datasets(
-    str(raw_data_base),
-    pattern=config["dataset_discovery"]["pattern"],
+# Discover datasets and their TIFF files using the new class-based approach
+discoverer = DatasetDiscoverer(
+    base_path=raw_data_base,
+    pattern=config["dataset_discovery"].get("pattern", ".*"),
     exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
     substitutions=config["dataset_discovery"].get("substitutions"),
     tiff_patterns=config["dataset_discovery"].get("tiff_patterns"),
+    neuroblueprint_format=config["dataset_discovery"].get("neuroblueprint_format", False),
 )
 
-logger.debug(f"Discovered datasets (old names): {datasets_old_names}")
-logger.debug(f"Discovered datasets (new names): {datasets_new_names}")
-logger.debug(f"TIFF files: {tiff_files}")
-logger.debug(f"TIFF files flat: {tiff_files_flat}")
+discoverer.discover()
 
-# This is a dictionary with the dataset new names as the key and the list of TIFF files as the value
-
-# Create a mapping from dataset index to TIFF files
-tiff_files_map = {i: tiff_files[dataset] for i, dataset in enumerate(datasets_old_names)}
-logger.info(f"TIFF files map: {tiff_files_map}")
-
-# Get the number of sessions from the tiff_patterns configuration
-num_sessions = len(config["dataset_discovery"].get("tiff_patterns", ["*.tif"]))
+logger.debug(f"Discovered datasets: {discoverer.transformed_datasets}")
+logger.debug(f"TIFF files: {discoverer.tiff_files}")
 
 preproc_targets = [
     str(
         Path(processed_data_base)
-        / f"sub-{i}_{datasets_new_names[i]}"
-        / f"ses-{j}"
+        / dataset_name
+        / discoverer.get_session_name(i, j)
         / "funcimg"
         / f"{output_pattern}{tiff_name}"
     )
-    for i in range(len(datasets_new_names))
-    for j in range(num_sessions)
-    for tiff_name in tiff_files_map[i].get(j, [])
+    for i, dataset_name in enumerate(discoverer.transformed_datasets)
+    for j in range(len(discoverer.tiff_patterns))
+    for tiff_name in discoverer.tiff_files[discoverer.original_datasets[i]].get(j, [])
 ]
 
 logger.debug(f"Preprocessing targets: {preproc_targets}")
@@ -68,17 +60,17 @@ logger.debug(f"Preprocessing targets: {preproc_targets}")
 suite2p_targets = [
     str(
         Path(processed_data_base)
-        / f"sub-{i}_{datasets_new_names[i]}"
-        / f"ses-{j}"
+        / dataset_name
+        / discoverer.get_session_name(i, j)
         / "funcimg"
         / "suite2p"
         / "plane0"
         / fname
     )
-    for i in range(len(datasets_new_names))
-    for j in range(num_sessions)
+    for i, dataset_name in enumerate(discoverer.transformed_datasets)
+    for j in range(len(discoverer.tiff_patterns))
     for fname in ["F.npy", "data.bin"]
-    if tiff_files_map[i].get(j, [])  # Only create targets for sessions that have files
+    if discoverer.tiff_files[discoverer.original_datasets[i]].get(j, [])  # Only create targets for sessions that have files
 ]
 
 logger.debug(f"Suite2p targets: {suite2p_targets}")
