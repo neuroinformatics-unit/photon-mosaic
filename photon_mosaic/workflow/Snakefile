@@ -16,7 +16,9 @@ from pathlib import Path
 from photon_mosaic.dataset_discovery import DatasetDiscoverer
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging based on config settings
+log_level = logging.DEBUG if config.get("logging", {}).get("snakemake_verbose", False) else logging.INFO
+logging.basicConfig(level=log_level)
 logger = logging.getLogger("snakemake.workflow")
 
 raw_data_base = Path(config["raw_data_base"]).resolve()

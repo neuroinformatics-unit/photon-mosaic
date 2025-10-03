@@ -48,6 +48,8 @@ def main():
         Time to wait before checking if output files are ready.
     --log-level : str, default="INFO"
         Log level.
+    --verbose, -v : flag, optional
+        Enable verbose output (default is quiet mode).
     --reset-config : flag, optional
         Reset the config file to the default values.
     extra : list
@@ -109,6 +111,12 @@ def main():
         "--log-level",
         default="INFO",
         help="Log level",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose output (default is quiet mode)",
     )
     parser.add_argument(
         "extra",
@@ -242,6 +250,9 @@ def main():
         cmd.append("--unlock")
     if args.latency_wait:
         cmd.extend(["--latency-wait", str(args.latency_wait)])
+    if not args.verbose:
+        # Default to quiet mode unless --verbose is specified
+        cmd.append("--quiet")
     if config["use_slurm"] == "slurm":
         cmd.extend(["--executor", "slurm"])
     if args.extra:
