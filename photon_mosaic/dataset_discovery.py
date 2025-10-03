@@ -137,10 +137,35 @@ class DatasetDiscoverer:
         session_meta = dataset.session_metadata.get(session_idx, "")
 
         # Format: ses-{session_idx}_{metadata}
+        # session_idx here is actually the original session ID from the
+        # folder name
         if session_meta:
-            return f"ses-{session_idx}_{session_meta}"
+            return f"ses-{session_idx:03d}_{session_meta}"
         else:
-            return f"ses-{session_idx}"
+            return f"ses-{session_idx:03d}"
+
+    @staticmethod
+    def _extract_session_id_from_folder_name(folder_name: str) -> str:
+        """
+        Extract session ID from neuroblueprint session folder name.
+
+        Parameters
+        ----------
+        folder_name : str
+            Session folder name like 'ses-003_date-20250301_protocol-baseline'
+
+        Returns
+        -------
+        str
+            Session ID like '003'
+        """
+        # Extract the ID part after 'ses-' and
+        # before first '_' or end of string
+
+        match = re.match(r"ses-([^_]+)", folder_name)
+        if match:
+            return match.group(1)
+        return "0"  # fallback
 
     @staticmethod
     def _infer_metadata_keys_from_folder_names(
@@ -552,12 +577,15 @@ class DatasetDiscoverer:
             f"{[s.name for s in session_folders]}"
         )
 
-        # Map TIFF patterns to session folders and extract metadata
-        for session_idx, tiff_pattern in enumerate(self.tiff_patterns):
-            session_files = []
-            session_meta = ""
+        # Map each session folder to its actual session ID and extract files
+        for session_folder in session_folders:
+            # Extract the actual session ID from folder name
+            session_id = self._extract_session_id_from_folder_name(
+                session_folder.name
+            )
 
-            for session_folder in session_folders:
+            # Try each TIFF pattern to find files in this session
+            for tiff_pattern in self.tiff_patterns:
                 files_in_session = sorted(
                     [
                         f.name
@@ -567,29 +595,29 @@ class DatasetDiscoverer:
                 )
 
                 if files_in_session:
-                    session_files.extend(files_in_session)
                     # Extract metadata from session folder name
-                    # using pre-inferred patterns
                     session_meta = self._extract_metadata_from_name(
                         session_folder.name, inferred_metadata
                     )
+
+                    # Use the actual session ID as key, not enumerate index
+                    tiff_files_by_session[int(session_id)] = files_in_session
+                    session_meta_by_session[int(session_id)] = session_meta
+                    self._all_tiff_files.extend(files_in_session)
+
                     logging.debug(
-                        f"Session {session_idx} matched "
+                        f"Session {session_id} matched "
                         f"pattern {tiff_pattern} "
                         f"in {session_folder.name} with "
                         f"metadata: {session_meta}"
                     )
                     break
 
-            tiff_files_by_session[session_idx] = session_files
-            session_meta_by_session[session_idx] = session_meta
-            self._all_tiff_files.extend(session_files)
-
-            if not session_files:
-                logging.info(
-                    f"No files found for pattern {tiff_pattern} in "
-                    f"session folders of {dataset_path}"
-                )
+        if not tiff_files_by_session:
+            logging.info(
+                f"No files found for patterns {self.tiff_patterns} in "
+                f"session folders of {dataset_path}"
+            )
 
         return tiff_files_by_session, session_meta_by_session
 
