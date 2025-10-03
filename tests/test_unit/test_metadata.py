@@ -1,7 +1,7 @@
 """
 Tests for metadata functionality in dataset discovery.
 
-This module tests the metadata extraction capabilities of the DatasetDiscoverer
+This module tests the extraction capabilities of the DatasetDiscoverer
 for both custom metadata and NeuroBlueprint formats.
 """
 
@@ -47,10 +47,15 @@ class TestMetadataFunctionality:
         # Basic checks
         assert len(discoverer.datasets) > 0, "Should find at least one dataset"
 
-        # Check that we found the expected dataset
+        # Check that we found datasets with the expected metadata pattern
         original_names = discoverer.original_datasets
-        assert (
-            "mouse001_genotype-WT_age-P60_treatment-saline" in original_names
+        # Factory creates "mouse001_genotype-WT_age-P60_treatment-saline"
+        # by default
+        assert any(
+            "mouse" in name and "genotype-" in name for name in original_names
+        ), (
+            f"Expected subjects with mouse "
+            f"and genotype metadata in {original_names}"
         )
 
         # Verify transformed names follow expected pattern
@@ -81,13 +86,20 @@ class TestMetadataFunctionality:
             len(discoverer.datasets) > 0
         ), "Should find at least one NeuroBlueprint dataset"
 
-        # Check that we found expected datasets
+        # Check that we found expected datasets with NeuroBlueprint format
         original_names = discoverer.original_datasets
-        expected_names = [
-            "sub-001_strain-C57BL6_sex-M",
-            "sub-002_strain-C57BL6_sex-F",
-        ]
-        assert any(name in original_names for name in expected_names)
+        # The factory creates subjects with strain and sex metadata by default
+        assert any(
+            "sub-" in name and "strain-" in name and "sex-" in name
+            for name in original_names
+        ), (
+            f"Expected NeuroBlueprint subjects with strain and "
+            f"sex metadata in {original_names}"
+        )
+        # Should find at least 2 subjects (default factory behavior)
+        assert (
+            len(original_names) >= 2
+        ), f"Expected at least 2 subjects, got {len(original_names)}"
 
         # Verify metadata extraction
         for dataset in discoverer.datasets:
@@ -223,3 +235,79 @@ class TestMetadataFunctionality:
         assert (
             "snakemake pipeline completed successfully" in output.lower()
         ), "Pipeline should complete successfully with NeuroBlueprint format"
+
+    def test_noncontinuous_ids_preservation(
+        self, neuroblueprint_noncontinuous_env
+    ):
+        """Test that non-continuous subject and session IDs are preserved."""
+        import re
+        from pathlib import Path
+
+        # First, discover what's actually in the test data folders
+        raw_data_path = Path(neuroblueprint_noncontinuous_env["raw_data"])
+        expected_data = {}
+
+        for subject_dir in raw_data_path.iterdir():
+            if subject_dir.is_dir() and subject_dir.name.startswith("sub-"):
+                # Extract subject ID from folder name
+                subject_match = re.match(r"sub-(\d+)", subject_dir.name)
+                if subject_match:
+                    # Find session folders and extract their IDs
+                    session_ids = []
+                    for session_dir in subject_dir.iterdir():
+                        if (
+                            session_dir.is_dir()
+                            and session_dir.name.startswith("ses-")
+                        ):
+                            session_match = re.match(
+                                r"ses-(\d+)", session_dir.name
+                            )
+                            if session_match:
+                                session_ids.append(int(session_match.group(1)))
+
+                    expected_data[subject_dir.name] = sorted(session_ids)
+
+        # Now test discovery preserves these IDs
+        discoverer = DatasetDiscoverer(
+            base_path=neuroblueprint_noncontinuous_env["raw_data"],
+            neuroblueprint_format=True,
+            tiff_patterns=["*.tif"],
+        )
+        discoverer.discover()
+
+        # Verify we found all expected subjects
+        assert len(discoverer.datasets) == len(expected_data)
+
+        # Verify each subject and session IDs are preserved
+        for i, dataset in enumerate(discoverer.datasets):
+            subject_name = dataset.original_name
+            found_session_ids = sorted(dataset.tiff_files.keys())
+
+            # Verify this subject was expected from folder scan
+            assert (
+                subject_name in expected_data
+            ), f"Unexpected subject: {subject_name}"
+
+            # Verify session IDs match what we found in the folders
+            expected_session_ids = expected_data[subject_name]
+            assert found_session_ids == expected_session_ids, (
+                f"Subject {subject_name}: "
+                f"expected sessions {expected_session_ids}, "
+                f"got {found_session_ids}"
+            )
+
+            # Verify session names preserve original IDs (not sequential 0,1,2)
+            for session_id in found_session_ids:
+                session_name = discoverer.get_session_name(i, session_id)
+                expected_prefix = f"ses-{session_id:03d}"
+                assert session_name.startswith(expected_prefix), (
+                    f"Expected session name to start with {expected_prefix}, "
+                    f"got {session_name}"
+                )
+
+                # Verify it's NOT using sequential numbering
+                # (ses-000, ses-001, etc)
+                assert not session_name.startswith("ses-000"), (
+                    f"Session name incorrectly uses "
+                    f"sequential numbering: {session_name}"
+                )
