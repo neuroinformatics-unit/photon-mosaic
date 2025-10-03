@@ -26,8 +26,8 @@ processed_data_base = Path(config["processed_data_base"]).resolve()
 slurm_config = config.get("slurm", {})
 output_pattern = config["preprocessing"]["output_pattern"]
 
-logger.debug(f"Raw data base: {raw_data_base}")
-logger.debug(f"Processed data base: {processed_data_base}")
+logger.info(f"Raw data base: {raw_data_base}")
+logger.info(f"Processed data base: {processed_data_base}")
 
 # Discover datasets and their TIFF files using the new class-based approach
 discoverer = DatasetDiscoverer(
@@ -41,8 +41,8 @@ discoverer = DatasetDiscoverer(
 
 discoverer.discover()
 
-logger.debug(f"Discovered datasets: {discoverer.transformed_datasets}")
-logger.debug(f"TIFF files: {discoverer.tiff_files}")
+logger.info(f"Discovered datasets: {discoverer.transformed_datasets}")
+logger.info(f"TIFF files: {discoverer.tiff_files}")
 
 preproc_targets = [
     str(
@@ -57,7 +57,7 @@ preproc_targets = [
     for tiff_name in discoverer.tiff_files[discoverer.original_datasets[i]].get(j, [])
 ]
 
-logger.debug(f"Preprocessing targets: {preproc_targets}")
+logger.info(f"Preprocessing targets: {preproc_targets}")
 
 suite2p_targets = [
     str(
@@ -75,7 +75,7 @@ suite2p_targets = [
     if discoverer.tiff_files[discoverer.original_datasets[i]].get(j, [])  # Only create targets for sessions that have files
 ]
 
-logger.debug(f"Suite2p targets: {suite2p_targets}")
+logger.info(f"Suite2p targets: {suite2p_targets}")
 
 include: "preprocessing.smk"
 include: "suite2p.smk"
