@@ -6,6 +6,63 @@ instead of using static test data directories. This approach:
 1. Uses a single sample TIFF file copied with different names
 2. Generates folder structures dynamically in pytest temp directories
 3. Allows flexible test scenarios without hardcoded folder names
+
+Generated folder structures:
+
+Basic dataset (create_basic_dataset):
+├── raw_data/
+│   ├── 001/
+│   │   ├── type_1_01.tif
+│   │   ├── type_1_02.tif
+│   │   └── type_2_02.tif
+│   ├── 002/
+│   │   ├── type_1_01.tif
+│   │   ├── type_1_02.tif
+│   │   ├── type_2_01.tif
+│   │   └── type_2_02.tif
+│   └── 003/
+│       └── imaging/
+│           ├── type_1_01.tif
+│           └── type_1_02.tif
+
+Custom metadata (create_custom_metadata_dataset):
+├── raw_data/
+│   └── mouse-001_genotype-WT_age-P60_treatment-saline/
+│       └── session-001_condition-baseline_paradigm-open-field/
+│           └── recording.tif
+
+NeuroBlueprint format (create_neuroblueprint_dataset):
+├── raw_data/
+│   ├── sub-001_strain-C57BL6_sex-M/
+│   │   └── ses-001_date-20250225_protocol-training/
+│   │       └── recording.tif
+│   └── sub-002_strain-C57BL6_sex-F/
+│       └── ses-001_date-20250226_protocol-testing/
+│           └── recording.tif
+
+Non-continuous NeuroBlueprint (create_noncontinuous_neuroblueprint_dataset):
+├── raw_data/
+│   ├── sub-005_strain-BALBC_sex-M/
+│   │   ├── ses-001_date-20250221_protocol-test/
+│   │   │   └── recording.tif
+│   │   ├── ses-003_date-20250223_protocol-test/
+│   │   │   └── recording.tif
+│   │   └── ses-007_date-20250227_protocol-test/
+│   │       └── recording.tif
+│   ├── sub-010_strain-BALBC_sex-F/
+│   │   ├── ses-002_date-20250222_protocol-test/
+│   │   │   └── recording.tif
+│   │   └── ses-005_date-20250225_protocol-test/
+│   │       └── recording.tif
+│   └── sub-025_strain-BALBC_sex-M/
+│       ├── ses-001_date-20250221_protocol-test/
+│       │   └── recording.tif
+│       ├── ses-004_date-20250224_protocol-test/
+│       │   └── recording.tif
+│       ├── ses-008_date-20250228_protocol-test/
+│       │   └── recording.tif
+│       └── ses-009_date-20250229_protocol-test/
+│           └── recording.tif
 """
 
 import shutil
@@ -22,13 +79,11 @@ class TestDataFactory:
 
         Args:
             base_tiff_path: Path to a sample TIFF file to use as template.
-                If None, uses the existing type_1_01.tif from test data.
+                If None, uses the master.tif from test data.
         """
         if base_tiff_path is None:
-            # Use existing TIFF file as our master template
-            self.base_tiff_path = (
-                Path(__file__).parent / "data" / "001" / "type_1_01.tif"
-            )
+            # Use master TIFF file as our template
+            self.base_tiff_path = Path(__file__).parent / "data" / "master.tif"
         else:
             self.base_tiff_path = base_tiff_path
 
@@ -41,18 +96,22 @@ class TestDataFactory:
         self,
         tmp_path: Path,
         dataset_names: Optional[List[str]] = None,
-        tiff_patterns: Optional[List[str]] = None,
+        custom_tiff_patterns: Optional[Dict[str, List[str]]] = None,
     ) -> Path:
         """
         Create a basic dataset structure similar to the current tests/data.
+
+        Replicates the exact structure from the original test data:
+        - 001/: type_1_01.tif, type_1_02.tif, type_2_02.tif
+        - 002/: type_1_01.tif, type_1_02.tif, type_2_01.tif, type_2_02.tif
+        - 003/imaging/: type_1_01.tif, type_1_02.tif
 
         Args:
             tmp_path: Pytest temporary path
             dataset_names: List of dataset folder names
                          (default: ["001", "002", "003"])
-            tiff_patterns: List of TIFF filename patterns per session
-                         (default: ["type_1_01.tif", "type_1_02.tif",
-                                   "type_2_02.tif"])
+            custom_tiff_patterns: Dict mapping dataset names to TIFF lists.
+                                If None, uses the original test data structure.
 
         Returns:
             Path to created raw_data directory
@@ -60,18 +119,34 @@ class TestDataFactory:
         if dataset_names is None:
             dataset_names = ["001", "002", "003"]
 
-        if tiff_patterns is None:
-            tiff_patterns = ["type_1_01.tif", "type_1_02.tif", "type_2_02.tif"]
+        if custom_tiff_patterns is None:
+            # Replicate exact structure from original test data
+            custom_tiff_patterns = {
+                "001": ["type_1_01.tif", "type_1_02.tif", "type_2_02.tif"],
+                "002": [
+                    "type_1_01.tif",
+                    "type_1_02.tif",
+                    "type_2_01.tif",
+                    "type_2_02.tif",
+                ],
+                "003": ["imaging/type_1_01.tif", "imaging/type_1_02.tif"],
+            }
 
         raw_data = tmp_path / "raw_data"
 
         for dataset_name in dataset_names:
             dataset_path = raw_data / dataset_name
-            dataset_path.mkdir(parents=True, exist_ok=True)
 
-            # Copy our master TIFF file with different names
-            for tiff_name in tiff_patterns:
-                shutil.copy2(self.base_tiff_path, dataset_path / tiff_name)
+            # Get TIFF patterns for this dataset
+            tiff_files = custom_tiff_patterns.get(dataset_name, [])
+
+            for tiff_file in tiff_files:
+                # Handle subdirectories (like 003/imaging/)
+                full_path = dataset_path / tiff_file
+                full_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Copy our master TIFF file with the target name
+                shutil.copy2(self.base_tiff_path, full_path)
 
         return raw_data
 
