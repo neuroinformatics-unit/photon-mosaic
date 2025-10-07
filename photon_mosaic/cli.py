@@ -193,19 +193,23 @@ def main():
         processed_data_base = processed_data_base / "derivatives"
     config["processed_data_base"] = str(processed_data_base)
 
-    # Change the values of processed_data_base in the config file saved in
-    # the .photon_mosaic/config.yaml without changing the other values and
-    # losing the comments
-    with open(default_config_path, "r") as f:
-        config_lines = f.readlines()
-    with open(default_config_path, "w") as f:
-        for line in config_lines:
-            if line.startswith("processed_data_base:"):
-                f.write(f"processed_data_base: {processed_data_base}\n")
-            elif line.startswith("raw_data_base:"):
-                f.write(f"raw_data_base: {raw_data_base}\n")
-            else:
-                f.write(line)
+    # Only update the default config file if it's the one being used
+    # Don't modify the user's default config when
+    # they've specified a custom config
+    if args.config is None:
+        # Change the values of processed_data_base in the config file saved in
+        # the .photon_mosaic/config.yaml without changing the other values and
+        # losing the comments
+        with open(default_config_path, "r") as f:
+            config_lines = f.readlines()
+        with open(default_config_path, "w") as f:
+            for line in config_lines:
+                if line.startswith("processed_data_base:"):
+                    f.write(f"processed_data_base: {processed_data_base}\n")
+                elif line.startswith("raw_data_base:"):
+                    f.write(f"raw_data_base: {raw_data_base}\n")
+                else:
+                    f.write(line)
 
     # Create photon-mosaic directory with logs and configs subdirectories
     output_dir = processed_data_base / "photon-mosaic"
