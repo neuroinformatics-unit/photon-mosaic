@@ -59,8 +59,8 @@ rule suite2p:
         ),
     wildcard_constraints:
         subject_name="|".join(discoverer.transformed_datasets),
-        session_name="|".join([discoverer.get_session_name(i, j) for i in range(len(discoverer.transformed_datasets))
-                              for j in range(len(discoverer.tiff_patterns))]),
+        session_name="|".join([discoverer.get_session_name(i, session_idx) for i in range(len(discoverer.transformed_datasets))
+                              for session_idx in discoverer.tiff_files[discoverer.original_datasets[i]].keys()]),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:

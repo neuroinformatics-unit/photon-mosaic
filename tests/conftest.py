@@ -63,7 +63,8 @@ def metadata_base_config():
 def map_of_tiffs():
     """
     Create a map of tiffs in test data using rglob -
-    for backward compatibility
+    for backward compatibility with unit tests that use static data.
+    For integration tests, use the map_of_tiffs from snake_test_env instead.
     """
 
     photon_mosaic_path = Path(__file__).parent / "data"
@@ -147,11 +148,16 @@ def snake_test_env(tmp_path, base_config, data_factory):
     with open(config_path, "w") as f:
         yaml.safe_dump(config, f, default_style='"', allow_unicode=True)
     print(f"Config file created at: {config_path}")
+
+    # Generate map of tiffs from the dynamically created data
+    map_of_tiffs = create_map_of_tiffs(raw_data)
+    print(f"Generated map_of_tiffs: {map_of_tiffs}")
     print("=== End of test environment setup ===\n")
 
     return {
         "workdir": tmp_path,
         "configfile": config_path,
+        "map_of_tiffs": map_of_tiffs,
     }
 
 
