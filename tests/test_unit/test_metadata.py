@@ -5,7 +5,12 @@ This module tests the extraction capabilities of the DatasetDiscoverer
 for both custom metadata and NeuroBlueprint formats.
 """
 
+import re
+import shutil
 import subprocess
+from pathlib import Path
+
+import yaml
 
 from photon_mosaic.dataset_discovery import DatasetDiscoverer
 
@@ -247,8 +252,7 @@ class TestMetadataFunctionality:
         self, neuroblueprint_noncontinuous_env
     ):
         """Test that non-continuous subject and session IDs are preserved."""
-        import re
-        from pathlib import Path
+        # local variables use module-level imports: re, Path
 
         # First, discover what's actually in the test data folders
         raw_data_path = Path(neuroblueprint_noncontinuous_env["raw_data"])
@@ -333,3 +337,89 @@ class TestMetadataFunctionality:
                     f"Session name incorrectly uses "
                     f"sequential numbering: {session_name}"
                 )
+
+    def test_alphanumeric_subject_and_session_ids(
+        self, tmp_path, metadata_base_config
+    ):
+        """Test that alphanumeric folder names are preserved in transformed
+        names.
+
+        Create a top-level subject folder with an evocative alphanumeric name
+        (e.g. 'hippocampusA42') and a session folder named
+        'novelEnv07' containing a TIFF in the raw_data. Run the CLI and verify
+        discovery produces 'sub-001_id-hippocampusA42' and
+        'ses-001_id-novelEnv07' (the transformed session name).
+        """
+        # use module-level imports: Path, shutil, yaml
+
+        # Create raw data structure
+        raw_data = tmp_path / "raw_data"
+        # Use more evocative names for experimental mouse research
+        subject_folder_name = "hippocampusA42"
+        # In raw_data the session folder is just the alphanumeric name
+        session_folder_name = "novelEnv07"
+        session_folder = raw_data / subject_folder_name / session_folder_name
+        session_folder.mkdir(parents=True, exist_ok=True)
+
+        # Copy master tiff into the session
+        master_tif = Path(__file__).parent.parent / "data" / "master.tif"
+        shutil.copy2(master_tif, session_folder / "recording.tif")
+
+        # Create derivatives folder
+        processed_data = tmp_path / "derivatives"
+        processed_data.mkdir()
+
+        # Prepare config
+        config = metadata_base_config.copy()
+        config["raw_data_base"] = str(raw_data.resolve())
+        config["processed_data_base"] = str(processed_data.resolve())
+        config["dataset_discovery"]["tiff_patterns"] = ["*.tif"]
+        # Keep discovery in custom mode so subject gets id-<name>
+        config["dataset_discovery"]["neuroblueprint_format"] = False
+
+        config_path = tmp_path / "config.yaml"
+        with open(config_path, "w") as f:
+            yaml.safe_dump(config, f)
+
+        # Run photon-mosaic CLI (dry-run)
+        result = run_photon_mosaic(tmp_path, config_path, timeout=None)
+        assert result.returncode == 0, (
+            f"CLI failed with return code {result.returncode}. "
+            f"Stderr: {result.stderr}"
+        )
+
+        # Discover datasets and check transformed names
+        discoverer = DatasetDiscoverer(
+            base_path=raw_data,
+            tiff_patterns=["*.tif"],
+            neuroblueprint_format=False,
+        )
+        discoverer.discover()
+
+        # Subject folder should be discovered as original name
+        assert subject_folder_name in discoverer.original_datasets
+
+        # Transformed subject name should include id-<subject_folder_name>
+        expected_subject_transformed = f"sub-001_id-{subject_folder_name}"
+        assert any(
+            name == expected_subject_transformed
+            for name in discoverer.transformed_datasets
+        ), (
+            f"Expected transformed subject name "
+            f"'{expected_subject_transformed}' "
+            f"got '{discoverer.transformed_datasets}'"
+        )
+
+        # Check session naming preserves the id metadata
+        dataset = discoverer.datasets[0]
+        found_session_ids = sorted(dataset.tiff_files.keys())
+        assert found_session_ids == [1]
+
+        session_name = discoverer.get_session_name(0, 1)
+        # The discovery should transform the raw folder name into a
+        # NeuroBlueprint-like session name with id metadata
+        expected_session_name = "ses-001_id-novelEnv07"
+        assert session_name == expected_session_name, (
+            f"Expected session name '{expected_session_name}', "
+            f"got '{session_name}'"
+        )

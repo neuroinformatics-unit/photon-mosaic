@@ -773,6 +773,14 @@ class DatasetDiscoverer:
                                 session_folder.name, inferred_metadata
                             )
 
+                            # If no metadata could be inferred from a custom
+                            # session folder (e.g. plain alphanumeric names
+                            # like 'novelEnv07'), preserve the raw folder name
+                            # as id-<name> so downstream code can see the
+                            # original identifier.
+                            if not session_meta:
+                                session_meta = f"id-{session_folder.name}"
+
                             tiff_files_by_session[custom_session_id] = (
                                 files_in_session
                             )
