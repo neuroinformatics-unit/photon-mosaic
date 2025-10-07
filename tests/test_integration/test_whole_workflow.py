@@ -1,3 +1,4 @@
+import re
 import subprocess
 from pathlib import Path
 
@@ -60,9 +61,6 @@ def check_output_files(
         for tiff in dataset_tiffs:
             # Find which pattern matches this tiff file
             for ses_idx, pattern in enumerate(tiff_patterns):
-                # Convert glob pattern to regex for matching
-                import re
-
                 # Convert glob pattern to regex: type_1*.tif -> type_1.*\.tif
                 regex_pattern = pattern.replace("*", ".*").replace(".", r"\.")
                 if re.match(regex_pattern, tiff):
