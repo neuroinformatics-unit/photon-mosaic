@@ -410,8 +410,15 @@ class DatasetDiscoverer:
         # Transform to NeuroBlueprint compliant format
         transformed_datasets = []
         for i, ds in enumerate(working_datasets):
-            # Use counter as subject ID and original name as metadata
-            transformed_name = f"sub-{i+1:03d}_id-{ds}"
+            # Check if the dataset name already contains key-value pairs
+            # (indicated by underscore-hyphen patterns like "key-value")
+            if "_" in ds and "-" in ds:
+                # Already has key-value structure, append directly
+                transformed_name = f"sub-{i+1:03d}_{ds}"
+            else:
+                # Use counter as subject ID and original name as metadata
+                # with id- prefix
+                transformed_name = f"sub-{i+1:03d}_id-{ds}"
             transformed_datasets.append(transformed_name)
 
         return original_datasets, transformed_datasets
