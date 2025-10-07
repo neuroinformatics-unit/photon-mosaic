@@ -70,7 +70,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 
-class TestDataFactory:
+class DataFactory:
     """Factory for creating test data structures dynamically."""
 
     def __init__(self, base_tiff_path: Optional[Path] = None):

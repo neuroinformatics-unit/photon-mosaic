@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tests.test_data_factory import TestDataFactory
+from tests.test_data_factory import DataFactory
 from tests.tree_helpers import tree as tree_lines
 
 
@@ -23,8 +23,8 @@ def test_data_root():
 
 @pytest.fixture
 def data_factory():
-    """Return a TestDataFactory instance for creating test data dynamically."""
-    return TestDataFactory()
+    """Return a DataFactory instance for creating test data dynamically."""
+    return DataFactory()
 
 
 @pytest.fixture
