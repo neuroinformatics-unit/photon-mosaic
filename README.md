@@ -25,7 +25,7 @@ It organises algorithms into an automated, self-organising workflow so you can c
 - Registration alternative: [NoRMCorre](https://github.com/flatironinstitute/NoRMCorre) implementations for non-rigid motion correction.
 - ROI matching: [ROICat](https://github.com/RichieHakim/ROICaT) for inter-session / inter-plane ROI matching.
 - Neuropil subtraction / decontamination: methods from the [AllenSDK](https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html) and [AST-model](https://github.com/znamlab/2p-preprocess).
-- Spike deconvolution: [OASIS](https://github.com/j-friedrich/OASIS) and [CASCADE](https://github.com/berenslab/CASCADE) are candidate deconvolution models.
+- Spike deconvolution: [OASIS](https://github.com/j-friedrich/OASIS) and [CASCADE](https://github.com/HelmchenLabSoftware/Cascade) are candidate deconvolution models.
 
 See issues on GitHub for more details and participate in planning.
 
