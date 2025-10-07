@@ -269,6 +269,49 @@ def main():
         logger.debug(f"Saving logs to: {log_path}")
         logger.info(f"Launching snakemake with command: {' '.join(cmd)}")
         result = subprocess.run(cmd, stdout=logfile, stderr=logfile)
+
+        # If workflow is locked, automatically unlock and retry
+        if result.returncode != 0 and not args.unlock:
+            # Check if the error is related to locking by reading the log
+            with open(log_path, "r") as log_read:
+                log_content = log_read.read()
+                if (
+                    "locked" in log_content.lower()
+                    or "lock" in log_content.lower()
+                ):
+                    logger.info(
+                        "Directory appears to be locked. "
+                        "Unlocking automatically and retrying..."
+                    )
+
+                    # Create unlock command
+                    unlock_cmd = cmd.copy()
+                    unlock_cmd.append("--unlock")
+
+                    # Run unlock command
+                    with open(log_path, "a") as logfile_append:
+                        logfile_append.write("\n--- Auto-unlock attempt ---\n")
+                        unlock_result = subprocess.run(
+                            unlock_cmd,
+                            stdout=logfile_append,
+                            stderr=logfile_append,
+                        )
+
+                    # If unlock succeeded, retry the original command
+                    if unlock_result.returncode == 0:
+                        logger.info(
+                            "Unlock successful. Retrying original command..."
+                        )
+                        with open(log_path, "a") as logfile_append:
+                            logfile_append.write(
+                                "\n--- Retry after unlock ---\n"
+                            )
+                            result = subprocess.run(
+                                cmd,
+                                stdout=logfile_append,
+                                stderr=logfile_append,
+                            )
+
         if result.returncode == 0:
             logging.info("Snakemake pipeline completed successfully.")
         else:
