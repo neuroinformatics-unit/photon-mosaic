@@ -715,7 +715,9 @@ class DatasetDiscoverer:
                         break
         else:
             # Pure custom format: search directly in dataset folder
-            for session_idx, tiff_pattern in enumerate(self.tiff_patterns):
+            for session_idx, tiff_pattern in enumerate(
+                self.tiff_patterns, start=1
+            ):
                 files_found = sorted(
                     [
                         f.name
