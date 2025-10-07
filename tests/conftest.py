@@ -5,12 +5,14 @@ This module provides common fixtures used across both unit and integration
 tests, following the DRY principle to avoid duplication.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 import yaml
 
-from .test_data_factory import TestDataFactory
+from tests.test_data_factory import TestDataFactory
+from tests.tree_helpers import tree as tree_lines
 
 
 @pytest.fixture
@@ -250,3 +252,127 @@ def neuroblueprint_noncontinuous_env(
         "raw_data": raw_data,
         "processed_data": processed_data,
     }
+
+
+@pytest.fixture(autouse=True)
+def log_test_fs(request):
+    """
+    After each test, write a snapshot of relevant test directories to
+    `tests/logs/<testname>_<timestamp>.log`.
+
+    The fixture inspects other fixtures used by the test (via
+    `request.node.funcargs`) to discover Path-like objects such as
+    `workdir`, `raw_data` or `processed_data`. If none are found it
+    falls back to the static `tests/data` directory. This helper will
+    never raise; failures to write the log are printed so tests are not
+    affected.
+    """
+    # run test
+    yield
+
+    try:
+        test_name = request.node.name
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+
+        logs_dir = Path(__file__).parent / "logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+
+        log_path = logs_dir / f"{test_name}_{timestamp}.log"
+
+        # Collect candidate roots from fixture funcargs
+        roots = []
+        funcargs = getattr(request.node, "funcargs", {}) or {}
+
+        def add_path_like(value):
+            # Handle dicts returned by some fixtures
+            if isinstance(value, dict):
+                for key in (
+                    "workdir",
+                    "raw_data",
+                    "processed_data",
+                    "raw_data_base",
+                ):
+                    v = value.get(key)
+                    if v:
+                        add_path_like(v)
+                return
+
+            if isinstance(value, (str, Path)):
+                p = Path(value)
+                if p.exists():
+                    roots.append(p)
+
+        # Inspect all funcargs the test received
+        for v in funcargs.values():
+            add_path_like(v)
+
+        # Also include tmp_path if present
+        if "tmp_path" in funcargs:
+            add_path_like(funcargs.get("tmp_path"))
+
+        # Fallback to tests/data
+        if not roots:
+            fallback = Path(__file__).parent / "data"
+            if fallback.exists():
+                roots.append(fallback)
+
+        # Normalize and deduplicate roots so we don't write the same
+        # directory multiple times (the same path can be referenced from
+        # multiple fixtures, e.g. `workdir`, `tmp_path`, or nested values).
+        seen = set()
+        unique_roots = []
+        for p in roots:
+            try:
+                rp = p.resolve()
+            except Exception:
+                rp = p
+            # If a file was added (e.g. a config file), prefer its parent dir
+            if rp.is_file():
+                rp = rp.parent
+            if rp not in seen:
+                seen.add(rp)
+                unique_roots.append(rp)
+        roots = unique_roots
+
+        # Write the log file as a simple listing of each root's tree
+        with open(log_path, "w", encoding="utf-8") as lf:
+            lf.write(f"Test: {request.node.nodeid}\n")
+            lf.write(f"Timestamp: {timestamp}\n\n")
+
+            for root in roots:
+                lf.write(f"Root: {root}\n")
+
+                # Prefer to only show the two top-level directories of interest
+                # if they exist: derivatives/ and raw_data/
+                for top in ("derivatives", "raw_data"):
+                    top_path = root / top
+                    if top_path.exists():
+                        lf.write(f"{top}/\n")
+                        # write pretty tree lines (indented)
+                        for line in tree_lines(top_path):
+                            lf.write(f"{line}\n")
+                        lf.write("\n")
+
+                # If neither was present,
+                # fall back to the previous full listing
+                if not any(
+                    (root / t).exists() for t in ("derivatives", "raw_data")
+                ):
+                    for p in sorted(root.rglob("*")):
+                        try:
+                            rel = p.relative_to(root)
+                        except Exception:
+                            rel = p
+                        if p.is_dir():
+                            lf.write(f"{rel}/\n")
+                        else:
+                            lf.write(f"{rel}\n")
+                    lf.write("\n")
+
+    except (
+        Exception
+    ) as exc:  # pragma: no cover - avoid breaking tests on logging errors
+        # Don't let logging break tests
+        print(
+            f"Error writing test filesystem log for {request.node.name}: {exc}"
+        )
