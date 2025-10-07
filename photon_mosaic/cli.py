@@ -41,7 +41,7 @@ def create_argument_parser():
         help="Override processed_data_base in config file",
     )
     parser.add_argument(
-        "--jobs", default="1", help="Number of parallel jobs to run"
+        "--jobs", default="10", help="Number of parallel jobs to run"
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="Perform a dry run"
