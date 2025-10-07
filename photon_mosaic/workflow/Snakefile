@@ -29,6 +29,14 @@ output_pattern = config["preprocessing"]["output_pattern"]
 logger.info(f"Raw data base: {raw_data_base}")
 logger.info(f"Processed data base: {processed_data_base}")
 
+# Log SLURM configuration
+use_slurm = config.get("use_slurm", False)
+if use_slurm:
+    logger.info("SLURM execution enabled")
+    logger.info(f"SLURM configuration: {slurm_config}")
+else:
+    logger.info("SLURM execution disabled - running locally")
+
 # Discover datasets and their TIFF files using the new class-based approach
 discoverer = DatasetDiscoverer(
     base_path=raw_data_base,

@@ -164,6 +164,10 @@ def main():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
+    logger.debug(f"Loaded config from {config_path}:")
+    logger.debug(f"use_slurm: {config.get('use_slurm', 'NOT SET')}")
+    logger.debug(f"slurm config: {config.get('slurm', 'NOT SET')}")
+
     # Apply CLI overrides
     if args.raw_data_base is not None:
         logger.debug(f"Overriding raw_data_base to: {args.raw_data_base}")
@@ -257,8 +261,43 @@ def main():
     if not args.verbose:
         # Default to quiet mode unless --verbose is specified
         cmd.append("--quiet")
-    if config["use_slurm"] == "slurm":
+
+    # Configure SLURM execution if enabled
+    if config.get("use_slurm", False):
+        logger.info("SLURM execution enabled - configuring SLURM executor")
         cmd.extend(["--executor", "slurm"])
+
+        # Add SLURM-specific arguments
+        slurm_config = config.get("slurm", {})
+        logger.info(f"SLURM configuration loaded: {slurm_config}")
+
+        # Create default resources string for SLURM
+        default_resources = []
+        if "slurm_partition" in slurm_config:
+            default_resources.append(
+                f"slurm_partition='{slurm_config['slurm_partition']}'"
+            )
+            logger.info(
+                f"Using SLURM partition: {slurm_config['slurm_partition']}"
+            )
+        if "mem_mb" in slurm_config:
+            default_resources.append(f"mem_mb={slurm_config['mem_mb']}")
+        if "tasks" in slurm_config:
+            default_resources.append(f"tasks={slurm_config['tasks']}")
+        if "nodes" in slurm_config:
+            default_resources.append(f"nodes={slurm_config['nodes']}")
+
+        if default_resources:
+            # Join all default resources with commas
+            # and pass as single argument
+            resources_str = ",".join(default_resources)
+            cmd.extend(["--default-resources", resources_str])
+            logger.info(f"SLURM default resources: {resources_str}")
+
+        logger.info("SLURM executor configured successfully")
+    else:
+        logger.info("SLURM execution disabled - running locally")
+
     if args.extra:
         cmd.extend(args.extra)
 
