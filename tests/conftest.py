@@ -332,7 +332,38 @@ def log_test_fs(request):
             if rp not in seen:
                 seen.add(rp)
                 unique_roots.append(rp)
-        roots = unique_roots
+
+        parent_candidates = []
+        for r in unique_roots:
+            if any((r / t).exists() for t in ("derivatives", "raw_data")):
+                parent_candidates.append(r)
+
+        if parent_candidates:
+            # Prefer a parent that has both children when available
+            best = next(
+                (
+                    r
+                    for r in parent_candidates
+                    if all(
+                        (r / t).exists() for t in ("derivatives", "raw_data")
+                    )
+                ),
+                None,
+            )
+            roots = [best or parent_candidates[0]]
+        else:
+            # Keep explicit child dirs if present (e.g. paths that are
+            # literally `.../raw_data` or `.../derivatives`).
+            children = [
+                r
+                for r in unique_roots
+                if r.name in ("raw_data", "derivatives")
+            ]
+            if children:
+                # preserve order but remove duplicates
+                roots = list(dict.fromkeys(children))
+            else:
+                roots = unique_roots
 
         # Write the log file as a simple listing of each root's tree
         with open(log_path, "w", encoding="utf-8") as lf:
