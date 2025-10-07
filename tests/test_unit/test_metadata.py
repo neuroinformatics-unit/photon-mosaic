@@ -10,19 +10,22 @@ import subprocess
 from photon_mosaic.dataset_discovery import DatasetDiscoverer
 
 
-def run_photon_mosaic_dry_run(workdir, configfile):
-    """Helper function to run photon-mosaic CLI with dry-run."""
+def run_photon_mosaic(workdir, configfile, timeout=None):
+    """Helper function to run photon-mosaic CLI with dry-run.
+
+    timeout: seconds to wait for the subprocess to complete. If None,
+    wait indefinitely (no timeout).
+    """
     cmd = [
         "photon-mosaic",
         "--config",
         str(configfile),
-        "--dry-run",
         "--log-level",
         "DEBUG",
     ]
 
     result = subprocess.run(
-        cmd, cwd=workdir, capture_output=True, text=True, timeout=60
+        cmd, cwd=workdir, capture_output=True, text=True, timeout=timeout
     )
 
     return result
@@ -197,8 +200,10 @@ class TestMetadataFunctionality:
     def test_photon_mosaic_cli_custom_metadata(self, custom_metadata_env):
         """Test photon-mosaic CLI with custom metadata format."""
         # Run photon-mosaic with dry-run to test metadata processing
-        result = run_photon_mosaic_dry_run(
-            custom_metadata_env["workdir"], custom_metadata_env["configfile"]
+        result = run_photon_mosaic(
+            custom_metadata_env["workdir"],
+            custom_metadata_env["configfile"],
+            timeout=None,
         )
 
         # Check that command ran successfully - this validates that the
@@ -219,8 +224,10 @@ class TestMetadataFunctionality:
     ):
         """Test photon-mosaic CLI with NeuroBlueprint metadata format."""
         # Run photon-mosaic with dry-run to test metadata processing
-        result = run_photon_mosaic_dry_run(
-            neuroblueprint_env["workdir"], neuroblueprint_env["configfile"]
+        result = run_photon_mosaic(
+            neuroblueprint_env["workdir"],
+            neuroblueprint_env["configfile"],
+            timeout=None,
         )
 
         # Check that command ran successfully - this validates that the
@@ -268,6 +275,21 @@ class TestMetadataFunctionality:
                     expected_data[subject_dir.name] = sorted(session_ids)
 
         # Now test discovery preserves these IDs
+        # Run photon-mosaic CLI dry-run first to ensure the pipeline can be
+        # invoked against this dataset (mirrors other CLI tests).
+        result = run_photon_mosaic(
+            neuroblueprint_noncontinuous_env["workdir"],
+            neuroblueprint_noncontinuous_env["configfile"],
+            timeout=None,
+        )
+
+        assert result.returncode == 0, (
+            "photon-mosaic CLI dry-run failed: return code "
+            f"{result.returncode}\n"
+            f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        )
+
+        # Continue with discovery checks
         discoverer = DatasetDiscoverer(
             base_path=neuroblueprint_noncontinuous_env["raw_data"],
             neuroblueprint_format=True,
