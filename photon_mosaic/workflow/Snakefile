@@ -41,8 +41,8 @@ else:
 discoverer = DatasetDiscoverer(
     base_path=raw_data_base,
     pattern=config["dataset_discovery"].get("pattern", ".*"),
-    exclude_patterns=config["dataset_discovery"].get("exclude_patterns"),
-    substitutions=config["dataset_discovery"].get("substitutions"),
+    exclude_datasets=config["dataset_discovery"].get("exclude_datasets"),
+    exclude_sessions=config["dataset_discovery"].get("exclude_sessions"),
     tiff_patterns=config["dataset_discovery"].get("tiff_patterns"),
     neuroblueprint_format=config["dataset_discovery"].get("neuroblueprint_format", False),
 )

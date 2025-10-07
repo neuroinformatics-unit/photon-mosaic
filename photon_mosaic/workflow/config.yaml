@@ -24,20 +24,13 @@ dataset_discovery:
 
   # Match all directories by default
   pattern: "^.*$"
-
-  # Exclude specific patterns from processing
-  exclude_patterns:
+  # Exclude specific patterns from processing (dataset folder names)
+  exclude_datasets:
     - ".*_test$"    # Exclude test datasets
     - ".*_backup$"  # Exclude backup datasets
 
-  # Transform dataset names using regex substitutions (applied before creating ses-XXX_id-name)
-  substitutions:
-    # Example: Remove underscores from names
-    # - pattern: "_"
-    #   repl: ""
-    # Example: Take the first part of the path
-    # - pattern: "([^/]+)/.*"
-    #   repl: '\\1'
+  # Exclude specific session folder patterns (session folder names)
+  exclude_sessions: []
 
 
 # ============================================================================

@@ -399,27 +399,45 @@ class TestMetadataFunctionality:
         # Subject folder should be discovered as original name
         assert subject_folder_name in discoverer.original_datasets
 
-        # Transformed subject name should include id-<subject_folder_name>
-        expected_subject_transformed = f"sub-001_id-{subject_folder_name}"
-        assert any(
-            name == expected_subject_transformed
-            for name in discoverer.transformed_datasets
-        ), (
-            f"Expected transformed subject name "
-            f"'{expected_subject_transformed}' "
-            f"got '{discoverer.transformed_datasets}'"
-        )
+    def test_simple_discovery_minimal(self, tmp_path):
+        """Test exclude_datasets filters out matching dataset folders.
 
-        # Check session naming preserves the id metadata
-        dataset = discoverer.datasets[0]
-        found_session_ids = sorted(dataset.tiff_files.keys())
-        assert found_session_ids == [1]
+        Create two subjects, one matching an exclusion pattern. The
+        excluded subject and its TIFF should not be discovered.
+        """
+        raw_data = tmp_path / "raw_data"
 
-        session_name = discoverer.get_session_name(0, 1)
-        # The discovery should transform the raw folder name into a
-        # NeuroBlueprint-like session name with id metadata
-        expected_session_name = "ses-001_id-novelEnv07"
-        assert session_name == expected_session_name, (
-            f"Expected session name '{expected_session_name}', "
-            f"got '{session_name}'"
+        # subject that should be kept
+        keep_session = raw_data / "keepA" / "session1"
+        keep_session.mkdir(parents=True, exist_ok=True)
+        (keep_session / "img001.tif").write_bytes(b"TIFFDATA")
+
+        # subject that should be excluded by pattern
+        bad_session = raw_data / "subj_test" / "session1"
+        bad_session.mkdir(parents=True, exist_ok=True)
+        (bad_session / "img002.tif").write_bytes(b"TIFFDATA")
+
+        # run discoverer with dataset exclusion pattern
+        discoverer = DatasetDiscoverer(
+            base_path=raw_data,
+            pattern=".*",
+            exclude_datasets=[r".*_test$"],
+            tiff_patterns=["*.tif"],
+            neuroblueprint_format=False,
         )
+        discoverer.discover()
+
+        # keepA should be discovered, subj_test should be excluded
+        assert "keepA" in discoverer.original_datasets
+        assert "subj_test" not in discoverer.original_datasets
+
+        # keepA tiff present; excluded subj's tiff should not be present
+        all_tiffs = discoverer.tiff_files_flat
+        assert "img001.tif" in all_tiffs
+        assert "img002.tif" not in all_tiffs
+
+        # mapping exists for keepA only
+        assert len(discoverer.tiff_files) == 1
+        mapping = discoverer.tiff_files[discoverer.original_datasets[0]]
+        assert 1 in mapping
+        assert "img001.tif" in mapping[1]

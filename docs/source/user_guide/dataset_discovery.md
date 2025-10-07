@@ -14,23 +14,19 @@ dataset_discovery:
 
   # Find tiffs. Different patterns will correspond to different sessions
   tiff_patterns: ["*.tif"]
-
-  # Exclude specific patterns
-  exclude_patterns:
+  # Exclude specific dataset patterns (folder names) and session patterns
+  exclude_datasets:
     - ".*_test$"
 
-  # Transform names using regex substitutions
-  substitutions:
-    - pattern: "_"
-      repl: "" # The string "a_b" will be replaced with "ab"
+  exclude_sessions: []
 ```
 
 ## Key Parameters
 
 - **pattern**: Regular expression to identify dataset directories
 - **tiff_patterns**: List of glob patterns for TIFF files. Each pattern corresponds to a session (numbered starting from 0). Tiffs from differest sessions will be stored in different folders. Tiffs in a same session will be analysed together by Suite2p.
-- **exclude_patterns**: List of regex patterns for datasets to skip during processing
-- **substitutions**: List of regex substitution rules to transform dataset names
+ - **exclude_datasets**: List of regex patterns for dataset folder names to skip during processing
+ - **exclude_sessions**: List of regex patterns for session folder names to skip during processing
 
 ## Examples
 
@@ -53,9 +49,7 @@ dataset_discovery:
 dataset_discovery:
   pattern: "^2\\d{3}_\\d{2}_\\d{2}"  # Match YYYY_MM_DD format
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "_"
-      repl: ""
+  # Note: regex substitutions have been removed; use `exclude_datasets`/`exclude_sessions` instead
 ```
 
 ### Experiment-based Datasets
@@ -63,9 +57,7 @@ dataset_discovery:
 dataset_discovery:
   pattern: "exp_\\d+"
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "exp_(\\d+)"
-      repl: "experiment\\\\1"
+  # Use `exclude_datasets` or `exclude_sessions` instead of name substitutions
 ```
 
 ### Animal ID-based Datasets
@@ -73,9 +65,7 @@ dataset_discovery:
 dataset_discovery:
   pattern: "mouse_[A-Z]\\d{3}"  # Match mouse IDs like mouse_A123
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "mouse_([A-Z]\\d{3})"
-      repl: "subject_\\\\1"
+  # Use `exclude_datasets` or `exclude_sessions` instead of name substitutions
 ```
 
 ### Session-based Datasets
@@ -83,9 +73,7 @@ dataset_discovery:
 dataset_discovery:
   pattern: "session_\\d{3}"  # Match session_001, session_002, etc.
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "session_(\\d{3})"
-      repl: "s\\\\1"  # Convert to shorter format like s001
+  # Use `exclude_datasets` or `exclude_sessions` instead of name substitutions
 ```
 
 ### Multi-level Directory Structure
@@ -93,12 +81,10 @@ dataset_discovery:
 dataset_discovery:
   pattern: "subject_\\d+/session_\\d+"  # Match subject_1/session_1, etc.
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "subject_(\\d+)/session_(\\d+)"
-      repl: "s\\\\1_s\\\\2"  # Convert to s1_s1 format
-  exclude_patterns:
-    - ".*/test/.*"  # Exclude test directories
-    - ".*/backup/.*"  # Exclude backup directories
+  # Use `exclude_datasets` and `exclude_sessions` to avoid test/backup directories
+  exclude_datasets:
+    - ".*/test/.*"
+    - ".*/backup/.*"
 ```
 
 ### Complex Pattern Matching
@@ -106,9 +92,7 @@ dataset_discovery:
 dataset_discovery:
   pattern: "^(?:raw|processed)_\\d{8}_[A-Z]{2}"  # Match raw_20240315_AB or processed_20240315_AB
   tiff_patterns: ["*.tif"]
-  substitutions:
-    - pattern: "^(raw|processed)_(\\d{8})_([A-Z]{2})"
-      repl: "\\\\2_\\\\3_\\\\1"  # Reorder to 20240315_AB_raw
+  # Use `exclude_datasets`/`exclude_sessions`; name substitutions are not supported
 ```
 
 The discovered datasets are automatically used in the Snakemake workflow.

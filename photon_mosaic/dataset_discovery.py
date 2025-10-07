@@ -37,8 +37,8 @@ class DatasetDiscoverer:
         self,
         base_path: Union[str, Path],
         pattern: str = ".*",
-        exclude_patterns: Optional[List[str]] = None,
-        substitutions: Optional[List[Dict[str, str]]] = None,
+        exclude_datasets: Optional[List[str]] = None,
+        exclude_sessions: Optional[List[str]] = None,
         tiff_patterns: Optional[List[str]] = None,
         neuroblueprint_format: bool = False,
     ):
@@ -52,13 +52,13 @@ class DatasetDiscoverer:
         pattern : str, optional
             Regex pattern to match dataset names, defaults to ".*"
             (all directories). Only used when neuroblueprint_format is False.
-        exclude_patterns : List[str], optional
-            List of regex patterns for datasets to exclude.
-            Only used when neuroblueprint_format is False.
-        substitutions : List[Dict[str, str]], optional
-            List of regex substitution pairs to transform dataset names.
-            Each dict should have 'pattern' and 'repl' keys for re.sub().
-            Only used when neuroblueprint_format is False.
+        exclude_datasets : List[str], optional
+            List of regex patterns for dataset folder names to exclude.
+            Applied to both NeuroBlueprint and custom discovery.
+        exclude_sessions : List[str], optional
+            List of regex patterns for session folder names to exclude.
+            Applied when scanning session folders for NeuroBlueprint or
+            custom session folders.
         tiff_patterns : List[str], optional
             List of glob patterns for TIFF files. Each pattern corresponds to a
             session. Defaults to ["*.tif"] for a single session.
@@ -71,8 +71,10 @@ class DatasetDiscoverer:
         """
         self.base_path = Path(base_path)
         self.pattern = pattern
-        self.exclude_patterns = exclude_patterns or []
-        self.substitutions = substitutions or []
+        # Patterns to exclude dataset folder names (regex)
+        self.exclude_datasets = exclude_datasets or []
+        # Patterns to exclude session folder names (regex)
+        self.exclude_sessions = exclude_sessions or []
         self.tiff_patterns = tiff_patterns or ["*.tif"]
         self.neuroblueprint_format = neuroblueprint_format
 
@@ -370,6 +372,14 @@ class DatasetDiscoverer:
             if self._is_neuroblueprint_format(folder, "sub")
         ]
 
+        # Apply dataset exclusions if any
+        if self.exclude_datasets:
+            candidate_datasets = [
+                ds
+                for ds in candidate_datasets
+                if not any(re.match(pat, ds) for pat in self.exclude_datasets)
+            ]
+
         # Names are already compliant, so original and
         # transformed are identical
         return candidate_datasets, candidate_datasets
@@ -391,21 +401,18 @@ class DatasetDiscoverer:
             if d.is_dir() and re.match(self.pattern, d.name)
         ]
 
-        # Apply exclusion patterns
-        for exclude in self.exclude_patterns:
+        # Apply dataset exclusions if any
+        if self.exclude_datasets:
             candidate_datasets = [
-                ds for ds in candidate_datasets if not re.match(exclude, ds)
+                ds
+                for ds in candidate_datasets
+                if not any(re.match(pat, ds) for pat in self.exclude_datasets)
             ]
 
         original_datasets = candidate_datasets.copy()
 
-        # Apply substitutions then create NeuroBlueprint compliant names
+        # No substitutions: use the discovered dataset names directly
         working_datasets = candidate_datasets.copy()
-        for sub in self.substitutions:
-            working_datasets = [
-                re.sub(sub["pattern"], sub["repl"], ds)
-                for ds in working_datasets
-            ]
 
         # Transform to NeuroBlueprint compliant format
         transformed_datasets = []
@@ -503,6 +510,9 @@ class DatasetDiscoverer:
                     for d in dataset_path.iterdir()
                     if d.is_dir()
                     and self._is_neuroblueprint_format(d.name, "ses")
+                    and not any(
+                        re.match(pat, d.name) for pat in self.exclude_sessions
+                    )
                 ]
                 all_folder_names.extend(session_folders)
             inferred_metadata = self._infer_metadata_keys_from_folder_names(
@@ -593,7 +603,11 @@ class DatasetDiscoverer:
             [
                 d
                 for d in dataset_path.iterdir()
-                if d.is_dir() and self._is_neuroblueprint_format(d.name, "ses")
+                if d.is_dir()
+                and self._is_neuroblueprint_format(d.name, "ses")
+                and not any(
+                    re.match(pat, d.name) for pat in self.exclude_sessions
+                )
             ]
         )
 
@@ -669,7 +683,9 @@ class DatasetDiscoverer:
         session_folders = [
             d
             for d in dataset_path.iterdir()
-            if d.is_dir() and self._is_neuroblueprint_format(d.name, "ses")
+            if d.is_dir()
+            and self._is_neuroblueprint_format(d.name, "ses")
+            and not any(re.match(pat, d.name) for pat in self.exclude_sessions)
         ]
 
         if session_folders:
@@ -725,7 +741,12 @@ class DatasetDiscoverer:
             # Check for custom session folders (not NeuroBlueprint but still
             # organized)
             custom_session_folders = [
-                d for d in dataset_path.iterdir() if d.is_dir()
+                d
+                for d in dataset_path.iterdir()
+                if d.is_dir()
+                and not any(
+                    re.match(pat, d.name) for pat in self.exclude_sessions
+                )
             ]
 
             if custom_session_folders:

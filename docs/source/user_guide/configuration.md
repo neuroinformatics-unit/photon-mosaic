@@ -34,12 +34,10 @@ processed_data_base: "path/to/derivatives/"
 dataset_discovery:
   pattern: "^.*$"
   tiff_patterns: ["*.tif"]
-  exclude_patterns:
-    - ".*_test$"
-    - ".*_backup$"
-  substitutions:
-    - pattern: "_"
-      repl: ""
+    exclude_datasets:
+      - ".*_test$"
+      - ".*_backup$"
+    exclude_sessions: []
 
 # Preprocessing configuration
 preprocessing:
