@@ -22,6 +22,9 @@ import re
 import logging
 import os
 
+# Configure SLURM resources if enabled
+slurm_config = config.get("slurm", {}) if config.get("use_slurm") else {}
+
 # Preprocessing rule
 rule preprocessing:
     input:
