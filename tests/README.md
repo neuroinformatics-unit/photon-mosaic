@@ -53,9 +53,6 @@ derivatives/
 │       └── funcimg/
 │           └── {output_pattern}type_1_01.tif
 │           └── {output_pattern}type_1_02.tif
-├── sub-003_id-003/
-│   └── ses-002/
-│       └── funcimg/
 ```
 
 ### Custom Metadata Dataset
@@ -71,7 +68,7 @@ derivatives/
 ```
 derivatives/
 ├── sub-001_id-mouse-001_genotype-WT_age-P60_treatment-saline/
-│   └── ses-001/
+│   └── ses-001_condition-baseline_paradigm-open-field/
 │       └── funcimg/
 │           └── {output_pattern}recording.tif
 ```

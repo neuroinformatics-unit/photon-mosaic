@@ -194,8 +194,9 @@ class DatasetDiscoverer:
                 # Look for patterns like "key-value"
                 if "-" in part:
                     key, value = part.split("-", 1)
-                    # Skip 'sub' and 'ses' as they are structural, not metadata
-                    if key not in ["sub", "ses"]:
+                    # Skip 'sub', 'ses', and 'session' as they are structural,
+                    # not metadata
+                    if key not in ["sub", "ses", "session"]:
                         # Create a flexible regex pattern for this key
                         metadata_patterns[key] = f"{key}-([^_]+)"
 
@@ -714,23 +715,89 @@ class DatasetDiscoverer:
                         )
                         break
         else:
-            # Pure custom format: search directly in dataset folder
-            for session_idx, tiff_pattern in enumerate(
-                self.tiff_patterns, start=1
-            ):
-                files_found = sorted(
-                    [
-                        f.name
-                        for f in dataset_path.rglob(tiff_pattern)
-                        if f.is_file()
-                    ]
+            # Check for custom session folders (not NeuroBlueprint but still
+            # organized)
+            custom_session_folders = [
+                d for d in dataset_path.iterdir() if d.is_dir()
+            ]
+
+            if custom_session_folders:
+                # Custom session folders exist - extract metadata from them
+                logging.info(
+                    f"Detected custom session folders in "
+                    f"dataset {dataset_path.name}: "
+                    f"{[s.name for s in custom_session_folders]}"
                 )
 
-                tiff_files_by_session[session_idx] = files_found
-                if files_found:
-                    self._all_tiff_files.extend(files_found)
+                # Infer metadata patterns from session folder names
+                inferred_metadata = (
+                    self._infer_metadata_keys_from_folder_names(
+                        [s.name for s in custom_session_folders]
+                    )
+                )
 
-                # No session metadata for custom format
-                session_meta_by_session[session_idx] = ""
+                # Process each session folder
+                for session_folder in sorted(custom_session_folders):
+                    # Extract session ID from folder name (look for
+                    # session-XXX pattern)
+                    session_id_match = re.search(
+                        r"session-(\d+)", session_folder.name
+                    )
+                    if session_id_match:
+                        custom_session_id = int(session_id_match.group(1))
+                    else:
+                        # If no session-XXX pattern, use enumerate starting
+                        # from 1
+                        custom_session_id = len(tiff_files_by_session) + 1
+
+                    # Try each TIFF pattern to find files in this session
+                    for tiff_pattern in self.tiff_patterns:
+                        files_in_session = sorted(
+                            [
+                                f.name
+                                for f in session_folder.rglob(tiff_pattern)
+                                if f.is_file()
+                            ]
+                        )
+
+                        if files_in_session:
+                            # Extract metadata from session folder name
+                            session_meta = self._extract_metadata_from_name(
+                                session_folder.name, inferred_metadata
+                            )
+
+                            tiff_files_by_session[custom_session_id] = (
+                                files_in_session
+                            )
+                            session_meta_by_session[custom_session_id] = (
+                                session_meta
+                            )
+                            self._all_tiff_files.extend(files_in_session)
+
+                            logging.debug(
+                                f"Session {custom_session_id} matched pattern "
+                                f"{tiff_pattern} in {session_folder.name} "
+                                f"with metadata: {session_meta}"
+                            )
+                            break
+            else:
+                # Pure custom format: search directly in dataset folder
+                for session_idx, tiff_pattern in enumerate(
+                    self.tiff_patterns, start=1
+                ):
+                    files_found = sorted(
+                        [
+                            f.name
+                            for f in dataset_path.rglob(tiff_pattern)
+                            if f.is_file()
+                        ]
+                    )
+
+                    tiff_files_by_session[session_idx] = files_found
+                    if files_found:
+                        self._all_tiff_files.extend(files_found)
+
+                    # No session metadata for pure custom format
+                    session_meta_by_session[session_idx] = ""
 
         return tiff_files_by_session, session_meta_by_session
