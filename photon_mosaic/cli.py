@@ -345,11 +345,23 @@ def configure_slurm_execution(cmd, config):
     slurm_config = config.get("slurm", {})
     logger.info(f"SLURM configuration loaded: {slurm_config}")
 
+    # Resources that should NOT be passed via --default-resources
+    # because they're already set at rule level and may cause conflicts
+    # (particularly gpu-related resources that can trigger TRES conflicts)
+    exclude_from_defaults = {"gpu", "gres", "cpus_per_gpu", "tasks_per_gpu"}
+
     # Create default resources string for SLURM by iterating all provided keys
     default_resources = []
     for key, value in slurm_config.items():
         # Skip empty/null values
         if value is None:
+            continue
+        # Skip resources that should only be set at rule level
+        if key in exclude_from_defaults:
+            logger.info(
+                f"Skipping {key} in --default-resources "
+                f"(set at rule level to avoid conflicts): {value}"
+            )
             continue
         # Quote string values so snakemake parses them correctly
         if isinstance(value, str):
