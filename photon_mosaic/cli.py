@@ -345,21 +345,22 @@ def configure_slurm_execution(cmd, config):
     slurm_config = config.get("slurm", {})
     logger.info(f"SLURM configuration loaded: {slurm_config}")
 
-    # Create default resources string for SLURM
+    # Create default resources string for SLURM by iterating all provided keys
     default_resources = []
-    if "slurm_partition" in slurm_config:
-        default_resources.append(
-            f"slurm_partition='{slurm_config['slurm_partition']}'"
-        )
-        logger.info(
-            f"Using SLURM partition: {slurm_config['slurm_partition']}"
-        )
-    if "mem_mb" in slurm_config:
-        default_resources.append(f"mem_mb={slurm_config['mem_mb']}")
-    if "tasks" in slurm_config:
-        default_resources.append(f"tasks={slurm_config['tasks']}")
-    if "nodes" in slurm_config:
-        default_resources.append(f"nodes={slurm_config['nodes']}")
+    for key, value in slurm_config.items():
+        # Skip empty/null values
+        if value is None:
+            continue
+        # Quote string values so snakemake parses them correctly
+        if isinstance(value, str):
+            default_resources.append(f"{key}='{value}'")
+        # Use lower-case for booleans (true/false)
+        elif isinstance(value, bool):
+            default_resources.append(f"{key}={str(value).lower()}")
+        else:
+            default_resources.append(f"{key}={value}")
+
+        logger.info(f"Using SLURM {key}: {value}")
 
     if default_resources:
         # Join all default resources with commas and pass as single argument
