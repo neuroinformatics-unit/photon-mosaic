@@ -45,7 +45,7 @@ rule preprocessing:
             / wildcards.session_name
             / "funcimg"
         ),
-        ses_idx=lambda wildcards: int(wildcards.session_name.split("_")[0].replace("ses-", "")),
+        ses_idx=lambda wildcards: wildcards.session_name.split("_")[0].replace("ses-", ""),
     wildcard_constraints:
         tiff="|".join(sorted(discoverer.tiff_files_flat)) if discoverer.tiff_files_flat else "dummy",
         subject_name="|".join(discoverer.transformed_datasets),
@@ -59,6 +59,6 @@ rule preprocessing:
             Path(params.output_folder),
             config["preprocessing"],
             Path(params.dataset_folder),
-            ses_idx=int(params.ses_idx),
+            ses_idx=params.ses_idx,
             tiff_name=wildcards.tiff,
         )
