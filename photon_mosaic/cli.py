@@ -5,6 +5,7 @@ Command line interface for photon-mosaic.
 import argparse
 import importlib.resources as pkg_resources
 import logging
+import os
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -237,9 +238,16 @@ def setup_output_directories(processed_data_base):
     logs_dir = output_dir / "logs"
     configs_dir = output_dir / "configs"
 
+    # Create directories with explicit permissions (rwxr-xr-x)
+    # This ensures SLURM jobs can access these directories
     output_dir.mkdir(parents=True, exist_ok=True)
+    os.chmod(output_dir, 0o755)
+
     logs_dir.mkdir(exist_ok=True)
+    os.chmod(logs_dir, 0o755)
+
     configs_dir.mkdir(exist_ok=True)
+    os.chmod(configs_dir, 0o755)
 
     return output_dir, logs_dir, configs_dir
 
@@ -259,6 +267,8 @@ def save_timestamped_config(config, configs_dir):
     tuple[str, Path]
         Timestamp string and path to saved config file
     """
+    import os
+
     logger = logging.getLogger(__name__)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -268,6 +278,12 @@ def save_timestamped_config(config, configs_dir):
     with open(config_path, "w") as f:
         logger.debug(f"Saving config to: {config_path}")
         yaml.dump(config, f)
+
+    # Ensure the config file is readable by all users (rw-r--r--)
+    # This is critical for SLURM jobs that need to read this file
+    # when Snakemake re-runs itself in each SLURM job context
+    os.chmod(config_path, 0o644)
+    logger.debug("Set config file permissions to 644 for SLURM job access")
 
     return timestamp, config_path
 
