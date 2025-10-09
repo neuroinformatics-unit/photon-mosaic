@@ -17,7 +17,7 @@ Output: Preprocessed TIFF files organized by subject/session
 
 from pathlib import Path
 from photon_mosaic.rules.preprocessing import run_preprocessing
-from photon_mosaic.pathing import cross_platform_path
+from photon_mosaic.snakemake_utils import cross_platform_path
 import re
 import logging
 import os

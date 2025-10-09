@@ -15,7 +15,7 @@ Output: Suite2p analysis results (F.npy, data.bin) in suite2p/plane0/ directory
 """
 
 import re
-from photon_mosaic.pathing import cross_platform_path
+from photon_mosaic.snakemake_utils import cross_platform_path
 
 rule suite2p:
     input:

@@ -14,12 +14,17 @@ The workflow:
 
 from pathlib import Path
 from photon_mosaic.dataset_discovery import DatasetDiscoverer
+from photon_mosaic import log_cuda_availability
 import logging
 
 # Configure logging based on config settings
 log_level = logging.DEBUG if config.get("logging", {}).get("snakemake_verbose", False) else logging.INFO
 logging.basicConfig(level=log_level)
 logger = logging.getLogger("snakemake.workflow")
+
+# CUDA availability check on workflow start
+onstart:
+    log_cuda_availability()
 
 raw_data_base = Path(config["raw_data_base"]).resolve()
 processed_data_base = Path(config["processed_data_base"]).resolve()
