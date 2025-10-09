@@ -348,7 +348,9 @@ def configure_slurm_execution(cmd, config):
     # Resources that should NOT be passed via --default-resources
     # because they're already set at rule level and may cause conflicts
     # (particularly gpu-related resources that can trigger TRES conflicts)
-    exclude_from_defaults = {"gpu", "gres", "cpus_per_gpu", "tasks_per_gpu"}
+    # Note: tasks_per_gpu is NOT excluded as it's needed
+    # to control --ntasks-per-gpu behavior
+    exclude_from_defaults = {"gpu", "gres", "cpus_per_gpu"}
 
     # Create default resources string for SLURM by iterating all provided keys
     default_resources = []
