@@ -310,6 +310,7 @@ def build_snakemake_command(args, config_path):
 
     cmd = [
         "snakemake",
+        "--use-envmodules", # Enables envmodules
         "--snakefile",
         str(snakefile_path),
         "--jobs",
