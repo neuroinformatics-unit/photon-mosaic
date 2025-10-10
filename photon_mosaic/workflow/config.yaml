@@ -10,25 +10,27 @@ processed_data_base: "path/to/processed/data/"
 # ============================================================================
 # This section controls how datasets are discovered and processed in the pipeline
 dataset_discovery:
-  # Match all directories
-  pattern: "^.*$"
+  # Data format specification
+  # Set to true if your data is already in NeuroBlueprint format (sub-XXX_key-value/ses-XXX_key-value/)
+  # If true: automatic metadata extraction from folder names
+  # If false: fallback to ses-XXX_id-old_folder_name pattern with optional transformations
+  neuroblueprint_format: false
 
   # Find tiffs. Different patterns will correspond to different sessions
   tiff_patterns: ["*.tif"]
 
-  # Exclude specific patterns from processing
-  exclude_patterns:
+  # Configuration for custom format data (neuroblueprint_format: false)
+  # Applies the original behavior with ses-XXX_id-old_folder_name pattern
+
+  # Match all directories by default
+  pattern: "^.*$"
+  # Exclude specific patterns from processing (dataset folder names)
+  exclude_datasets:
     - ".*_test$"    # Exclude test datasets
     - ".*_backup$"  # Exclude backup datasets
 
-  # Transform dataset names using regex substitutions
-  substitutions:
-    # Remove underscores from names
-    - pattern: "_"
-      repl: ""
-    # Take the first part of the path
-    - pattern: "([^/]+)/.*"
-      repl: '\\1'
+  # Exclude specific session folder patterns (session folder names)
+  exclude_sessions: []
 
 
 # ============================================================================
@@ -177,3 +179,16 @@ slurm:
   mem_mb: 32000          # Memory allocation in MB
   tasks: 1               # Number of tasks
   nodes: 1               # Number of nodes to use
+
+  # GPU-specific resources (will be set at rule level, not via --default-resources)
+  # Uncomment and configure as needed:
+  # gpu: 1                 # Number of GPUs to request
+  # gres: "gpu:a100:1"     # Alternative: Generic Resource (GRES) specification
+  # cpus_per_gpu: 4        # CPUs allocated per GPU
+  # tasks_per_gpu: 0       # Tasks per GPU (set to 0 to disable --ntasks-per-gpu and avoid TRES conflicts)
+
+  # Additional SLURM resources that can be specified:
+  # runtime: 120           # Walltime limit in minutes
+  # slurm_account: "account_name"  # SLURM account for resource tracking
+  # constraint: "feature"  # Node feature requirements
+  # mem_mb_per_cpu: 2000   # Memory per CPU (mutually exclusive with mem_mb)

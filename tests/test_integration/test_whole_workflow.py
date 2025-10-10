@@ -1,3 +1,4 @@
+import re
 import subprocess
 from pathlib import Path
 
@@ -60,9 +61,6 @@ def check_output_files(
         for tiff in dataset_tiffs:
             # Find which pattern matches this tiff file
             for ses_idx, pattern in enumerate(tiff_patterns):
-                # Convert glob pattern to regex for matching
-                import re
-
                 # Convert glob pattern to regex: type_1*.tif -> type_1.*\.tif
                 regex_pattern = pattern.replace("*", ".*").replace(".", r"\.")
                 if re.match(regex_pattern, tiff):
@@ -177,7 +175,7 @@ def test_snakemake_dry_run(snake_test_env):
     )
 
 
-def test_snakemake_execution(snake_test_env, map_of_tiffs):
+def test_snakemake_execution(snake_test_env):
     """Test that snakemake can execute the workflow."""
     result = run_snakemake(
         snake_test_env["workdir"], snake_test_env["configfile"]
@@ -201,13 +199,14 @@ def test_snakemake_execution(snake_test_env, map_of_tiffs):
 
     tiff_patterns = config["dataset_discovery"]["tiff_patterns"]
     check_output_files(
-        snake_test_env["workdir"], datasets, map_of_tiffs, tiff_patterns
+        snake_test_env["workdir"],
+        datasets,
+        snake_test_env["map_of_tiffs"],
+        tiff_patterns,
     )
 
 
-def test_snakemake_with_contrast(
-    snake_test_env, test_config_with_contrast, map_of_tiffs
-):
+def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
     """
     Test that snakemake can execute the workflow with contrast enhancement
     preprocessing.
@@ -238,7 +237,7 @@ def test_snakemake_with_contrast(
     check_output_files(
         snake_test_env["workdir"],
         datasets,
-        map_of_tiffs,
+        snake_test_env["map_of_tiffs"],
         tiff_patterns,
         check_enhanced=True,
     )
