@@ -8,5 +8,6 @@ Each preprocessing step is a function that takes an image array and returns a pr
 from . import contrast
 from . import derotation
 from . import noop
+from . import trimming
 
-__all__ = ["contrast", "derotation", "noop"]
+__all__ = ["contrast", "derotation", "noop", "trimming"]
