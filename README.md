@@ -21,7 +21,7 @@ It organises algorithms into an automated, self-organising workflow so you can c
 - Registration & source extraction using[Suite2p](https://github.com/MouseLand/suite2p).
 - Cell detection / anatomical ROI extraction using [Cellpose (v3 or v4, including Cellpose-SAM)](https://github.com/MouseLand/cellpose).
 
-### Planned additions in the mosaic
+### Planned additions to the mosaic
 - Registration alternative: [NoRMCorre](https://github.com/flatironinstitute/NoRMCorre) implementations for non-rigid motion correction.
 - ROI matching: [ROICat](https://github.com/RichieHakim/ROICaT) for inter-session / inter-plane ROI matching.
 - Neuropil subtraction / decontamination: methods from the [AllenSDK](https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html) and [AST-model](https://github.com/znamlab/2p-preprocess).
