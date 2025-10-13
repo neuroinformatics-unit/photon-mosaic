@@ -19,7 +19,7 @@ It organises algorithms into an automated, self-organising workflow so you can c
 ### What has been implemented so far
 - Preprocessing: [derotation](https://github.com/neuroinformatics-unit/derotation) and contrast enhancement (see `photon_mosaic/preprocessing`).
 - Registration & source extraction using[Suite2p](https://github.com/MouseLand/suite2p).
-- Cell detection / anatomical ROI extraction: [Cellpose (v4, including Cellpose-SAM)](https://github.com/MouseLand/cellpose) (Cellpose 4 used by default; Cellpose 3 is also supported).
+- Cell detection / anatomical ROI extraction using [Cellpose (v3 or v4, including Cellpose-SAM)](https://github.com/MouseLand/cellpose).
 
 ### Planned additions in the mosaic
 - Registration alternative: [NoRMCorre](https://github.com/flatironinstitute/NoRMCorre) implementations for non-rigid motion correction.
