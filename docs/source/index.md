@@ -13,7 +13,7 @@
 ## Contributing
 ```{include} ../../README.md
 :start-after: '## Contributing'
-:end-before: '## References & Links'
+:end-after: 'details.'
 ```
 
 ```{toctree}

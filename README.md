@@ -7,27 +7,29 @@
 
 
 # <img src="docs/source/_static/logo.png" alt="photon-mosaic logo" width="36" style="vertical-align: middle; margin-right:8px"> `photon-mosaic`
-`photon-mosaic` is a Snakemake-based toolkit that orchestrates a mosaic of curated algorithms to take you from raw TIFF stacks to downstream, analysis-ready outputs — for example ΔF/F traces, NWB files, or inferred spikes.
+`photon-mosaic` is a Snakemake-based toolkit for processing multiphoton datasets. It orchestrates a curated collection of algorithms to transform your raw data (e.g., TIFF files) into analysis-ready outputs, such as ΔF/F traces, NWB files, or inferred spikes.
 
-It organises algorithms into an automated, self-organising workflow so you can chain preprocessing, registration, signal extraction and post-processing steps into a single, reproducible pipeline. The design focuses on usability for labs that process many imaging sessions and want to scale across an HPC cluster.
+Each analysis step is integrated into an automated workflow, allowing you to chain preprocessing, registration, signal extraction, and post-processing steps into a single, reproducible pipeline. The design prioritizes usability for labs that process many imaging sessions and need to scale across an HPC cluster.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/neuroinformatics-unit/photon-mosaic/refs/heads/improve-docs/docs/source/_static/pm_illustration1.png" alt="photon-mosaic"/>
 </p>
 
+This is made possible by [Snakemake](https://snakemake.readthedocs.io/en/stable/), a workflow management system that provides a powerful and flexible framework for defining and executing complex data processing pipelines. Snakemake automatically builds a directed acyclic graph (DAG) of all the steps in your analysis, ensuring that each step is executed in the correct order and that intermediate results are cached to avoid redundant computations. `photon-mosaic` also includes a [SLURM executor plugin for Snakemake](https://github.com/snakemake/snakemake-executor-plugin-slurm) to seamlessly scale your analysis across an HPC cluster. To ensure consistency and reproducibility, `photon-mosaic` writes processed data according to the [NeuroBlueprint](https://neuroblueprint.neuroinformatics.dev/latest/index.html) data standard for organizing and storing multiphoton imaging data. 
+
+The goal of `photon-mosaic` is to provide a modular, extensible, and user-friendly framework for multiphoton data analysis that can be easily adapted to different experimental designs and analysis requirements. For each processing step, we aim to vet and integrate the best available open-source tools, providing sensible defaults tailored to the specific data type and experimental modality.
+
 ## Roadmap
-### What has been implemented so far
-- Preprocessing: [derotation](https://github.com/neuroinformatics-unit/derotation) and contrast enhancement (see `photon_mosaic/preprocessing`).
-- Registration & source extraction using[Suite2p](https://github.com/MouseLand/suite2p).
-- Cell detection / anatomical ROI extraction using [Cellpose (v3 or v4, including Cellpose-SAM)](https://github.com/MouseLand/cellpose).
+### Current features
+- **Preprocessing**: [derotation](https://github.com/neuroinformatics-unit/derotation) and contrast enhancement (see `photon_mosaic/preprocessing`).
+- **Registration & source extraction**: [Suite2p](https://github.com/MouseLand/suite2p).
+- **Cell detection / anatomical ROI extraction**: [Cellpose (v3 or v4, including Cellpose-SAM)](https://github.com/MouseLand/cellpose).
 
-### Planned additions to the mosaic
-- Registration alternative: [NoRMCorre](https://github.com/flatironinstitute/NoRMCorre) implementations for non-rigid motion correction.
-- ROI matching: [ROICat](https://github.com/RichieHakim/ROICaT) for inter-session / inter-plane ROI matching.
-- Neuropil subtraction / decontamination: methods from the [AllenSDK](https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html) and [AST-model](https://github.com/znamlab/2p-preprocess).
-- Spike deconvolution: [OASIS](https://github.com/j-friedrich/OASIS) and [CASCADE](https://github.com/HelmchenLabSoftware/Cascade).
-
-See issues on GitHub for more details and participate in planning.
+### Planned additions
+- **Registration alternative**: [NoRMCorre](https://github.com/flatironinstitute/NoRMCorre) implementations for non-rigid motion correction.
+- **ROI matching**: [ROICat](https://github.com/RichieHakim/ROICaT) for inter-session / inter-plane ROI matching.
+- **Neuropil subtraction / decontamination**: Methods from the [AllenSDK](https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html) and [AST-model](https://github.com/znamlab/2p-preprocess).
+- **Spike deconvolution**: [OASIS](https://github.com/j-friedrich/OASIS) and [CASCADE](https://github.com/HelmchenLabSoftware/Cascade).
 
 ## Installation
 
@@ -39,7 +41,7 @@ conda activate photon-mosaic
 pip install photon-mosaic
 ```
 
-To install developer tools (e.g., testing and linting):
+To install with developer tools (e.g., testing and linting):
 
 ```bash
 pip install 'photon-mosaic[dev]'
@@ -47,11 +49,4 @@ pip install 'photon-mosaic[dev]'
 
 ## Contributing
 
-We welcome issues, feature suggestions, and pull requests. Please refer to our [contribution guidelines](https://photon-mosaic.neuroinformatics.dev/user_guide/index.html) in the documentation for more information.
-
-## References & Links
-
-- [Snakemake Docs](https://snakemake.readthedocs.io/en/stable/)
-- [Suite2p Docs](https://suite2p.readthedocs.io/en/latest/)
-- [SLURM Executor Plugin](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html)
-- [NeuroBlueprint Standard](https://neuroblueprint.neuroinformatics.dev/latest/index.html)
+We welcome issues, feature suggestions, and pull requests. Please refer to our [contribution guidelines](https://photon-mosaic.neuroinformatics.dev/contributing.html) in the documentation for more details.
