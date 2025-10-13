@@ -40,8 +40,8 @@ dataset_discovery:
 preprocessing:
   # Output file naming pattern for preprocessed files
   # Use a suffix relevant for the set of operations you want to perform
-  output_pattern: "" 
-  # "" for noop, "enhanced_" for contrast, 
+  output_pattern: ""
+  # "" for noop, "enhanced_" for contrast,
   # "derotated_" for derotation, and "trimmed_" for trimming
 
   # Define preprocessing steps and their parameters
@@ -66,7 +66,7 @@ preprocessing:
     #     percentile_high: 99  # Upper percentile for contrast stretching
 
     # Trimming image edges
-    # - name: contrast
+    # - name: trimming
     #   kwargs:
     #     # Contrast enhancement parameters
     #     trim_x: 5  # Number of pixels to be trimmed for X axis
@@ -77,7 +77,6 @@ preprocessing:
 # ============================================================================
 # Parameters for Suite2p processing pipeline
 suite2p_ops:
-## suite2p native
   # Version and basic settings
   look_one_level_down: false  # Look in subfolders for tiffs
   fast_disk: []  # Location for temporary binary file

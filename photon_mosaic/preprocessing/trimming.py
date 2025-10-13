@@ -5,8 +5,8 @@ This preprocessing step trims unwanted image pixels at the edge of the original 
 """
 
 import logging
-import numpy as np
 from pathlib import Path
+
 import tifffile
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,14 @@ def run(
         img = tifffile.imread(correct_path)
 
     # Trim pixels
-    img_trimmed = img[:, trim_x:-trim_x, trim_y:-trim_y]
+    if img.ndim == 3:
+        img_trimmed = img[:, trim_x:-trim_x, trim_y:-trim_y]
+    elif img.ndim == 4:
+        img_trimmed = img[:, :, trim_x:-trim_x, trim_y:-trim_y]
+    else:
+        raise NotImplementedError(
+            "Trimming preprocessing only supports 3D or 4D TIFF stacks"
+        )
 
     # Append filename to output path
     output_path = output_folder / f"trimmed_{tiff_name}"
