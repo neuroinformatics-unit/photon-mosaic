@@ -6,6 +6,10 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
+import matplotlib.pyplot as plt
+import numpy as np
+from skimage import img_as_ubyte
+from skimage.exposure import rescale_intensity
 from suite2p import run_s2p
 from suite2p.default_ops import default_ops
 
@@ -14,6 +18,7 @@ def run_suite2p(
     stat_path: str,
     dataset_folder: Path,
     user_ops_dict: Optional[dict] = None,
+    user_posthoc_ops_dict: Optional[dict] = None,
 ):
     """
     This function runs Suite2P on a given dataset folder and saves the
@@ -30,6 +35,9 @@ def run_suite2p(
     user_ops_dict : dict, optional
         A dictionary containing user-provided options to override
         the default Suite2P options. The default is None.
+    user_posthoc_ops_dict : dict, optional
+        A dictionary containing user-provided options for posthoc analysis
+        on Suite2p output. The default is None.
 
     Returns
     -------
@@ -46,11 +54,46 @@ def run_suite2p(
         user_ops_dict=user_ops_dict,
     )
     try:
-        run_s2p(ops=ops)
+        ops = run_s2p(ops=ops)
     except Exception as e:
         with open(dataset_folder / "error.txt", "a") as f:
             f.write(f"Error: {e}\n")
             f.write(traceback.format_exc())
+
+    if user_posthoc_ops_dict["save_meanimg"]:
+        print("Saving meanImgs from Suite2p ...")
+
+        img1 = ops["meanImg"]
+        img1 = img_as_ubyte(
+            adjust_intensity(
+                img_as_ubyte(
+                    rescale_intensity(img1, in_range="image", out_range=(0, 1))
+                )
+            )
+        )
+
+        plt.imsave(
+            Path(ops["save_folder"]) / "plane0" / "meanImg.png",
+            img1,
+            cmap="gray",
+        )
+
+        if ops["nchannels"] == 2:
+            img2 = ops["meanImg_chan2"]
+            img2 = adjust_intensity(
+                img_as_ubyte(
+                    rescale_intensity(img2, in_range="image", out_range=(0, 1))
+                )
+            )
+
+            plt.imsave(
+                Path(ops["save_folder"]) / "plane0" / "meanImg_chan2.png",
+                img2,
+                cmap="gray",
+            )
+
+    else:
+        pass
 
 
 def get_edited_options(
@@ -99,3 +142,10 @@ def get_edited_options(
     ops["data_path"] = [str(input_path)]
 
     return ops
+
+
+def adjust_intensity(img):
+    p2, p98 = np.percentile(img, (2, 98))  # Get min/max intensities
+    img = rescale_intensity(img, in_range=(p2, p98), out_range=(0, 255))
+
+    return img.astype(np.uint8)

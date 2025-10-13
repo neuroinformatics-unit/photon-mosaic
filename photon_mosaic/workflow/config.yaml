@@ -177,6 +177,10 @@ suite2p_ops:
   prctile_baseline: 8.0  # Percentile for constant baseline
   neucoeff: 0.7  # Neuropil coefficient
 
+# Parameters for Suite2p processing extension pipeline
+suite2p_posthoc_ops:
+  save_meanimg: true
+
 # ============================================================================
 # SLURM Configuration
 # ============================================================================
