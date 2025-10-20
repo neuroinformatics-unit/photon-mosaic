@@ -156,6 +156,7 @@ html_css_files = [
 ]
 
 html_favicon = "_static/light-logo-niu.png"
+html_logo = "_static/logo.png"
 
 # # Configure Sphinx gallery
 # sphinx_gallery_conf = {
