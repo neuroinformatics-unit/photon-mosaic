@@ -10,12 +10,6 @@
 :end-before: '## Installation'
 ```
 
-## Contributing
-```{include} ../../README.md
-:start-after: '## Contributing'
-:end-after: 'details.'
-```
-
 ```{toctree}
 :maxdepth: 2
 :hidden:

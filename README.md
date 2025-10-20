@@ -31,7 +31,7 @@ The goal of `photon-mosaic` is to provide a modular, extensible, and user-friend
 - Neuropil subtraction / decontamination: methods from the [AllenSDK](https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html) and [AST-model](https://github.com/znamlab/2p-preprocess).
 - Spike deconvolution: [OASIS](https://github.com/j-friedrich/OASIS) and [CASCADE](https://github.com/HelmchenLabSoftware/Cascade).
 
-See [issues on GitHub](https://github.com/neuroinformatics-unit/photon-mosaic/issues) and the [project board](https://github.com/orgs/neuroinformatics-unit/projects/17) for more details and participate in planning.
+See [issues on GitHub](https://github.com/neuroinformatics-unit/photon-mosaic/issues) and the [project board](https://github.com/orgs/neuroinformatics-unit/projects/17) for more details and participate in planning. Please refer to our [guidelines](https://photon-mosaic.neuroinformatics.dev/contributing.html) to understand how to contribute.
 
 ## Installation
 
@@ -48,7 +48,3 @@ To install with developer tools (e.g., testing and linting):
 ```bash
 pip install 'photon-mosaic[dev]'
 ```
-
-## Contributing
-
-We welcome issues, feature suggestions, and pull requests. Please refer to our [contribution guidelines](https://photon-mosaic.neuroinformatics.dev/contributing.html) in the documentation for more details.
