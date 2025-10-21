@@ -28,7 +28,7 @@ rule suite2p:
                 / f"{output_pattern}{tiff_name}"
             )
             for tiff_name in discoverer.tiff_files[discoverer.original_datasets[discoverer.transformed_datasets.index(wildcards.subject_name)]][
-                int(wildcards.session_name.split("_")[0].replace("ses-", ""))
+                wildcards.session_name.split("_")[0].replace("ses-", "")
             ]
         ],
     output:

@@ -26,6 +26,9 @@ logger = logging.getLogger("snakemake.workflow")
 onstart:
     log_cuda_availability()
 
+envvars:
+    "PYTHONUNBUFFERED"
+
 raw_data_base = Path(config["raw_data_base"]).resolve()
 processed_data_base = Path(config["processed_data_base"]).resolve()
 slurm_config = config.get("slurm", {})
