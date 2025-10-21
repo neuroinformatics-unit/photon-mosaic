@@ -28,7 +28,7 @@ rule suite2p:
                 / f"{output_pattern}{tiff_name}"
             )
             for tiff_name in discoverer.tiff_files[discoverer.original_datasets[discoverer.transformed_datasets.index(wildcards.subject_name)]][
-                int(wildcards.session_name.split("_")[0].replace("ses-", ""))
+                wildcards.session_name.split("_")[0].replace("ses-", "")
             ]
         ],
     output:
@@ -63,6 +63,8 @@ rule suite2p:
                               for session_idx in discoverer.tiff_files[discoverer.original_datasets[i]].keys()]),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
+    envmodules: 
+        "cuda/12.4"
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
         from pathlib import Path

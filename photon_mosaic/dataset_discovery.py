@@ -142,9 +142,9 @@ class DatasetDiscoverer:
         # session_idx here is actually the original session ID from the
         # folder name
         if session_meta:
-            return f"ses-{session_idx:03d}_{session_meta}"
+            return f"ses-{session_idx}_{session_meta}"
         else:
-            return f"ses-{session_idx:03d}"
+            return f"ses-{session_idx}"
 
     @staticmethod
     def _extract_session_id_from_folder_name(folder_name: str) -> str:
@@ -640,8 +640,8 @@ class DatasetDiscoverer:
                     )
 
                     # Use the actual session ID as key, not enumerate index
-                    tiff_files_by_session[int(session_id)] = files_in_session
-                    session_meta_by_session[int(session_id)] = session_meta
+                    tiff_files_by_session[session_id] = files_in_session
+                    session_meta_by_session[session_id] = session_meta
                     self._all_tiff_files.extend(files_in_session)
 
                     logging.debug(
@@ -724,10 +724,10 @@ class DatasetDiscoverer:
                         )
 
                         # Use the actual session ID as key
-                        tiff_files_by_session[int(session_id)] = (
+                        tiff_files_by_session[session_id] = (
                             files_in_session
                         )
-                        session_meta_by_session[int(session_id)] = session_meta
+                        session_meta_by_session[session_id] = session_meta
                         self._all_tiff_files.extend(files_in_session)
 
                         logging.debug(
@@ -772,7 +772,7 @@ class DatasetDiscoverer:
                         r"session-(\d+)", session_folder.name
                     )
                     if session_id_match:
-                        custom_session_id = int(session_id_match.group(1))
+                        custom_session_id = session_id_match.group(1)
                     else:
                         # If no session-XXX pattern, use enumerate starting
                         # from 1
