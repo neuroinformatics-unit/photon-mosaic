@@ -12,7 +12,7 @@
 Each analysis step is integrated into an automated workflow, allowing you to chain preprocessing, registration, signal extraction, and post-processing steps into a single, reproducible pipeline. The design prioritizes usability for labs that process many imaging sessions and need to scale across an HPC cluster.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/neuroinformatics-unit/photon-mosaic/refs/heads/improve-docs/docs/source/_static/pm_illustration1.png" alt="photon-mosaic"/>
+  <img src="https://raw.githubusercontent.com/neuroinformatics-unit/photon-mosaic/refs/heads/main/docs/source/_static/pm_illustration1.png" alt="photon-mosaic"/>
 </p>
 
 This is made possible by [Snakemake](https://snakemake.readthedocs.io/en/stable/), a workflow management system that provides a powerful and flexible framework for defining and executing complex data processing pipelines. Snakemake automatically builds a directed acyclic graph (DAG) of all the steps in your analysis, ensuring that each step is executed in the correct order and that intermediate results are cached to avoid redundant computations. `photon-mosaic` also includes a [SLURM executor plugin for Snakemake](https://github.com/snakemake/snakemake-executor-plugin-slurm) to seamlessly scale your analysis across an HPC cluster. To ensure consistency and reproducibility, `photon-mosaic` writes processed data according to the [NeuroBlueprint](https://neuroblueprint.neuroinformatics.dev/latest/index.html) data standard for organizing and storing multiphoton imaging data.
