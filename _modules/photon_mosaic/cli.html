@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -111,8 +111,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -378,6 +386,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pkg_resources</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -387,54 +396,15 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">photon_mosaic</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_snakefile_path</span>
 
 
-<div class="viewcode-block" id="main">
-<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.main">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the photon-mosaic Snakemake pipeline for automated and reproducible</span>
-<span class="sd">    analysis of multiphoton calcium imaging datasets.</span>
+<div class="viewcode-block" id="create_argument_parser">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.create_argument_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_argument_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create and configure the argument parser for the CLI.</span>
 
-<span class="sd">    This pipeline integrates Suite2p for image registration and signal</span>
-<span class="sd">    extraction, with a standardized output folder structure following</span>
-<span class="sd">    the NeuroBlueprint specification. It is designed for labs that</span>
-<span class="sd">    store their data on servers connected to HPC clusters and want to</span>
-<span class="sd">    batch-process multiple imaging sessions in parallel.</span>
-
-<span class="sd">    Command Line Arguments</span>
-<span class="sd">    ---------------------</span>
-<span class="sd">    --config : str, optional</span>
-<span class="sd">        Path to your config.yaml file. If not provided, uses</span>
-<span class="sd">        ~/.photon_mosaic/config.yaml.</span>
-<span class="sd">    --raw_data_base : str, optional</span>
-<span class="sd">        Override raw_data_base in config file (path to raw imaging data).</span>
-<span class="sd">    --processed_data_base : str, optional</span>
-<span class="sd">        Override processed_data_base in config file (path for processed</span>
-<span class="sd">        outputs).</span>
-<span class="sd">    --jobs : str, default=&quot;1&quot;</span>
-<span class="sd">        Number of parallel jobs to run.</span>
-<span class="sd">    --dry-run : bool, optional</span>
-<span class="sd">        Perform a dry run to preview the workflow without executing.</span>
-<span class="sd">    --forcerun : str, optional</span>
-<span class="sd">        Force re-run of a specific rule (e.g., &#39;suite2p&#39;).</span>
-<span class="sd">    --rerun-incomplete : bool, optional</span>
-<span class="sd">        Rerun any incomplete jobs.</span>
-<span class="sd">    --unlock : bool, optional</span>
-<span class="sd">        Unlock the workflow if it&#39;s in a locked state.</span>
-<span class="sd">    --latency-wait : int, default=10</span>
-<span class="sd">        Time to wait before checking if output files are ready.</span>
-<span class="sd">    --log-level : str, default=&quot;INFO&quot;</span>
-<span class="sd">        Log level.</span>
-<span class="sd">    --reset-config : flag, optional</span>
-<span class="sd">        Reset the config file to the default values.</span>
-<span class="sd">    extra : list</span>
-<span class="sd">        Additional arguments to pass to snakemake.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    The pipeline will:</span>
-<span class="sd">    1. Create a timestamped config file in derivatives/photon-mosaic/configs/</span>
-<span class="sd">    2. Save execution logs in derivatives/photon-mosaic/logs/</span>
-<span class="sd">    3. Process all TIFF files found in the raw data directory</span>
-<span class="sd">    4. Generate standardized outputs following NeuroBlueprint specification</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    argparse.ArgumentParser</span>
+<span class="sd">        Configured argument parser with all CLI options</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Run the photon-mosaic Snakemake pipeline.&quot;</span>
@@ -471,11 +441,6 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Rerun any incomplete jobs&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--unlock&quot;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Unlock the workflow if it&#39;s in a locked state&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;--latency-wait&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Time to wait before checking if output files are ready&quot;</span><span class="p">,</span>
@@ -484,6 +449,12 @@
         <span class="s2">&quot;--log-level&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Log level&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--verbose&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;-v&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable verbose output (default is quiet mode)&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;extra&quot;</span><span class="p">,</span>
@@ -495,19 +466,33 @@
         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reset the config file to the default values&quot;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span></div>
 
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">log_level</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ensure_default_config">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.ensure_default_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_default_config</span><span class="p">(</span><span class="n">reset_config</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure the default config file exists, create if missing or</span>
+<span class="sd">    reset requested.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reset_config : bool</span>
+<span class="sd">        Whether to reset the config file to defaults</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Path</span>
+<span class="sd">        Path to the default config file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting photon-mosaic CLI&quot;</span><span class="p">)</span>
+    <span class="n">default_config_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.photon_mosaic&quot;</span>
+    <span class="n">default_config_path</span> <span class="o">=</span> <span class="n">default_config_dir</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span>
 
-    <span class="c1"># Ensure ~/.photon_mosaic/config.yaml exists, if not, create it</span>
-    <span class="n">default_config_dif</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.photon_mosaic&quot;</span>
-    <span class="n">default_config_path</span> <span class="o">=</span> <span class="n">default_config_dif</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">default_config_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">reset_config</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">default_config_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">reset_config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating default config file&quot;</span><span class="p">)</span>
-        <span class="n">default_config_dif</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">default_config_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">source_config_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;photon_mosaic&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
             <span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="s2">&quot;config.yaml&quot;</span>
         <span class="p">)</span>
@@ -517,19 +502,45 @@
         <span class="p">):</span>
             <span class="n">dst</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
+    <span class="k">return</span> <span class="n">default_config_path</span></div>
+
+
+
+<div class="viewcode-block" id="load_and_process_config">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.load_and_process_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_and_process_config</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load configuration file and apply CLI overrides.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace</span>
+<span class="sd">        Parsed command line arguments</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[dict, Path]</span>
+<span class="sd">        Configuration dictionary and path to config file used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="c1"># Ensure default config exists</span>
+    <span class="n">default_config_path</span> <span class="o">=</span> <span class="n">ensure_default_config</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">reset_config</span><span class="p">)</span>
+
     <span class="c1"># Determine which config to use</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using config file: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="c1"># Take the path provided by the user</span>
         <span class="n">config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">default_config_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="k">else</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using default config file&quot;</span><span class="p">)</span>
-        <span class="c1"># Use the default config</span>
         <span class="n">config_path</span> <span class="o">=</span> <span class="n">default_config_path</span>
 
     <span class="c1"># Load config</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded config from </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;use_slurm: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_slurm&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;NOT SET&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;slurm config: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;slurm&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;NOT SET&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># Apply CLI overrides</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">raw_data_base</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -551,52 +562,153 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;processed_data_base&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
+    <span class="c1"># Process paths</span>
     <span class="n">raw_data_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;raw_data_base&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-
-    <span class="c1"># Append derivatives to the processed_data_base if it doesn&#39;t end with</span>
-    <span class="c1"># /derivatives</span>
     <span class="n">processed_data_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;processed_data_base&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+    <span class="c1"># Append derivatives to the processed_data_base if</span>
+    <span class="c1"># it doesn&#39;t end with /derivatives</span>
     <span class="k">if</span> <span class="n">processed_data_base</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;derivatives&quot;</span><span class="p">:</span>
         <span class="n">processed_data_base</span> <span class="o">=</span> <span class="n">processed_data_base</span> <span class="o">/</span> <span class="s2">&quot;derivatives&quot;</span>
     <span class="n">config</span><span class="p">[</span><span class="s2">&quot;processed_data_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">processed_data_base</span><span class="p">)</span>
 
-    <span class="c1"># Change the values of processed_data_base in the config file saved in</span>
-    <span class="c1"># the .photon_mosaic/config.yaml without changing the other values and</span>
-    <span class="c1"># losing the comments</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">default_config_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="c1"># Update default config file if it&#39;s the one being used</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">update_default_config</span><span class="p">(</span>
+            <span class="n">default_config_path</span><span class="p">,</span> <span class="n">raw_data_base</span><span class="p">,</span> <span class="n">processed_data_base</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span><span class="p">,</span> <span class="n">config_path</span></div>
+
+
+
+<div class="viewcode-block" id="update_default_config">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.update_default_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_default_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">raw_data_base</span><span class="p">,</span> <span class="n">processed_data_base</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the default config file with new base paths while</span>
+<span class="sd">    preserving comments.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config_path : Path</span>
+<span class="sd">        Path to the config file to update</span>
+<span class="sd">    raw_data_base : Path</span>
+<span class="sd">        Raw data base path</span>
+<span class="sd">    processed_data_base : Path</span>
+<span class="sd">        Processed data base path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">config_lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">default_config_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">config_lines</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;processed_data_base:&quot;</span><span class="p">):</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;processed_data_base: </span><span class="si">{</span><span class="n">processed_data_base</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;raw_data_base:&quot;</span><span class="p">):</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;raw_data_base: </span><span class="si">{</span><span class="n">raw_data_base</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
 
-    <span class="c1"># Create photon-mosaic directory with logs and configs subdirectories</span>
+
+
+<div class="viewcode-block" id="setup_output_directories">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.setup_output_directories">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_output_directories</span><span class="p">(</span><span class="n">processed_data_base</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create necessary output directories for the pipeline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    processed_data_base : Path</span>
+<span class="sd">        Base path for processed data</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[Path, Path, Path]</span>
+<span class="sd">        Paths to output directory, logs directory, and configs directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">processed_data_base</span> <span class="o">/</span> <span class="s2">&quot;photon-mosaic&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating output directory: </span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="n">logs_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;logs&quot;</span>
     <span class="n">configs_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;configs&quot;</span>
-    <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create directories with explicit permissions (rwxr-xr-x)</span>
+    <span class="c1"># This ensures SLURM jobs can access these directories</span>
+    <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="mo">0o755</span><span class="p">)</span>
+
     <span class="n">logs_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">logs_dir</span><span class="p">,</span> <span class="mo">0o755</span><span class="p">)</span>
+
     <span class="n">configs_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">configs_dir</span><span class="p">,</span> <span class="mo">0o755</span><span class="p">)</span>
 
-    <span class="c1"># Generate timestamp for this run</span>
+    <span class="k">return</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">logs_dir</span><span class="p">,</span> <span class="n">configs_dir</span></div>
+
+
+
+<div class="viewcode-block" id="save_timestamped_config">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.save_timestamped_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_timestamped_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">configs_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save configuration with timestamp for reproducibility.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary to save</span>
+<span class="sd">    configs_dir : Path</span>
+<span class="sd">        Directory to save config files</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple[str, Path]</span>
+<span class="sd">        Timestamp string and path to saved config file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Save config with timestamp</span>
     <span class="n">config_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;config_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">configs_dir</span> <span class="o">/</span> <span class="n">config_filename</span>
+
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving config to: </span><span class="si">{</span><span class="n">config_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
-    <span class="n">snakefile_path</span> <span class="o">=</span> <span class="n">get_snakefile_path</span><span class="p">()</span>
+    <span class="c1"># Ensure the config file is readable by all users (rw-r--r--)</span>
+    <span class="c1"># This is critical for SLURM jobs that need to read this file</span>
+    <span class="c1"># when Snakemake re-runs itself in each SLURM job context</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="mo">0o644</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Set config file permissions to 644 for SLURM job access&quot;</span><span class="p">)</span>
 
+    <span class="k">return</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">config_path</span></div>
+
+
+
+<div class="viewcode-block" id="build_snakemake_command">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.build_snakemake_command">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_snakemake_command</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">config_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the base snakemake command with common arguments.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args : argparse.Namespace</span>
+<span class="sd">        Parsed command line arguments</span>
+<span class="sd">    config_path : Path</span>
+<span class="sd">        Path to the config file to use</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[str]</span>
+<span class="sd">        Snakemake command as list of strings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="n">snakefile_path</span> <span class="o">=</span> <span class="n">get_snakefile_path</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Launching snakemake with snakefile: </span><span class="si">{</span><span class="n">snakefile_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s2">&quot;snakemake&quot;</span><span class="p">,</span>
         <span class="s2">&quot;--snakefile&quot;</span><span class="p">,</span>
@@ -613,30 +725,259 @@
         <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--forcerun&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">forcerun</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">rerun_incomplete</span><span class="p">:</span>
         <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--rerun-incomplete&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">unlock</span><span class="p">:</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--unlock&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">latency_wait</span><span class="p">:</span>
         <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--latency-wait&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">latency_wait</span><span class="p">)])</span>
-    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;use_slurm&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;slurm&quot;</span><span class="p">:</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--executor&quot;</span><span class="p">,</span> <span class="s2">&quot;slurm&quot;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">extra</span><span class="p">:</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+        <span class="c1"># Default to quiet mode unless --verbose is specified</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--quiet&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Save logs with timestamp</span>
-    <span class="n">log_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;snakemake_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.log&quot;</span>
-    <span class="n">log_path</span> <span class="o">=</span> <span class="n">logs_dir</span> <span class="o">/</span> <span class="n">log_filename</span>
+    <span class="k">return</span> <span class="n">cmd</span></div>
+
+
+
+<div class="viewcode-block" id="configure_slurm_execution">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.configure_slurm_execution">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">configure_slurm_execution</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure SLURM execution options if enabled.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmd : list[str]</span>
+<span class="sd">        Base snakemake command to extend</span>
+<span class="sd">    config : dict</span>
+<span class="sd">        Configuration dictionary</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[str]</span>
+<span class="sd">        Updated command with SLURM configuration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_slurm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SLURM execution disabled - running locally&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cmd</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SLURM execution enabled - configuring SLURM executor&quot;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--executor&quot;</span><span class="p">,</span> <span class="s2">&quot;slurm&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Add SLURM-specific arguments</span>
+    <span class="n">slurm_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;slurm&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SLURM configuration loaded: </span><span class="si">{</span><span class="n">slurm_config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Resources that should NOT be passed via --default-resources</span>
+    <span class="c1"># because they&#39;re already set at rule level and may cause conflicts</span>
+    <span class="c1"># (particularly gpu-related resources that can trigger TRES conflicts)</span>
+    <span class="c1"># Note: tasks_per_gpu is NOT excluded as it&#39;s needed</span>
+    <span class="c1"># to control --ntasks-per-gpu behavior</span>
+    <span class="n">exclude_from_defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="s2">&quot;gres&quot;</span><span class="p">,</span> <span class="s2">&quot;cpus_per_gpu&quot;</span><span class="p">}</span>
+
+    <span class="c1"># Create default resources string for SLURM by iterating all provided keys</span>
+    <span class="n">default_resources</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">slurm_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Skip empty/null values</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="c1"># Skip resources that should only be set at rule level</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">exclude_from_defaults</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> in --default-resources &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(set at rule level to avoid conflicts): </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="c1"># Quote string values so snakemake parses them correctly</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">default_resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=&#39;</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="c1"># Use lower-case for booleans (true/false)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">default_resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">default_resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using SLURM </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">default_resources</span><span class="p">:</span>
+        <span class="c1"># Join all default resources with commas and pass as single argument</span>
+        <span class="n">resources_str</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">default_resources</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;--default-resources&quot;</span><span class="p">,</span> <span class="n">resources_str</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SLURM default resources: </span><span class="si">{</span><span class="n">resources_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SLURM executor configured successfully&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cmd</span></div>
+
+
+
+<div class="viewcode-block" id="execute_pipeline_with_retry">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.execute_pipeline_with_retry">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">execute_pipeline_with_retry</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">log_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute the snakemake pipeline with automatic</span>
+<span class="sd">    unlock and retry on lock errors.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmd : list[str]</span>
+<span class="sd">        Snakemake command to execute</span>
+<span class="sd">    log_path : Path</span>
+<span class="sd">        Path to save execution logs</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Return code from the snakemake execution</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saving logs to: </span><span class="si">{</span><span class="n">log_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Launching snakemake with command: </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">logfile</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">logfile</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Snakemake pipeline completed successfully.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;Snakemake pipeline failed with exit code &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">. Check the log file at &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_path</span><span class="si">}</span><span class="s2"> for details.&quot;</span>
-            <span class="p">)</span></div>
+
+        <span class="c1"># If workflow is locked, automatically unlock and retry</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Check if the error is related to locking by reading the log</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">log_read</span><span class="p">:</span>
+                <span class="n">log_content</span> <span class="o">=</span> <span class="n">log_read</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="s2">&quot;locked&quot;</span> <span class="ow">in</span> <span class="n">log_content</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="ow">or</span> <span class="s2">&quot;lock&quot;</span> <span class="ow">in</span> <span class="n">log_content</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Workflow appears to be locked. &quot;</span>
+                        <span class="s2">&quot;Attempting automatic unlock and retry...&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Create unlock command</span>
+                    <span class="n">unlock_cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">unlock_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--unlock&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># Run unlock command</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile_append</span><span class="p">:</span>
+                        <span class="n">logfile_append</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Auto-unlock attempt ---</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">unlock_result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                            <span class="n">unlock_cmd</span><span class="p">,</span>
+                            <span class="n">stdout</span><span class="o">=</span><span class="n">logfile_append</span><span class="p">,</span>
+                            <span class="n">stderr</span><span class="o">=</span><span class="n">logfile_append</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># If unlock succeeded, retry the original command</span>
+                    <span class="k">if</span> <span class="n">unlock_result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s2">&quot;Automatic unlock successful. &quot;</span>
+                            <span class="s2">&quot;Retrying pipeline execution...&quot;</span>
+                        <span class="p">)</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile_append</span><span class="p">:</span>
+                            <span class="n">logfile_append</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Retry after unlock ---</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                                <span class="n">cmd</span><span class="p">,</span>
+                                <span class="n">stdout</span><span class="o">=</span><span class="n">logfile_append</span><span class="p">,</span>
+                                <span class="n">stderr</span><span class="o">=</span><span class="n">logfile_append</span><span class="p">,</span>
+                            <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                            <span class="s2">&quot;Automatic unlock failed. &quot;</span>
+                            <span class="s2">&quot;Please check the log file for details.&quot;</span>
+                        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api/photon_mosaic.cli.html#photon_mosaic.cli.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the photon-mosaic Snakemake pipeline for automated and reproducible</span>
+<span class="sd">    analysis of multiphoton calcium imaging datasets.</span>
+
+<span class="sd">    This pipeline integrates Suite2p for image registration and signal</span>
+<span class="sd">    extraction, with a standardized output folder structure following</span>
+<span class="sd">    the NeuroBlueprint specification. It is designed for labs that</span>
+<span class="sd">    store their data on servers connected to HPC clusters and want to</span>
+<span class="sd">    batch-process multiple imaging sessions in parallel.</span>
+
+<span class="sd">    Command Line Arguments</span>
+<span class="sd">    ---------------------</span>
+<span class="sd">    --config : str, optional</span>
+<span class="sd">        Path to your config.yaml file. If not provided, uses</span>
+<span class="sd">        ~/.photon_mosaic/config.yaml.</span>
+<span class="sd">    --raw_data_base : str, optional</span>
+<span class="sd">        Override raw_data_base in config file (path to raw imaging data).</span>
+<span class="sd">    --processed_data_base : str, optional</span>
+<span class="sd">        Override processed_data_base in config file (path for processed</span>
+<span class="sd">        outputs).</span>
+<span class="sd">    --jobs : str, default=&quot;1&quot;</span>
+<span class="sd">        Number of parallel jobs to run.</span>
+<span class="sd">    --dry-run : bool, optional</span>
+<span class="sd">        Perform a dry run to preview the workflow without executing.</span>
+<span class="sd">    --forcerun : str, optional</span>
+<span class="sd">        Force re-run of a specific rule (e.g., &#39;suite2p&#39;).</span>
+<span class="sd">    --rerun-incomplete : bool, optional</span>
+<span class="sd">        Rerun any incomplete jobs.</span>
+
+<span class="sd">    --latency-wait : int, default=10</span>
+<span class="sd">        Time to wait before checking if output files are ready.</span>
+<span class="sd">    --log-level : str, default=&quot;INFO&quot;</span>
+<span class="sd">        Log level.</span>
+<span class="sd">    --verbose, -v : flag, optional</span>
+<span class="sd">        Enable verbose output (default is quiet mode).</span>
+<span class="sd">    --reset-config : flag, optional</span>
+<span class="sd">        Reset the config file to the default values.</span>
+<span class="sd">    extra : list</span>
+<span class="sd">        Additional arguments to pass to snakemake.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The pipeline will:</span>
+<span class="sd">    1. Create a timestamped config file in derivatives/photon-mosaic/configs/</span>
+<span class="sd">    2. Save execution logs in derivatives/photon-mosaic/logs/</span>
+<span class="sd">    3. Process all TIFF files found in the raw data directory</span>
+<span class="sd">    4. Generate standardized outputs following NeuroBlueprint specification</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Parse command line arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">create_argument_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Set up logging</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">log_level</span><span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Starting photon-mosaic CLI&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load and process configuration</span>
+    <span class="n">config</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_and_process_config</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># Set up output directories</span>
+    <span class="n">processed_data_base</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;processed_data_base&quot;</span><span class="p">])</span>
+    <span class="n">output_dir</span><span class="p">,</span> <span class="n">logs_dir</span><span class="p">,</span> <span class="n">configs_dir</span> <span class="o">=</span> <span class="n">setup_output_directories</span><span class="p">(</span>
+        <span class="n">processed_data_base</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Save timestamped config for reproducibility</span>
+    <span class="n">timestamp</span><span class="p">,</span> <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_timestamped_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">configs_dir</span><span class="p">)</span>
+
+    <span class="c1"># Build snakemake command</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">build_snakemake_command</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
+
+    <span class="c1"># Configure SLURM execution if enabled</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">configure_slurm_execution</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Add extra arguments if provided</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">extra</span><span class="p">:</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
+
+    <span class="c1"># Execute pipeline with automatic retry on lock errors</span>
+    <span class="n">log_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;snakemake_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.log&quot;</span>
+    <span class="n">log_path</span> <span class="o">=</span> <span class="n">logs_dir</span> <span class="o">/</span> <span class="n">log_filename</span>
+    <span class="n">return_code</span> <span class="o">=</span> <span class="n">execute_pipeline_with_retry</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">log_path</span><span class="p">)</span>
+
+    <span class="c1"># Report final status</span>
+    <span class="k">if</span> <span class="n">return_code</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Snakemake pipeline completed successfully.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Snakemake pipeline failed with exit code </span><span class="si">{</span><span class="n">return_code</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Check the log file at </span><span class="si">{</span><span class="n">log_path</span><span class="si">}</span><span class="s2"> for details.&quot;</span>
+        <span class="p">)</span></div>
 
 </pre></div>
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -114,8 +114,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -328,12 +336,12 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.cli.html">photon_mosaic.cli</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.dataset_discovery.html">photon_mosaic.dataset_discovery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.pathing.html">photon_mosaic.pathing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.preprocessing.noop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.suite2p_run.html">photon_mosaic.rules.suite2p_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.snakemake_utils.html">photon_mosaic.snakemake_utils</a></li>
 </ul>
 </div>
 </nav></div>
@@ -396,14 +404,14 @@
                   
   <section id="module-photon_mosaic.preprocessing.noop">
 <span id="photon-mosaic-preprocessing-noop"></span><h1>photon_mosaic.preprocessing.noop<a class="headerlink" href="#module-photon_mosaic.preprocessing.noop" title="Link to this heading">#</a></h1>
-<p>No-operation preprocessing step for photon-mosaic.</p>
-<p>This module provides a function that returns the input data unchanged.
-This is useful when preprocessing should be skipped.</p>
+<p>No-operation preprocessing step using symlinks.</p>
+<p>This preprocessing step creates symbolic links to the original files instead
+of copying them, which is much faster and saves disk space for large files.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.preprocessing.noop.run" title="photon_mosaic.preprocessing.noop.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(dataset_folder, output_folder, ...)</p></td>
-<td><p>No-operation preprocessing step.</p></td>
+<td><p>No-operation preprocessing step using symlinks instead of copying.</p></td>
 </tr>
 </tbody>
 </table>
@@ -411,27 +419,19 @@ This is useful when preprocessing should be skipped.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="photon_mosaic.preprocessing.noop.run">
 <span class="sig-prename descclassname"><span class="pre">photon_mosaic.preprocessing.noop.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiff_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/preprocessing/noop.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.preprocessing.noop.run" title="Link to this definition">#</a></dt>
-<dd><p>No-operation preprocessing step.</p>
+<dd><p>No-operation preprocessing step using symlinks instead of copying.</p>
+<p>Creates a symbolic link to the original TIFF file in the output directory,
+avoiding the need to copy large files when no processing is required.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dataset_folder</strong> (<em>Path</em>) – Path to the dataset folder containing the input TIFF files.</p></li>
-<li><p><strong>output_folder</strong> (<em>Path</em>) – Path to the output folder where the files will be copied.</p></li>
-<li><p><strong>tiff_name</strong> (<em>str</em>) – Name of the TIFF file to copy.</p></li>
+<li><p><strong>output_folder</strong> (<em>Path</em>) – Path to the output folder where symlinks will be created.</p></li>
+<li><p><strong>tiff_name</strong> (<em>str</em>) – Name of the TIFF file to symlink.</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments (unused).</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The function copies the input TIFF file to the output directory
-without any modification and returns nothing.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>The function will search for the TIFF file using rglob if it’s not found
-at the expected location.</p>
 </dd></dl>
 
 </section>

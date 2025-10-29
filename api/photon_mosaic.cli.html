@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -114,8 +114,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -328,12 +336,12 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.cli</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.dataset_discovery.html">photon_mosaic.dataset_discovery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.pathing.html">photon_mosaic.pathing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.noop.html">photon_mosaic.preprocessing.noop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.suite2p_run.html">photon_mosaic.rules.suite2p_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.snakemake_utils.html">photon_mosaic.snakemake_utils</a></li>
 </ul>
 </div>
 </nav></div>
@@ -400,12 +408,202 @@
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.build_snakemake_command" title="photon_mosaic.cli.build_snakemake_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_snakemake_command</span></code></a>(args, config_path)</p></td>
+<td><p>Build the base snakemake command with common arguments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.cli.configure_slurm_execution" title="photon_mosaic.cli.configure_slurm_execution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configure_slurm_execution</span></code></a>(cmd, config)</p></td>
+<td><p>Configure SLURM execution options if enabled.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.create_argument_parser" title="photon_mosaic.cli.create_argument_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_argument_parser</span></code></a>()</p></td>
+<td><p>Create and configure the argument parser for the CLI.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.cli.ensure_default_config" title="photon_mosaic.cli.ensure_default_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ensure_default_config</span></code></a>([reset_config])</p></td>
+<td><p>Ensure the default config file exists, create if missing or reset requested.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.execute_pipeline_with_retry" title="photon_mosaic.cli.execute_pipeline_with_retry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute_pipeline_with_retry</span></code></a>(cmd, log_path)</p></td>
+<td><p>Execute the snakemake pipeline with automatic unlock and retry on lock errors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.cli.load_and_process_config" title="photon_mosaic.cli.load_and_process_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_and_process_config</span></code></a>(args)</p></td>
+<td><p>Load configuration file and apply CLI overrides.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.main" title="photon_mosaic.cli.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
 <td><p>Run the photon-mosaic Snakemake pipeline for automated and reproducible analysis of multiphoton calcium imaging datasets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.cli.save_timestamped_config" title="photon_mosaic.cli.save_timestamped_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_timestamped_config</span></code></a>(config, configs_dir)</p></td>
+<td><p>Save configuration with timestamp for reproducibility.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.cli.setup_output_directories" title="photon_mosaic.cli.setup_output_directories"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_output_directories</span></code></a>(processed_data_base)</p></td>
+<td><p>Create necessary output directories for the pipeline.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.cli.update_default_config" title="photon_mosaic.cli.update_default_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_default_config</span></code></a>(config_path, ...)</p></td>
+<td><p>Update the default config file with new base paths while preserving comments.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.create_argument_parser">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">create_argument_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#create_argument_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.create_argument_parser" title="Link to this definition">#</a></dt>
+<dd><p>Create and configure the argument parser for the CLI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configured argument parser with all CLI options</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>argparse.ArgumentParser</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.ensure_default_config">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">ensure_default_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#ensure_default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.ensure_default_config" title="Link to this definition">#</a></dt>
+<dd><p>Ensure the default config file exists, create if missing or
+reset requested.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reset_config</strong> (<em>bool</em>) – Whether to reset the config file to defaults</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path to the default config file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.load_and_process_config">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">load_and_process_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#load_and_process_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.load_and_process_config" title="Link to this definition">#</a></dt>
+<dd><p>Load configuration file and apply CLI overrides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>argparse.Namespace</em>) – Parsed command line arguments</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configuration dictionary and path to config file used</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[dict, Path]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.update_default_config">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">update_default_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_data_base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_data_base</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#update_default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.update_default_config" title="Link to this definition">#</a></dt>
+<dd><p>Update the default config file with new base paths while
+preserving comments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_path</strong> (<em>Path</em>) – Path to the config file to update</p></li>
+<li><p><strong>raw_data_base</strong> (<em>Path</em>) – Raw data base path</p></li>
+<li><p><strong>processed_data_base</strong> (<em>Path</em>) – Processed data base path</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.setup_output_directories">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">setup_output_directories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_data_base</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#setup_output_directories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.setup_output_directories" title="Link to this definition">#</a></dt>
+<dd><p>Create necessary output directories for the pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>processed_data_base</strong> (<em>Path</em>) – Base path for processed data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Paths to output directory, logs directory, and configs directory</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[Path, Path, Path]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.save_timestamped_config">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">save_timestamped_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#save_timestamped_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.save_timestamped_config" title="Link to this definition">#</a></dt>
+<dd><p>Save configuration with timestamp for reproducibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – Configuration dictionary to save</p></li>
+<li><p><strong>configs_dir</strong> (<em>Path</em>) – Directory to save config files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Timestamp string and path to saved config file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[str, Path]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.build_snakemake_command">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">build_snakemake_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#build_snakemake_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.build_snakemake_command" title="Link to this definition">#</a></dt>
+<dd><p>Build the base snakemake command with common arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>argparse.Namespace</em>) – Parsed command line arguments</p></li>
+<li><p><strong>config_path</strong> (<em>Path</em>) – Path to the config file to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Snakemake command as list of strings</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.configure_slurm_execution">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">configure_slurm_execution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#configure_slurm_execution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.configure_slurm_execution" title="Link to this definition">#</a></dt>
+<dd><p>Configure SLURM execution options if enabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Base snakemake command to extend</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – Configuration dictionary</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated command with SLURM configuration</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.cli.execute_pipeline_with_retry">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">execute_pipeline_with_retry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#execute_pipeline_with_retry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.execute_pipeline_with_retry" title="Link to this definition">#</a></dt>
+<dd><p>Execute the snakemake pipeline with automatic
+unlock and retry on lock errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Snakemake command to execute</p></li>
+<li><p><strong>log_path</strong> (<em>Path</em>) – Path to save execution logs</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Return code from the snakemake execution</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="photon_mosaic.cli.main">
 <span class="sig-prename descclassname"><span class="pre">photon_mosaic.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.cli.main" title="Link to this definition">#</a></dt>
@@ -435,11 +633,11 @@ outputs).</p>
 </dd>
 <dt>–rerun-incomplete<span class="classifier">bool, optional</span></dt><dd><p>Rerun any incomplete jobs.</p>
 </dd>
-<dt>–unlock<span class="classifier">bool, optional</span></dt><dd><p>Unlock the workflow if it’s in a locked state.</p>
-</dd>
 <dt>–latency-wait<span class="classifier">int, default=10</span></dt><dd><p>Time to wait before checking if output files are ready.</p>
 </dd>
 <dt>–log-level<span class="classifier">str, default=”INFO”</span></dt><dd><p>Log level.</p>
+</dd>
+<dt>–verbose, -v<span class="classifier">flag, optional</span></dt><dd><p>Enable verbose output (default is quiet mode).</p>
 </dd>
 <dt>–reset-config<span class="classifier">flag, optional</span></dt><dd><p>Reset the config file to the default values.</p>
 </dd>
@@ -504,6 +702,15 @@ outputs).</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.create_argument_parser"><code class="docutils literal notranslate"><span class="pre">create_argument_parser()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.ensure_default_config"><code class="docutils literal notranslate"><span class="pre">ensure_default_config()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.load_and_process_config"><code class="docutils literal notranslate"><span class="pre">load_and_process_config()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.update_default_config"><code class="docutils literal notranslate"><span class="pre">update_default_config()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.setup_output_directories"><code class="docutils literal notranslate"><span class="pre">setup_output_directories()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.save_timestamped_config"><code class="docutils literal notranslate"><span class="pre">save_timestamped_config()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.build_snakemake_command"><code class="docutils literal notranslate"><span class="pre">build_snakemake_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.configure_slurm_execution"><code class="docutils literal notranslate"><span class="pre">configure_slurm_execution()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.execute_pipeline_with_retry"><code class="docutils literal notranslate"><span class="pre">execute_pipeline_with_retry()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
   </nav></div>

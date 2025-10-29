@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>photon_mosaic.pathing &#8212; photon-mosaic</title>
+    <title>photon_mosaic.snakemake_utils &#8212; photon-mosaic</title>
   
   
   
@@ -40,17 +40,16 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'api/photon_mosaic.pathing';</script>
-    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/api/photon_mosaic.pathing.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/photon_mosaic.snakemake_utils';</script>
+    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/api/photon_mosaic.snakemake_utils.html" />
     <link rel="icon" href="../_static/light-logo-niu.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="photon_mosaic.preprocessing.contrast" href="photon_mosaic.preprocessing.contrast.html" />
-    <link rel="prev" title="photon_mosaic.dataset_discovery" href="photon_mosaic.dataset_discovery.html" />
+    <link rel="prev" title="photon_mosaic.rules.suite2p_run" href="photon_mosaic.rules.suite2p_run.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -114,8 +113,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -328,12 +335,12 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.cli.html">photon_mosaic.cli</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.dataset_discovery.html">photon_mosaic.dataset_discovery</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.pathing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.noop.html">photon_mosaic.preprocessing.noop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.suite2p_run.html">photon_mosaic.rules.suite2p_run</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.snakemake_utils</a></li>
 </ul>
 </div>
 </nav></div>
@@ -377,7 +384,7 @@
     
     <li class="breadcrumb-item"><a href="../api_index.html" class="nav-link">API Reference</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.pathing</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.snakemake_utils</span></li>
   </ul>
 </nav>
 </div>
@@ -394,25 +401,74 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="module-photon_mosaic.pathing">
-<span id="photon-mosaic-pathing"></span><h1>photon_mosaic.pathing<a class="headerlink" href="#module-photon_mosaic.pathing" title="Link to this heading">#</a></h1>
-<p>Pathing utilities for photon-mosaic.</p>
-<p>This module provides functions for handling paths and wildcards in Snakemake.</p>
+  <section id="module-photon_mosaic.snakemake_utils">
+<span id="photon-mosaic-snakemake-utils"></span><h1>photon_mosaic.snakemake_utils<a class="headerlink" href="#module-photon_mosaic.snakemake_utils" title="Link to this heading">#</a></h1>
+<p>Snakemake utility functions for photon-mosaic.</p>
+<p>This module provides utility functions used in Snakemake workflows,
+including path handling, GPU/CUDA checks, and workflow configuration.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.pathing.cross_platform_path" title="photon_mosaic.pathing.cross_platform_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_platform_path</span></code></a>(path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.snakemake_utils.cross_platform_path" title="photon_mosaic.snakemake_utils.cross_platform_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_platform_path</span></code></a>(path)</p></td>
 <td><p>Convert path to string format appropriate for the current platform.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.snakemake_utils.get_snakefile_path" title="photon_mosaic.snakemake_utils.get_snakefile_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_snakefile_path</span></code></a>()</p></td>
+<td><p>Get the path to the Snakemake workflow file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.snakemake_utils.log_cuda_availability" title="photon_mosaic.snakemake_utils.log_cuda_availability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_cuda_availability</span></code></a>()</p></td>
+<td><p>Log CUDA availability as a sanity check for GPU jobs.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py function">
-<dt class="sig sig-object py" id="photon_mosaic.pathing.cross_platform_path">
-<span class="sig-prename descclassname"><span class="pre">photon_mosaic.pathing.</span></span><span class="sig-name descname"><span class="pre">cross_platform_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/pathing.html#cross_platform_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.pathing.cross_platform_path" title="Link to this definition">#</a></dt>
-<dd><p>Convert path to string format appropriate for the current platform.
-On Windows, uses forward slashes (as_posix()) for Snakemake compatibility.
+<dt class="sig sig-object py" id="photon_mosaic.snakemake_utils.get_snakefile_path">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.snakemake_utils.</span></span><span class="sig-name descname"><span class="pre">get_snakefile_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/snakemake_utils.html#get_snakefile_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.snakemake_utils.get_snakefile_path" title="Link to this definition">#</a></dt>
+<dd><p>Get the path to the Snakemake workflow file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the Snakefile in the photon_mosaic package.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.snakemake_utils.cross_platform_path">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.snakemake_utils.</span></span><span class="sig-name descname"><span class="pre">cross_platform_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/snakemake_utils.html#cross_platform_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.snakemake_utils.cross_platform_path" title="Link to this definition">#</a></dt>
+<dd><p>Convert path to string format appropriate for the current platform.</p>
+<p>On Windows, uses forward slashes (as_posix()) for Snakemake compatibility.
 On Unix-like systems, uses native path separators (str()).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>Path</em>) – Path object to convert</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>String representation of the path appropriate for the platform</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="photon_mosaic.snakemake_utils.log_cuda_availability">
+<span class="sig-prename descclassname"><span class="pre">photon_mosaic.snakemake_utils.</span></span><span class="sig-name descname"><span class="pre">log_cuda_availability</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/snakemake_utils.html#log_cuda_availability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.snakemake_utils.log_cuda_availability" title="Link to this definition">#</a></dt>
+<dd><p>Log CUDA availability as a sanity check for GPU jobs.</p>
+<p>This function checks if CUDA is available and logs relevant
+GPU information. Useful for verifying that GPU resources
+are properly allocated in SLURM jobs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if CUDA is available, False otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -428,22 +484,13 @@ On Unix-like systems, uses native path separators (str()).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="photon_mosaic.dataset_discovery.html"
+       href="photon_mosaic.rules.suite2p_run.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">photon_mosaic.dataset_discovery</p>
+        <p class="prev-next-title">photon_mosaic.rules.suite2p_run</p>
       </div>
-    </a>
-    <a class="right-next"
-       href="photon_mosaic.preprocessing.contrast.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">photon_mosaic.preprocessing.contrast</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>
@@ -464,7 +511,9 @@ On Unix-like systems, uses native path separators (str()).</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.pathing.cross_platform_path"><code class="docutils literal notranslate"><span class="pre">cross_platform_path()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.snakemake_utils.get_snakefile_path"><code class="docutils literal notranslate"><span class="pre">get_snakefile_path()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.snakemake_utils.cross_platform_path"><code class="docutils literal notranslate"><span class="pre">cross_platform_path()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.snakemake_utils.log_cuda_availability"><code class="docutils literal notranslate"><span class="pre">log_cuda_availability()</span></code></a></li>
 </ul>
   </nav></div>
 

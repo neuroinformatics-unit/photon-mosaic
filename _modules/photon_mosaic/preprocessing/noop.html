@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../../../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
@@ -111,8 +111,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -372,14 +380,17 @@
                   
   <h1>Source code for photon_mosaic.preprocessing.noop</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">No-operation preprocessing step for photon-mosaic.</span>
+<span class="sd">No-operation preprocessing step using symlinks.</span>
 
-<span class="sd">This module provides a function that returns the input data unchanged.</span>
-<span class="sd">This is useful when preprocessing should be skipped.</span>
+<span class="sd">This preprocessing step creates symbolic links to the original files instead</span>
+<span class="sd">of copying them, which is much faster and saves disk space for large files.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="run">
@@ -391,29 +402,21 @@
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    No-operation preprocessing step.</span>
+<span class="sd">    No-operation preprocessing step using symlinks instead of copying.</span>
+
+<span class="sd">    Creates a symbolic link to the original TIFF file in the output directory,</span>
+<span class="sd">    avoiding the need to copy large files when no processing is required.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dataset_folder : Path</span>
 <span class="sd">        Path to the dataset folder containing the input TIFF files.</span>
 <span class="sd">    output_folder : Path</span>
-<span class="sd">        Path to the output folder where the files will be copied.</span>
+<span class="sd">        Path to the output folder where symlinks will be created.</span>
 <span class="sd">    tiff_name : str</span>
-<span class="sd">        Name of the TIFF file to copy.</span>
+<span class="sd">        Name of the TIFF file to symlink.</span>
 <span class="sd">    **kwargs : dict</span>
 <span class="sd">        Additional keyword arguments (unused).</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    None</span>
-<span class="sd">        The function copies the input TIFF file to the output directory</span>
-<span class="sd">        without any modification and returns nothing.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    The function will search for the TIFF file using rglob if it&#39;s not found</span>
-<span class="sd">    at the expected location.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Convert paths to Path objects if they&#39;re strings</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -421,16 +424,50 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">output_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_folder</span><span class="p">)</span>
 
+    <span class="c1"># Create output directory</span>
+    <span class="n">output_folder</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Define input and output paths</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">output_folder</span> <span class="o">/</span> <span class="n">tiff_name</span>
+
+    <span class="c1"># Skip if symlink already exists and points to the right location</span>
+    <span class="k">if</span> <span class="n">output_file</span><span class="o">.</span><span class="n">is_symlink</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Symlink already exists: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">elif</span> <span class="n">output_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;File exists but is not a symlink: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">. Removing.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+    <span class="c1"># Try to find the input file</span>
     <span class="n">input_file</span> <span class="o">=</span> <span class="n">dataset_folder</span> <span class="o">/</span> <span class="n">tiff_name</span>
 
-    <span class="c1"># Create output directory and copy file</span>
-    <span class="n">output_folder</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">input_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="c1"># Use rglob to find the file recursively</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">input_file</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">dataset_folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_name</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Found input file using recursive search: </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="si">{</span><span class="n">tiff_name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Create symlink</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">output_folder</span> <span class="o">/</span> <span class="n">input_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="c1">#  use rglob to find the correct path</span>
-        <span class="n">correct_path</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">dataset_folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_name</span><span class="p">))</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">correct_path</span><span class="p">,</span> <span class="n">output_folder</span> <span class="o">/</span> <span class="n">correct_path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+        <span class="n">output_file</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">input_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Created symlink: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">input_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to create symlink: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Fallback to copying if symlink fails (e.g., cross-filesystem)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Falling back to copying file: </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
@@ -111,8 +111,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -374,134 +382,853 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dataset discovery module.</span>
 
-<span class="sd">This module provides functions to discover datasets using regex patterns.</span>
+<span class="sd">This module provides a class-based approach to discover datasets using regex</span>
+<span class="sd">patterns.</span>
 <span class="sd">All filtering and transformations are handled through regex substitutions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 
-<div class="viewcode-block" id="discover_datasets">
-<a class="viewcode-back" href="../../api/photon_mosaic.dataset_discovery.html#photon_mosaic.dataset_discovery.discover_datasets">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">discover_datasets</span><span class="p">(</span>
-    <span class="n">base_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
-    <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.*&quot;</span><span class="p">,</span>
-    <span class="n">exclude_patterns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">substitutions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">tiff_patterns</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;*.tif&quot;</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<div class="viewcode-block" id="DatasetInfo">
+<a class="viewcode-back" href="../../api/photon_mosaic.dataset_discovery.html#photon_mosaic.dataset_discovery.DatasetInfo">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatasetInfo</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for dataset information.&quot;&quot;&quot;</span>
+
+    <span class="n">original_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">transformed_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">tiff_files</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>  <span class="c1"># session_idx -&gt; list of files</span>
+    <span class="n">subject_metadata</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">session_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>  <span class="c1"># session_idx -&gt; metadata string</span></div>
+
+
+
+<div class="viewcode-block" id="DatasetDiscoverer">
+<a class="viewcode-back" href="../../api/photon_mosaic.dataset_discovery.html#photon_mosaic.dataset_discovery.DatasetDiscoverer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatasetDiscoverer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Discover datasets and their TIFF files in a directory using regex patterns.</span>
+<span class="sd">    A class for discovering and organizing datasets with TIFF files.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    base_path : str or Path</span>
-<span class="sd">        Base path to search for datasets.</span>
-<span class="sd">    pattern : str, optional</span>
-<span class="sd">        Regex pattern to match dataset names, defaults to &quot;.*&quot;</span>
-<span class="sd">        (all directories).</span>
-<span class="sd">    exclude_patterns : List[str], optional</span>
-<span class="sd">        List of regex patterns for datasets to exclude.</span>
-<span class="sd">    substitutions : List[Dict[str, str]], optional</span>
-<span class="sd">        List of regex substitution pairs to transform dataset names.</span>
-<span class="sd">        Each dict should have &#39;pattern&#39; and &#39;repl&#39; keys for re.sub().</span>
-<span class="sd">    tiff_patterns : list, optional</span>
-<span class="sd">        List of glob patterns for TIFF files. Each pattern corresponds to a</span>
-<span class="sd">        session. Defaults to [&quot;*.tif&quot;] for a single session.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]</span>
-<span class="sd">        - List of original dataset names (sorted)</span>
-<span class="sd">        - List of transformed dataset names (sorted)</span>
-<span class="sd">        - Dictionary mapping original dataset names to their TIFF files by</span>
-<span class="sd">          session (session index as key)</span>
-<span class="sd">        - List of all TIFF files found across all datasets</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    - Datasets without any TIFF files are automatically excluded from the</span>
-<span class="sd">      results</span>
-<span class="sd">    - Both original and transformed dataset lists are sorted alphabetically</span>
-<span class="sd">    - Sessions are numbered starting from 0 based on the order in tiff_patterns</span>
-<span class="sd">    - Empty sessions (no files found) are included with empty lists</span>
+<span class="sd">    This class handles both NeuroBlueprint format and custom format datasets,</span>
+<span class="sd">    providing methods to discover datasets, extract metadata, and organize</span>
+<span class="sd">    TIFF files by sessions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Convert base_path to Path if it&#39;s a string</span>
-    <span class="n">base_path_obj</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">Path</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">base_path</span>
-    <span class="p">)</span>
 
-    <span class="c1"># Find all directories matching the pattern</span>
-    <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">name</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">base_path_obj</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">base_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+        <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.*&quot;</span><span class="p">,</span>
+        <span class="n">exclude_datasets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">exclude_sessions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tiff_patterns</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">neuroblueprint_format</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the dataset discoverer.</span>
 
-    <span class="c1"># Apply exclusion patterns</span>
-    <span class="k">if</span> <span class="n">exclude_patterns</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">exclude</span> <span class="ow">in</span> <span class="n">exclude_patterns</span><span class="p">:</span>
-            <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">exclude</span><span class="p">,</span> <span class="n">ds</span><span class="p">)]</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base_path : str or Path</span>
+<span class="sd">            Base path to search for datasets.</span>
+<span class="sd">        pattern : str, optional</span>
+<span class="sd">            Regex pattern to match dataset names, defaults to &quot;.*&quot;</span>
+<span class="sd">            (all directories). Only used when neuroblueprint_format is False.</span>
+<span class="sd">        exclude_datasets : List[str], optional</span>
+<span class="sd">            List of regex patterns for dataset folder names to exclude.</span>
+<span class="sd">            Applied to both NeuroBlueprint and custom discovery.</span>
+<span class="sd">        exclude_sessions : List[str], optional</span>
+<span class="sd">            List of regex patterns for session folder names to exclude.</span>
+<span class="sd">            Applied when scanning session folders for NeuroBlueprint or</span>
+<span class="sd">            custom session folders.</span>
+<span class="sd">        tiff_patterns : List[str], optional</span>
+<span class="sd">            List of glob patterns for TIFF files. Each pattern corresponds to a</span>
+<span class="sd">            session. Defaults to [&quot;*.tif&quot;] for a single session.</span>
+<span class="sd">        neuroblueprint_format : bool, optional</span>
+<span class="sd">            If True, validates and uses NeuroBlueprint format</span>
+<span class="sd">            (sub-XXX_key-value/ses-XXX_key-value/)</span>
+<span class="sd">            with automatic metadata extraction. If False or if validation</span>
+<span class="sd">            fails, transforms folder names to NeuroBlueprint compliant</span>
+<span class="sd">            format. Defaults to False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span>
+        <span class="c1"># Patterns to exclude dataset folder names (regex)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exclude_datasets</span> <span class="o">=</span> <span class="n">exclude_datasets</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="c1"># Patterns to exclude session folder names (regex)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exclude_sessions</span> <span class="o">=</span> <span class="n">exclude_sessions</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span> <span class="o">=</span> <span class="n">tiff_patterns</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;*.tif&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neuroblueprint_format</span> <span class="o">=</span> <span class="n">neuroblueprint_format</span>
 
-    <span class="c1"># Store original dataset names</span>
-    <span class="n">original_datasets</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># Will be populated by discover()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DatasetInfo</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1"># Apply regex substitutions to get new names</span>
-    <span class="k">if</span> <span class="n">substitutions</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">substitutions</span><span class="p">:</span>
-            <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">sub</span><span class="p">[</span><span class="s2">&quot;pattern&quot;</span><span class="p">],</span> <span class="n">sub</span><span class="p">[</span><span class="s2">&quot;repl&quot;</span><span class="p">],</span> <span class="n">ds</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">original_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of original dataset names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">original_name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transformed_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of transformed dataset names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">transformed_name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tiff_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get TIFF files organized by original dataset name and session.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ds</span><span class="o">.</span><span class="n">original_name</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">tiff_files</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tiff_files_flat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get flat list of all TIFF files.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">subject_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get subject metadata by original dataset name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ds</span><span class="o">.</span><span class="n">original_name</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">subject_metadata</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get session metadata by original dataset name and session.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ds</span><span class="o">.</span><span class="n">original_name</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">session_metadata</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">}</span>
+
+<div class="viewcode-block" id="DatasetDiscoverer.get_session_name">
+<a class="viewcode-back" href="../../api/photon_mosaic.dataset_discovery.html#photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_session_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">session_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get session name for given dataset and session indices.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset_idx : int</span>
+<span class="sd">            Index of the dataset in the discovered datasets list</span>
+<span class="sd">        session_idx : int</span>
+<span class="sd">            Index of the session within the dataset</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Formatted session name like &quot;ses-0_metadata&quot; or</span>
+<span class="sd">            &quot;ses-1_date-20250225&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dataset_idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Dataset index </span><span class="si">{</span><span class="n">dataset_idx</span><span class="si">}</span><span class="s2"> out of range &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(0-</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">dataset_idx</span><span class="p">]</span>
+        <span class="n">session_meta</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">session_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session_idx</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Format: ses-{session_idx}_{metadata}</span>
+        <span class="c1"># session_idx here is actually the original session ID from the</span>
+        <span class="c1"># folder name</span>
+        <span class="k">if</span> <span class="n">session_meta</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ses-</span><span class="si">{</span><span class="n">session_idx</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">session_meta</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ses-</span><span class="si">{</span><span class="n">session_idx</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_session_id_from_folder_name</span><span class="p">(</span><span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract session ID from neuroblueprint session folder name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folder_name : str</span>
+<span class="sd">            Session folder name like &#39;ses-003_date-20250301_protocol-baseline&#39;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Session ID like &#39;003&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Extract the ID part after &#39;ses-&#39; and</span>
+        <span class="c1"># before first &#39;_&#39; or end of string</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;ses-([^_]+)&quot;</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;0&quot;</span>  <span class="c1"># fallback</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_infer_metadata_keys_from_folder_names</span><span class="p">(</span>
+        <span class="n">folder_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Automatically infer metadata keys and patterns from actual folder</span>
+<span class="sd">        names.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folder_names : list</span>
+<span class="sd">            List of folder names to analyze for metadata patterns</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of inferred metadata keys and regex patterns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata_patterns</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">folder_name</span> <span class="ow">in</span> <span class="n">folder_names</span><span class="p">:</span>
+            <span class="c1"># Split by underscore and look for key-value patterns</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">folder_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+                <span class="c1"># Look for patterns like &quot;key-value&quot;</span>
+                <span class="k">if</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">part</span><span class="p">:</span>
+                    <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="c1"># Skip &#39;sub&#39;, &#39;ses&#39;, and &#39;session&#39; as they are structural,</span>
+                    <span class="c1"># not metadata</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;sub&quot;</span><span class="p">,</span> <span class="s2">&quot;ses&quot;</span><span class="p">,</span> <span class="s2">&quot;session&quot;</span><span class="p">]:</span>
+                        <span class="c1"># Create a flexible regex pattern for this key</span>
+                        <span class="n">metadata_patterns</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">-([^_]+)&quot;</span>
+
+        <span class="k">return</span> <span class="n">metadata_patterns</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_neuroblueprint_format</span><span class="p">(</span>
+        <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_prefix</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if a folder name follows NeuroBlueprint format.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folder_name : str</span>
+<span class="sd">            Name of the folder to check</span>
+<span class="sd">        expected_prefix : str</span>
+<span class="sd">            Expected prefix (&quot;sub&quot; or &quot;ses&quot;)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if folder follows NeuroBlueprint format, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if it starts with the expected prefix followed by a dash</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">folder_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_prefix</span><span class="si">}</span><span class="s2">-&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Split by underscores and check each part</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">folder_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+        <span class="c1"># First part should be prefix-identifier</span>
+        <span class="n">first_part</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">expected_prefix</span><span class="si">}</span><span class="s2">-[a-zA-Z0-9]+&quot;</span><span class="p">,</span> <span class="n">first_part</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Remaining parts should be key-value pairs</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[a-zA-Z][a-zA-Z0-9]*-[a-zA-Z0-9]+&quot;</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_metadata_from_name</span><span class="p">(</span>
+        <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">metadata_extraction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract metadata from folder name and format as key-value pairs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        folder_name : str</span>
+<span class="sd">            Name of the folder to extract metadata from</span>
+<span class="sd">        metadata_extraction : dict, optional</span>
+<span class="sd">            Dictionary of metadata keys and regex patterns.</span>
+<span class="sd">            If None, will infer from folder name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Formatted metadata string like &quot;date-20250225_protocol-training&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If no metadata extraction patterns provided, infer from folder name</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_extraction</span><span class="p">:</span>
+            <span class="n">metadata_extraction</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">DatasetDiscoverer</span><span class="o">.</span><span class="n">_infer_metadata_keys_from_folder_names</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">folder_name</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_extraction</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">metadata_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">metadata_extraction</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">metadata_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">metadata_pairs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DatasetDiscoverer.discover">
+<a class="viewcode-back" href="../../api/photon_mosaic.dataset_discovery.html#photon_mosaic.dataset_discovery.DatasetDiscoverer.discover">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discover datasets and their TIFF files in the directory.</span>
+
+<span class="sd">        This method populates the datasets list and all related metadata.</span>
+<span class="sd">        After calling this method, you can access the results through the</span>
+<span class="sd">        class properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Clear any existing data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Discover and transform dataset names</span>
+        <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_discover_dataset_folders</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Process each dataset to extract TIFF files and metadata</span>
+        <span class="k">for</span> <span class="n">orig_name</span><span class="p">,</span> <span class="n">trans_name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span>
+        <span class="p">):</span>
+            <span class="n">dataset_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_dataset</span><span class="p">(</span><span class="n">orig_name</span><span class="p">,</span> <span class="n">trans_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dataset_info</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset_info</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_discover_dataset_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discover dataset folders and return original and transformed names.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[List[str], List[str]]</span>
+<span class="sd">            Tuple of (original_datasets, transformed_datasets)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">original_datasets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">transformed_datasets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">neuroblueprint_format</span><span class="p">:</span>
+            <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_discover_neuroblueprint_datasets</span><span class="p">()</span>
+            <span class="p">)</span>
+
+            <span class="c1"># If no valid NeuroBlueprint folders found,</span>
+            <span class="c1"># fallback to custom format</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">original_datasets</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="s2">&quot;No valid NeuroBlueprint format folders found in &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="si">}</span><span class="s2">. &quot;</span>
+                    <span class="s2">&quot;Falling back to custom format processing.&quot;</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">neuroblueprint_format</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">neuroblueprint_format</span><span class="p">:</span>
+            <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_discover_custom_datasets</span><span class="p">()</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Sort the datasets as per original names to ensure consistent order</span>
+        <span class="n">sorted_indices</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">original_datasets</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">original_datasets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">original_datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">original_datasets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span><span class="p">]</span>
+        <span class="n">transformed_datasets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">transformed_datasets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_indices</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_discover_neuroblueprint_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discover datasets in NeuroBlueprint format.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[List[str], List[str]]</span>
+<span class="sd">            Tuple of (original_datasets, transformed_datasets)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For NeuroBlueprint format, look for sub-XXX</span>
+        <span class="c1"># directories and validate format</span>
+        <span class="n">all_sub_folders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;sub-&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">candidate_datasets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">folder</span>
+            <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">all_sub_folders</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_neuroblueprint_format</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s2">&quot;sub&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Apply dataset exclusions if any</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_datasets</span><span class="p">:</span>
+            <span class="n">candidate_datasets</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ds</span>
+                <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">candidate_datasets</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">ds</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_datasets</span><span class="p">)</span>
             <span class="p">]</span>
 
-    <span class="n">datasets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
-    <span class="n">original_datasets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">original_datasets</span><span class="p">)</span>
+        <span class="c1"># Names are already compliant, so original and</span>
+        <span class="c1"># transformed are identical</span>
+        <span class="k">return</span> <span class="n">candidate_datasets</span><span class="p">,</span> <span class="n">candidate_datasets</span>
 
-    <span class="c1"># Discover TIFF files for each dataset</span>
-    <span class="n">tiff_files</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">tiff_files_flat</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_discover_custom_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Discover datasets in custom format and transform to</span>
+<span class="sd">        NeuroBlueprint compliant names.</span>
 
-    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">original_datasets</span><span class="p">:</span>
-        <span class="n">dataset_path</span> <span class="o">=</span> <span class="n">base_path_obj</span> <span class="o">/</span> <span class="n">dataset</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[List[str], List[str]]</span>
+<span class="sd">            Tuple of (original_datasets, transformed_datasets)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For custom format, use pattern matching</span>
+        <span class="n">candidate_datasets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="p">]</span>
 
-        <span class="c1"># check if there is at least one tiff in the dataset</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">dataset_path</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">&quot;*.tif&quot;</span><span class="p">)):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No tiff files found in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
-            <span class="n">datasets</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-            <span class="n">original_datasets</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-            <span class="k">continue</span>
+        <span class="c1"># Apply dataset exclusions if any</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_datasets</span><span class="p">:</span>
+            <span class="n">candidate_datasets</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">ds</span>
+                <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">candidate_datasets</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">ds</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_datasets</span><span class="p">)</span>
+            <span class="p">]</span>
 
-        <span class="c1"># Initialize the dataset entry with all sessions</span>
-        <span class="n">tiff_files</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">original_datasets</span> <span class="o">=</span> <span class="n">candidate_datasets</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">session</span><span class="p">,</span> <span class="n">tiff_pattern</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tiff_patterns</span><span class="p">):</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Searching for tiff files in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2"> with pattern &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tiff_pattern</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-            <span class="n">files_found</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">name</span>
-                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_pattern</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+        <span class="c1"># No substitutions: use the discovered dataset names directly</span>
+        <span class="n">working_datasets</span> <span class="o">=</span> <span class="n">candidate_datasets</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">files_found</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;No files found for pattern </span><span class="si">{</span><span class="n">tiff_pattern</span><span class="si">}</span><span class="s2"> in &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
-                <span class="c1"># Initialize empty list for this session</span>
-                <span class="n">tiff_files</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="n">session</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Transform to NeuroBlueprint compliant format</span>
+        <span class="n">transformed_datasets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ds</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">working_datasets</span><span class="p">):</span>
+            <span class="c1"># Check if the dataset name already contains key-value pairs</span>
+            <span class="c1"># (indicated by underscore-hyphen patterns like &quot;key-value&quot;)</span>
+            <span class="k">if</span> <span class="s2">&quot;_&quot;</span> <span class="ow">in</span> <span class="n">ds</span> <span class="ow">and</span> <span class="s2">&quot;-&quot;</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">:</span>
+                <span class="c1"># Already has key-value structure, append directly</span>
+                <span class="n">transformed_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sub-</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ds</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">tiff_files</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="n">session</span><span class="p">]</span> <span class="o">=</span> <span class="n">files_found</span>
-                <span class="n">tiff_files_flat</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">files_found</span><span class="p">)</span>
+                <span class="c1"># Use counter as subject ID and original name as metadata</span>
+                <span class="c1"># with id- prefix</span>
+                <span class="n">transformed_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sub-</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_id-</span><span class="si">{</span><span class="n">ds</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">transformed_datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transformed_name</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">original_datasets</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">tiff_files</span><span class="p">,</span> <span class="n">tiff_files_flat</span></div>
+        <span class="k">return</span> <span class="n">original_datasets</span><span class="p">,</span> <span class="n">transformed_datasets</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_dataset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">orig_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trans_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DatasetInfo</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process a single dataset to extract TIFF files and metadata.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        orig_name : str</span>
+<span class="sd">            Original dataset folder name</span>
+<span class="sd">        trans_name : str</span>
+<span class="sd">            Transformed NeuroBlueprint compliant name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Optional[DatasetInfo]</span>
+<span class="sd">            DatasetInfo object if dataset has TIFF files, None otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dataset_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span> <span class="o">/</span> <span class="n">orig_name</span>
+
+        <span class="c1"># Check if there is at least one tiff in</span>
+        <span class="c1"># the dataset using configured patterns</span>
+        <span class="n">has_tiff_files</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">dataset_path</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span> <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_tiff_files</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No tiff files found in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;matching patterns </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Extract subject metadata</span>
+        <span class="n">subject_meta</span><span class="p">,</span> <span class="n">inferred_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_subject_metadata</span><span class="p">(</span>
+            <span class="n">orig_name</span><span class="p">,</span> <span class="n">dataset_path</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Extract TIFF files and session metadata</span>
+        <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_extract_tiff_files_and_metadata</span><span class="p">(</span>
+                <span class="n">dataset_path</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create DatasetInfo object</span>
+        <span class="k">return</span> <span class="n">DatasetInfo</span><span class="p">(</span>
+            <span class="n">original_name</span><span class="o">=</span><span class="n">orig_name</span><span class="p">,</span>
+            <span class="n">transformed_name</span><span class="o">=</span><span class="n">trans_name</span><span class="p">,</span>
+            <span class="n">tiff_files</span><span class="o">=</span><span class="n">tiff_files_by_session</span><span class="p">,</span>
+            <span class="n">subject_metadata</span><span class="o">=</span><span class="n">subject_meta</span><span class="p">,</span>
+            <span class="n">session_metadata</span><span class="o">=</span><span class="n">session_meta_by_session</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_subject_metadata</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">orig_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract subject metadata from dataset folder name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        orig_name : str</span>
+<span class="sd">            Original dataset folder name</span>
+<span class="sd">        dataset_path : Path</span>
+<span class="sd">            Path to the dataset folder</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[str, Dict[str, str]]</span>
+<span class="sd">            Tuple of (subject_metadata, inferred_metadata_patterns)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">neuroblueprint_format</span><span class="p">:</span>
+            <span class="c1"># Auto-infer metadata patterns from all folder names in dataset</span>
+            <span class="n">all_folder_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">orig_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">session_folders</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">d</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_neuroblueprint_format</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ses&quot;</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                        <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_sessions</span>
+                    <span class="p">)</span>
+                <span class="p">]</span>
+                <span class="n">all_folder_names</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">session_folders</span><span class="p">)</span>
+            <span class="n">inferred_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_metadata_keys_from_folder_names</span><span class="p">(</span>
+                <span class="n">all_folder_names</span>
+            <span class="p">)</span>
+            <span class="n">subject_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metadata_from_name</span><span class="p">(</span>
+                <span class="n">orig_name</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">subject_meta</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># For custom format, no metadata extraction</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_tiff_files_and_metadata</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">inferred_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract TIFF files and session metadata for a dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset_path : Path</span>
+<span class="sd">            Path to the dataset folder</span>
+<span class="sd">        inferred_metadata : Dict[str, str]</span>
+<span class="sd">            Inferred metadata patterns for extraction</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[Dict[int, List[str]], Dict[int, str]]</span>
+<span class="sd">            Tuple of (tiff_files_by_session, session_metadata_by_session)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tiff_files_by_session</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">session_meta_by_session</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Always check for NeuroBlueprint session folders first,</span>
+        <span class="c1"># regardless of global neuroblueprint_format setting</span>
+        <span class="n">has_neuroblueprint_sessions</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_neuroblueprint_format</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ses&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">has_neuroblueprint_sessions</span><span class="p">:</span>
+            <span class="c1"># Use NeuroBlueprint session processing</span>
+            <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_extract_neuroblueprint_files</span><span class="p">(</span>
+                    <span class="n">dataset_path</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Found NeuroBlueprint sessions in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;extracted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tiff_files_by_session</span><span class="p">)</span><span class="si">}</span><span class="s2"> sessions&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fall back to custom format processing</span>
+            <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_extract_custom_files</span><span class="p">(</span><span class="n">dataset_path</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No NeuroBlueprint sessions in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;using custom format processing&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_neuroblueprint_files</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">inferred_metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract TIFF files from NeuroBlueprint format dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset_path : Path</span>
+<span class="sd">            Path to the dataset folder</span>
+<span class="sd">        inferred_metadata : Dict[str, str]</span>
+<span class="sd">            Inferred metadata patterns for extraction</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[Dict[int, List[str]], Dict[int, str]]</span>
+<span class="sd">            Tuple of (tiff_files_by_session, session_metadata_by_session)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tiff_files_by_session</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">session_meta_by_session</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># For NeuroBlueprint format, look for ses-XXX folders that are valid</span>
+        <span class="n">session_folders</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">d</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_neuroblueprint_format</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ses&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                    <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_sessions</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Found session folders in </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">session_folders</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Map each session folder to its actual session ID and extract files</span>
+        <span class="k">for</span> <span class="n">session_folder</span> <span class="ow">in</span> <span class="n">session_folders</span><span class="p">:</span>
+            <span class="c1"># Extract the actual session ID from folder name</span>
+            <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_session_id_from_folder_name</span><span class="p">(</span>
+                <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Try each TIFF pattern to find files in this session</span>
+            <span class="k">for</span> <span class="n">tiff_pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="p">:</span>
+                <span class="n">files_in_session</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+                        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">session_folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_pattern</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">files_in_session</span><span class="p">:</span>
+                    <span class="c1"># Extract metadata from session folder name</span>
+                    <span class="n">session_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metadata_from_name</span><span class="p">(</span>
+                        <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Use the actual session ID as key, not enumerate index</span>
+                    <span class="n">tiff_files_by_session</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">session_id</span><span class="p">)]</span> <span class="o">=</span> <span class="n">files_in_session</span>
+                    <span class="n">session_meta_by_session</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">session_id</span><span class="p">)]</span> <span class="o">=</span> <span class="n">session_meta</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">files_in_session</span><span class="p">)</span>
+
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Session </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2"> matched &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;pattern </span><span class="si">{</span><span class="n">tiff_pattern</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;in </span><span class="si">{</span><span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;metadata: </span><span class="si">{</span><span class="n">session_meta</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tiff_files_by_session</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No files found for patterns </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="si">}</span><span class="s2"> in &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;session folders of </span><span class="si">{</span><span class="n">dataset_path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_custom_files</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset_path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract TIFF files from custom format dataset.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dataset_path : Path</span>
+<span class="sd">            Path to the dataset folder</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[Dict[int, List[str]], Dict[int, str]]</span>
+<span class="sd">            Tuple of (tiff_files_by_session, session_metadata_by_session)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tiff_files_by_session</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">session_meta_by_session</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Check if this dataset contains NeuroBlueprint session folders</span>
+        <span class="n">session_folders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">d</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_neuroblueprint_format</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ses&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_sessions</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">session_folders</span><span class="p">:</span>
+            <span class="c1"># Hybrid mode: custom subject folder with NeuroBlueprint sessions</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Detected NeuroBlueprint session folders in custom &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;dataset </span><span class="si">{</span><span class="n">dataset_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">session_folders</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Infer metadata patterns from session folder names</span>
+            <span class="n">inferred_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer_metadata_keys_from_folder_names</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">session_folders</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Process each session folder similar to NeuroBlueprint mode</span>
+            <span class="k">for</span> <span class="n">session_folder</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">session_folders</span><span class="p">):</span>
+                <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_session_id_from_folder_name</span><span class="p">(</span>
+                    <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Try each TIFF pattern to find files in this session</span>
+                <span class="k">for</span> <span class="n">tiff_pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="p">:</span>
+                    <span class="n">files_in_session</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+                            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">session_folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_pattern</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">files_in_session</span><span class="p">:</span>
+                        <span class="c1"># Extract metadata from session folder name</span>
+                        <span class="n">session_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metadata_from_name</span><span class="p">(</span>
+                            <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+                        <span class="p">)</span>
+
+                        <span class="c1"># Use the actual session ID as key</span>
+                        <span class="n">tiff_files_by_session</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">session_id</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">files_in_session</span>
+                        <span class="p">)</span>
+                        <span class="n">session_meta_by_session</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">session_id</span><span class="p">)]</span> <span class="o">=</span> <span class="n">session_meta</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">files_in_session</span><span class="p">)</span>
+
+                        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Session </span><span class="si">{</span><span class="n">session_id</span><span class="si">}</span><span class="s2"> matched pattern &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tiff_pattern</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;in </span><span class="si">{</span><span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with metadata: &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">session_meta</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                        <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Check for custom session folders (not NeuroBlueprint but still</span>
+            <span class="c1"># organized)</span>
+            <span class="n">custom_session_folders</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">d</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                    <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_sessions</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">custom_session_folders</span><span class="p">:</span>
+                <span class="c1"># Custom session folders exist - extract metadata from them</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Detected custom session folders in &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;dataset </span><span class="si">{</span><span class="n">dataset_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">custom_session_folders</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Infer metadata patterns from session folder names</span>
+                <span class="n">inferred_metadata</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_infer_metadata_keys_from_folder_names</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">custom_session_folders</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Process each session folder</span>
+                <span class="k">for</span> <span class="n">session_folder</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">custom_session_folders</span><span class="p">):</span>
+                    <span class="c1"># Extract session ID from folder name (look for</span>
+                    <span class="c1"># session-XXX pattern)</span>
+                    <span class="n">session_id_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                        <span class="sa">r</span><span class="s2">&quot;session-(\d+)&quot;</span><span class="p">,</span> <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">session_id_match</span><span class="p">:</span>
+                        <span class="n">custom_session_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">session_id_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># If no session-XXX pattern, use enumerate starting</span>
+                        <span class="c1"># from 1</span>
+                        <span class="n">custom_session_id</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tiff_files_by_session</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+                    <span class="c1"># Try each TIFF pattern to find files in this session</span>
+                    <span class="k">for</span> <span class="n">tiff_pattern</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="p">:</span>
+                        <span class="n">files_in_session</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                            <span class="p">[</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+                                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">session_folder</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_pattern</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                            <span class="p">]</span>
+                        <span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">files_in_session</span><span class="p">:</span>
+                            <span class="c1"># Extract metadata from session folder name</span>
+                            <span class="n">session_meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_metadata_from_name</span><span class="p">(</span>
+                                <span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inferred_metadata</span>
+                            <span class="p">)</span>
+
+                            <span class="c1"># If no metadata could be inferred from a custom</span>
+                            <span class="c1"># session folder (e.g. plain alphanumeric names</span>
+                            <span class="c1"># like &#39;novelEnv07&#39;), preserve the raw folder name</span>
+                            <span class="c1"># as id-&lt;name&gt; so downstream code can see the</span>
+                            <span class="c1"># original identifier.</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">session_meta</span><span class="p">:</span>
+                                <span class="n">session_meta</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;id-</span><span class="si">{</span><span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                            <span class="n">tiff_files_by_session</span><span class="p">[</span><span class="n">custom_session_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">files_in_session</span>
+                            <span class="p">)</span>
+                            <span class="n">session_meta_by_session</span><span class="p">[</span><span class="n">custom_session_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">session_meta</span>
+                            <span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">files_in_session</span><span class="p">)</span>
+
+                            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Session </span><span class="si">{</span><span class="n">custom_session_id</span><span class="si">}</span><span class="s2"> matched pattern &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tiff_pattern</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">session_folder</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;with metadata: </span><span class="si">{</span><span class="n">session_meta</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="p">)</span>
+                            <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Pure custom format: search directly in dataset folder</span>
+                <span class="k">for</span> <span class="n">session_idx</span><span class="p">,</span> <span class="n">tiff_pattern</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tiff_patterns</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span>
+                <span class="p">):</span>
+                    <span class="n">files_found</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+                            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="n">tiff_pattern</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+
+                    <span class="n">tiff_files_by_session</span><span class="p">[</span><span class="n">session_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">files_found</span>
+                    <span class="k">if</span> <span class="n">files_found</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_all_tiff_files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">files_found</span><span class="p">)</span>
+
+                    <span class="c1"># No session metadata for pure custom format</span>
+                    <span class="n">session_meta_by_session</span><span class="p">[</span><span class="n">session_idx</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">tiff_files_by_session</span><span class="p">,</span> <span class="n">session_meta_by_session</span></div>
 
 </pre></div>
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -112,8 +112,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -384,15 +392,11 @@
 
 <span class="w">  </span><span class="c1"># Find tiffs. Different patterns will correspond to different sessions</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-
-<span class="w">  </span><span class="c1"># Exclude specific patterns</span>
-<span class="w">  </span><span class="nt">exclude_patterns</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Exclude specific dataset patterns (folder names) and session patterns</span>
+<span class="w">  </span><span class="nt">exclude_datasets</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*_test$&quot;</span>
 
-<span class="w">  </span><span class="c1"># Transform names using regex substitutions</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;_&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="c1"># The string &quot;a_b&quot; will be replaced with &quot;ab&quot;</span>
+<span class="w">  </span><span class="nt">exclude_sessions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
 </pre></div>
 </div>
 </section>
@@ -401,8 +405,8 @@
 <ul class="simple">
 <li><p><strong>pattern</strong>: Regular expression to identify dataset directories</p></li>
 <li><p><strong>tiff_patterns</strong>: List of glob patterns for TIFF files. Each pattern corresponds to a session (numbered starting from 0). Tiffs from differest sessions will be stored in different folders. Tiffs in a same session will be analysed together by Suite2p.</p></li>
-<li><p><strong>exclude_patterns</strong>: List of regex patterns for datasets to skip during processing</p></li>
-<li><p><strong>substitutions</strong>: List of regex substitution rules to transform dataset names</p></li>
+<li><p><strong>exclude_datasets</strong>: List of regex patterns for dataset folder names to skip during processing</p></li>
+<li><p><strong>exclude_sessions</strong>: List of regex patterns for session folder names to skip during processing</p></li>
 </ul>
 </section>
 <section id="examples">
@@ -428,9 +432,7 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^2\\d{3}_\\d{2}_\\d{2}&quot;</span><span class="w">  </span><span class="c1"># Match YYYY_MM_DD format</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;_&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="w">  </span><span class="c1"># Note: regex substitutions have been removed; use `exclude_datasets`/`exclude_sessions` instead</span>
 </pre></div>
 </div>
 </section>
@@ -439,9 +441,7 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;exp_\\d+&quot;</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;exp_(\\d+)&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;experiment\\\\1&quot;</span>
+<span class="w">  </span><span class="c1"># Use `exclude_datasets` or `exclude_sessions` instead of name substitutions</span>
 </pre></div>
 </div>
 </section>
@@ -450,9 +450,7 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mouse_[A-Z]\\d{3}&quot;</span><span class="w">  </span><span class="c1"># Match mouse IDs like mouse_A123</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mouse_([A-Z]\\d{3})&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;subject_\\\\1&quot;</span>
+<span class="w">  </span><span class="c1"># Use `exclude_datasets` or `exclude_sessions` instead of name substitutions</span>
 </pre></div>
 </div>
 </section>
@@ -461,9 +459,7 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;session_\\d{3}&quot;</span><span class="w">  </span><span class="c1"># Match session_001, session_002, etc.</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;session_(\\d{3})&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;s\\\\1&quot;</span><span class="w">  </span><span class="c1"># Convert to shorter format like s001</span>
+<span class="w">  </span><span class="c1"># Use `exclude_datasets` or `exclude_sessions` instead of name substitutions</span>
 </pre></div>
 </div>
 </section>
@@ -472,12 +468,10 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;subject_\\d+/session_\\d+&quot;</span><span class="w">  </span><span class="c1"># Match subject_1/session_1, etc.</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;subject_(\\d+)/session_(\\d+)&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;s\\\\1_s\\\\2&quot;</span><span class="w">  </span><span class="c1"># Convert to s1_s1 format</span>
-<span class="w">  </span><span class="nt">exclude_patterns</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*/test/.*&quot;</span><span class="w">  </span><span class="c1"># Exclude test directories</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*/backup/.*&quot;</span><span class="w">  </span><span class="c1"># Exclude backup directories</span>
+<span class="w">  </span><span class="c1"># Use `exclude_datasets` and `exclude_sessions` to avoid test/backup directories</span>
+<span class="w">  </span><span class="nt">exclude_datasets</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*/test/.*&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;.*/backup/.*&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -486,9 +480,7 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">dataset_discovery</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^(?:raw|processed)_\\d{8}_[A-Z]{2}&quot;</span><span class="w">  </span><span class="c1"># Match raw_20240315_AB or processed_20240315_AB</span>
 <span class="w">  </span><span class="nt">tiff_patterns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;*.tif&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">substitutions</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;^(raw|processed)_(\\d{8})_([A-Z]{2})&quot;</span>
-<span class="w">      </span><span class="nt">repl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;\\\\2_\\\\3_\\\\1&quot;</span><span class="w">  </span><span class="c1"># Reorder to 20240315_AB_raw</span>
+<span class="w">  </span><span class="c1"># Use `exclude_datasets`/`exclude_sessions`; name substitutions are not supported</span>
 </pre></div>
 </div>
 <p>The discovered datasets are automatically used in the Snakemake workflow.</p>

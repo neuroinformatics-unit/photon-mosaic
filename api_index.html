@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=37f418d5"></script>
+    <script src="_static/documentation_options.js?v=000c92bf"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
@@ -114,8 +114,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -324,12 +332,12 @@
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.cli.html">photon_mosaic.cli</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.dataset_discovery.html">photon_mosaic.dataset_discovery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.pathing.html">photon_mosaic.pathing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.preprocessing.noop.html">photon_mosaic.preprocessing.noop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.rules.suite2p_run.html">photon_mosaic.rules.suite2p_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/photon_mosaic.snakemake_utils.html">photon_mosaic.snakemake_utils</a></li>
 </ul>
 </div>
 </nav></div>
@@ -402,23 +410,23 @@
 <tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.dataset_discovery.html#module-photon_mosaic.dataset_discovery" title="photon_mosaic.dataset_discovery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.dataset_discovery</span></code></a></p></td>
 <td><p>Dataset discovery module.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.pathing.html#module-photon_mosaic.pathing" title="photon_mosaic.pathing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.pathing</span></code></a></p></td>
-<td><p>Pathing utilities for photon-mosaic.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.contrast.html#module-photon_mosaic.preprocessing.contrast" title="photon_mosaic.preprocessing.contrast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.contrast</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.contrast.html#module-photon_mosaic.preprocessing.contrast" title="photon_mosaic.preprocessing.contrast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.contrast</span></code></a></p></td>
 <td><p>Contrast enhancement preprocessing step.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.derotation.html#module-photon_mosaic.preprocessing.derotation" title="photon_mosaic.preprocessing.derotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.derotation</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.derotation.html#module-photon_mosaic.preprocessing.derotation" title="photon_mosaic.preprocessing.derotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.derotation</span></code></a></p></td>
 <td><p>Derotation preprocessing step for photon-mosaic.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.noop.html#module-photon_mosaic.preprocessing.noop" title="photon_mosaic.preprocessing.noop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.noop</span></code></a></p></td>
-<td><p>No-operation preprocessing step for photon-mosaic.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.preprocessing.noop.html#module-photon_mosaic.preprocessing.noop" title="photon_mosaic.preprocessing.noop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.preprocessing.noop</span></code></a></p></td>
+<td><p>No-operation preprocessing step using symlinks.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.rules.preprocessing.html#module-photon_mosaic.rules.preprocessing" title="photon_mosaic.rules.preprocessing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.rules.preprocessing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.rules.preprocessing.html#module-photon_mosaic.rules.preprocessing" title="photon_mosaic.rules.preprocessing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.rules.preprocessing</span></code></a></p></td>
 <td><p>Snakemake rule for preprocessing image data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.rules.suite2p_run.html#module-photon_mosaic.rules.suite2p_run" title="photon_mosaic.rules.suite2p_run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.rules.suite2p_run</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/photon_mosaic.rules.suite2p_run.html#module-photon_mosaic.rules.suite2p_run" title="photon_mosaic.rules.suite2p_run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.rules.suite2p_run</span></code></a></p></td>
 <td><p>Snakemake rule for running Suite2P.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/photon_mosaic.snakemake_utils.html#module-photon_mosaic.snakemake_utils" title="photon_mosaic.snakemake_utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">photon_mosaic.snakemake_utils</span></code></a></p></td>
+<td><p>Snakemake utility functions for photon-mosaic.</p></td>
 </tr>
 </tbody>
 </table>

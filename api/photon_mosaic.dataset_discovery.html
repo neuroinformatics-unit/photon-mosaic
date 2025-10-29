@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -49,7 +49,7 @@
     <link rel="icon" href="../_static/light-logo-niu.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="photon_mosaic.pathing" href="photon_mosaic.pathing.html" />
+    <link rel="next" title="photon_mosaic.preprocessing.contrast" href="photon_mosaic.preprocessing.contrast.html" />
     <link rel="prev" title="photon_mosaic.cli" href="photon_mosaic.cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -114,8 +114,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -328,12 +336,12 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.cli.html">photon_mosaic.cli</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">photon_mosaic.dataset_discovery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.pathing.html">photon_mosaic.pathing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.contrast.html">photon_mosaic.preprocessing.contrast</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.derotation.html">photon_mosaic.preprocessing.derotation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.preprocessing.noop.html">photon_mosaic.preprocessing.noop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.preprocessing.html">photon_mosaic.rules.preprocessing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="photon_mosaic.rules.suite2p_run.html">photon_mosaic.rules.suite2p_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="photon_mosaic.snakemake_utils.html">photon_mosaic.snakemake_utils</a></li>
 </ul>
 </div>
 </nav></div>
@@ -397,56 +405,160 @@
   <section id="module-photon_mosaic.dataset_discovery">
 <span id="photon-mosaic-dataset-discovery"></span><h1>photon_mosaic.dataset_discovery<a class="headerlink" href="#module-photon_mosaic.dataset_discovery" title="Link to this heading">#</a></h1>
 <p>Dataset discovery module.</p>
-<p>This module provides functions to discover datasets using regex patterns.
+<p>This module provides a class-based approach to discover datasets using regex
+patterns.
 All filtering and transformations are handled through regex substitutions.</p>
-<p class="rubric">Functions</p>
+<p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.dataset_discovery.discover_datasets" title="photon_mosaic.dataset_discovery.discover_datasets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discover_datasets</span></code></a>(base_path[, pattern, ...])</p></td>
-<td><p>Discover datasets and their TIFF files in a directory using regex patterns.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer" title="photon_mosaic.dataset_discovery.DatasetDiscoverer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetDiscoverer</span></code></a>(base_path[, pattern, ...])</p></td>
+<td><p>A class for discovering and organizing datasets with TIFF files.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetInfo" title="photon_mosaic.dataset_discovery.DatasetInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetInfo</span></code></a>(original_name, transformed_name, ...)</p></td>
+<td><p>Container for dataset information.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<dl class="py function">
-<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.discover_datasets">
-<span class="sig-prename descclassname"><span class="pre">photon_mosaic.dataset_discovery.</span></span><span class="sig-name descname"><span class="pre">discover_datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_patterns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">substitutions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiff_patterns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['*.tif']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/dataset_discovery.html#discover_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.dataset_discovery.discover_datasets" title="Link to this definition">#</a></dt>
-<dd><p>Discover datasets and their TIFF files in a directory using regex patterns.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">photon_mosaic.dataset_discovery.</span></span><span class="sig-name descname"><span class="pre">DatasetInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformed_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiff_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/dataset_discovery.html#DatasetInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo" title="Link to this definition">#</a></dt>
+<dd><p>Container for dataset information.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo.original_name">
+<span class="sig-name descname"><span class="pre">original_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo.original_name" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo.transformed_name">
+<span class="sig-name descname"><span class="pre">transformed_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo.transformed_name" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo.tiff_files">
+<span class="sig-name descname"><span class="pre">tiff_files</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">,</span> <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]]</span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo.tiff_files" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo.subject_metadata">
+<span class="sig-name descname"><span class="pre">subject_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo.subject_metadata" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetInfo.session_metadata">
+<span class="sig-name descname"><span class="pre">session_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code><span class="pre">,</span> <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetInfo.session_metadata" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">photon_mosaic.dataset_discovery.</span></span><span class="sig-name descname"><span class="pre">DatasetDiscoverer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_sessions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiff_patterns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuroblueprint_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/dataset_discovery.html#DatasetDiscoverer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer" title="Link to this definition">#</a></dt>
+<dd><p>A class for discovering and organizing datasets with TIFF files.</p>
+<p>This class handles both NeuroBlueprint format and custom format datasets,
+providing methods to discover datasets, extract metadata, and organize
+TIFF files by sessions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.original_datasets" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.original_datasets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">original_datasets</span></code></a></dt><dd><p>Get list of original dataset names.</p>
+</dd>
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.session_metadata" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.session_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">session_metadata</span></code></a></dt><dd><p>Get session metadata by original dataset name and session.</p>
+</dd>
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.subject_metadata" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.subject_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subject_metadata</span></code></a></dt><dd><p>Get subject metadata by original dataset name.</p>
+</dd>
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tiff_files</span></code></a></dt><dd><p>Get TIFF files organized by original dataset name and session.</p>
+</dd>
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files_flat" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files_flat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tiff_files_flat</span></code></a></dt><dd><p>Get flat list of all TIFF files.</p>
+</dd>
+<dt><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.transformed_datasets" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.transformed_datasets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transformed_datasets</span></code></a></dt><dd><p>Get list of transformed dataset names.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.discover" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.discover"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discover</span></code></a>()</p></td>
+<td><p>Discover datasets and their TIFF files in the directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name" title="photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_session_name</span></code></a>(dataset_idx, session_idx)</p></td>
+<td><p>Get session name for given dataset and session indices.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.original_datasets">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">original_datasets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.original_datasets" title="Link to this definition">#</a></dt>
+<dd><p>Get list of original dataset names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.transformed_datasets">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transformed_datasets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.transformed_datasets" title="Link to this definition">#</a></dt>
+<dd><p>Get list of transformed dataset names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tiff_files</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files" title="Link to this definition">#</a></dt>
+<dd><p>Get TIFF files organized by original dataset name and session.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files_flat">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tiff_files_flat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files_flat" title="Link to this definition">#</a></dt>
+<dd><p>Get flat list of all TIFF files.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.subject_metadata">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">subject_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.subject_metadata" title="Link to this definition">#</a></dt>
+<dd><p>Get subject metadata by original dataset name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.session_metadata">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.session_metadata" title="Link to this definition">#</a></dt>
+<dd><p>Get session metadata by original dataset name and session.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name">
+<span class="sig-name descname"><span class="pre">get_session_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/dataset_discovery.html#DatasetDiscoverer.get_session_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name" title="Link to this definition">#</a></dt>
+<dd><p>Get session name for given dataset and session indices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>base_path</strong> (<em>str</em><em> or </em><em>Path</em>) – Base path to search for datasets.</p></li>
-<li><p><strong>pattern</strong> (<em>str</em><em>, </em><em>optional</em>) – Regex pattern to match dataset names, defaults to “.*”
-(all directories).</p></li>
-<li><p><strong>exclude_patterns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of regex patterns for datasets to exclude.</p></li>
-<li><p><strong>substitutions</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of regex substitution pairs to transform dataset names.
-Each dict should have ‘pattern’ and ‘repl’ keys for re.sub().</p></li>
-<li><p><strong>tiff_patterns</strong> (<em>list</em><em>, </em><em>optional</em>) – List of glob patterns for TIFF files. Each pattern corresponds to a
-session. Defaults to [”<a href="#id1"><span class="problematic" id="id2">*</span></a>.tif”] for a single session.</p></li>
+<li><p><strong>dataset_idx</strong> (<em>int</em>) – Index of the dataset in the discovered datasets list</p></li>
+<li><p><strong>session_idx</strong> (<em>int</em>) – Index of the session within the dataset</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>List of original dataset names (sorted)</p></li>
-<li><p>List of transformed dataset names (sorted)</p></li>
-<li><p>Dictionary mapping original dataset names to their TIFF files by
-session (session index as key)</p></li>
-<li><p>List of all TIFF files found across all datasets</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>Formatted session name like “ses-0_metadata” or
+“ses-1_date-20250225”</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple[List[str], List[str], Dict[str, Dict[int, List[str]]], List[str]]</p>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<ul class="simple">
-<li><p>Datasets without any TIFF files are automatically excluded from the
-results</p></li>
-<li><p>Both original and transformed dataset lists are sorted alphabetically</p></li>
-<li><p>Sessions are numbered starting from 0 based on the order in tiff_patterns</p></li>
-<li><p>Empty sessions (no files found) are included with empty lists</p></li>
-</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="photon_mosaic.dataset_discovery.DatasetDiscoverer.discover">
+<span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/photon_mosaic/dataset_discovery.html#DatasetDiscoverer.discover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.discover" title="Link to this definition">#</a></dt>
+<dd><p>Discover datasets and their TIFF files in the directory.</p>
+<p>This method populates the datasets list and all related metadata.
+After calling this method, you can access the results through the
+class properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -471,11 +583,11 @@ results</p></li>
       </div>
     </a>
     <a class="right-next"
-       href="photon_mosaic.pathing.html"
+       href="photon_mosaic.preprocessing.contrast.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">photon_mosaic.pathing</p>
+        <p class="prev-next-title">photon_mosaic.preprocessing.contrast</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -498,7 +610,25 @@ results</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.discover_datasets"><code class="docutils literal notranslate"><span class="pre">discover_datasets()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo"><code class="docutils literal notranslate"><span class="pre">DatasetInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo.original_name"><code class="docutils literal notranslate"><span class="pre">DatasetInfo.original_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo.transformed_name"><code class="docutils literal notranslate"><span class="pre">DatasetInfo.transformed_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo.tiff_files"><code class="docutils literal notranslate"><span class="pre">DatasetInfo.tiff_files</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo.subject_metadata"><code class="docutils literal notranslate"><span class="pre">DatasetInfo.subject_metadata</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetInfo.session_metadata"><code class="docutils literal notranslate"><span class="pre">DatasetInfo.session_metadata</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.original_datasets"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.original_datasets</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.transformed_datasets"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.transformed_datasets</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.tiff_files</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.tiff_files_flat"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.tiff_files_flat</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.subject_metadata"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.subject_metadata</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.session_metadata"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.session_metadata</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.get_session_name"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.get_session_name()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#photon_mosaic.dataset_discovery.DatasetDiscoverer.discover"><code class="docutils literal notranslate"><span class="pre">DatasetDiscoverer.discover()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

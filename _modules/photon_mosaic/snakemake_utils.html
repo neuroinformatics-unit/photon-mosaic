@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>photon_mosaic.pathing &#8212; photon-mosaic</title>
+    <title>photon_mosaic.snakemake_utils &#8212; photon-mosaic</title>
   
   
   
@@ -39,12 +39,12 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../../_static/documentation_options.js?v=000c92bf"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/photon_mosaic/pathing';</script>
-    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/_modules/photon_mosaic/pathing.html" />
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/photon_mosaic/snakemake_utils';</script>
+    <link rel="canonical" href="https://photon-mosaic.neuroinformatics.dev/_modules/photon_mosaic/snakemake_utils.html" />
     <link rel="icon" href="../../_static/light-logo-niu.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -111,8 +111,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="../../_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -353,7 +361,7 @@
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.pathing</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">photon_mosaic.snakemake_utils</span></li>
   </ul>
 </nav>
 </div>
@@ -370,28 +378,92 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for photon_mosaic.pathing</h1><div class="highlight"><pre>
+  <h1>Source code for photon_mosaic.snakemake_utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Pathing utilities for photon-mosaic.</span>
+<span class="sd">Snakemake utility functions for photon-mosaic.</span>
 
-<span class="sd">This module provides functions for handling paths and wildcards in Snakemake.</span>
+<span class="sd">This module provides utility functions used in Snakemake workflows,</span>
+<span class="sd">including path handling, GPU/CUDA checks, and workflow configuration.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span>
+
+
+<div class="viewcode-block" id="get_snakefile_path">
+<a class="viewcode-back" href="../../api/photon_mosaic.snakemake_utils.html#photon_mosaic.snakemake_utils.get_snakefile_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_snakefile_path</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the path to the Snakemake workflow file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Path</span>
+<span class="sd">        Path to the Snakefile in the photon_mosaic package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">files</span><span class="p">(</span><span class="s2">&quot;photon_mosaic&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span> <span class="s2">&quot;Snakefile&quot;</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="cross_platform_path">
-<a class="viewcode-back" href="../../api/photon_mosaic.pathing.html#photon_mosaic.pathing.cross_platform_path">[docs]</a>
+<a class="viewcode-back" href="../../api/photon_mosaic.snakemake_utils.html#photon_mosaic.snakemake_utils.cross_platform_path">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cross_platform_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert path to string format appropriate for the current platform.</span>
+
 <span class="sd">    On Windows, uses forward slashes (as_posix()) for Snakemake compatibility.</span>
 <span class="sd">    On Unix-like systems, uses native path separators (str()).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : Path</span>
+<span class="sd">        Path object to convert</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        String representation of the path appropriate for the platform</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="log_cuda_availability">
+<a class="viewcode-back" href="../../api/photon_mosaic.snakemake_utils.html#photon_mosaic.snakemake_utils.log_cuda_availability">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">log_cuda_availability</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Log CUDA availability as a sanity check for GPU jobs.</span>
+
+<span class="sd">    This function checks if CUDA is available and logs relevant</span>
+<span class="sd">    GPU information. Useful for verifying that GPU resources</span>
+<span class="sd">    are properly allocated in SLURM jobs.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if CUDA is available, False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+        <span class="n">cuda_available</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA sanity check - Available: </span><span class="si">{</span><span class="n">cuda_available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cuda_available</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Device count: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device_count</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Device name: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;CUDA not available - jobs may not use GPU!&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cuda_available</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;PyTorch not available - cannot check CUDA status&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 </pre></div>
 

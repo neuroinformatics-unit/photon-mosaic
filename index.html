@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=37f418d5"></script>
+    <script src="_static/documentation_options.js?v=000c92bf"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
@@ -113,8 +113,16 @@
   
   
   
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt=""/>
+    <img src="_static/logo.png" class="logo__image only-dark pst-js-only" alt=""/>
   
-    <p class="title logo__title">photon-mosaic v0.2.1</p>
+  
+    <p class="title logo__title">photon-mosaic v0.2.2</p>
   
 </a></div>
     
@@ -350,23 +358,36 @@
                 <article class="bd-article">
                   
   <section class="tex2jax_ignore mathjax_ignore" id="photon-mosaic">
-<h1>photon-mosaic<a class="headerlink" href="#photon-mosaic" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> is a Snakemake-based pipeline for the automated and reproducible analysis of multiphoton calcium imaging datasets. It currently integrates <a class="reference external" href="https://suite2p.readthedocs.io/en/latest/">Suite2p</a> for image registration and signal extraction, with plans to support additional analysis modules in the future.</p>
-<figure class="align-default">
-<a class="reference internal image-reference" href="_images/photon-mosaic.png"><img alt="photon-mosaic" src="_images/photon-mosaic.png" style="width: 50%;" />
-</a>
-</figure>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> can leverage SLURM job scheduling, allows standardized and reproducible workflows configurable via a simple YAML config file and produces standardized output folder structures following the <a class="reference external" href="https://neuroblueprint.neuroinformatics.dev/latest/index.html">NeuroBlueprint</a> specification.</p>
-<p>This tool is especially suited for labs that store their data on servers directly connected to an HPC cluster and want to batch-process multiple imaging sessions in parallel.</p>
-<p>The current structure sets the stage for future modular integration of preprocessing, neuropil decontamination and deconvolution of choice, and more.</p>
+<h1><a class="reference internal" href="_images/logo.png"><img alt="photon-mosaic logo" src="_images/logo.png" style="width: 36px;" /></a> photon-mosaic<a class="headerlink" href="#photon-mosaic" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> is a Snakemake-based toolkit for processing multiphoton datasets. It orchestrates a curated collection of algorithms to transform your raw data (e.g., TIFF files) into analysis-ready outputs, such as ΔF/F traces, NWB files, or inferred spikes.</p>
+<p>Each analysis step is integrated into an automated workflow, allowing you to chain preprocessing, registration, signal extraction, and post-processing steps into a single, reproducible pipeline. The design prioritizes usability for labs that process many imaging sessions and need to scale across an HPC cluster.</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/neuroinformatics-unit/photon-mosaic/refs/heads/main/docs/source/_static/pm_illustration1.png" alt="photon-mosaic"/>
+</p>
+<p>This is made possible by <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a>, a workflow management system that provides a powerful and flexible framework for defining and executing complex data processing pipelines. Snakemake automatically builds a directed acyclic graph (DAG) of all the steps in your analysis, ensuring that each step is executed in the correct order and that intermediate results are cached to avoid redundant computations. <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> also includes a <a class="reference external" href="https://github.com/snakemake/snakemake-executor-plugin-slurm">SLURM executor plugin for Snakemake</a> to seamlessly scale your analysis across an HPC cluster. To ensure consistency and reproducibility, <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> writes processed data according to the <a class="reference external" href="https://neuroblueprint.neuroinformatics.dev/latest/index.html">NeuroBlueprint</a> data standard for organizing and storing multiphoton imaging data.</p>
+<p>The goal of <code class="docutils literal notranslate"><span class="pre">photon-mosaic</span></code> is to provide a modular, extensible, and user-friendly framework for multiphoton data analysis that can be easily adapted to different experimental designs and analysis requirements. For each processing step, we aim to vet and integrate the best available open-source tools, providing sensible defaults tailored to the specific data type and experimental modality.</p>
+<section id="roadmap">
+<h2>Roadmap<a class="headerlink" href="#roadmap" title="Link to this heading">#</a></h2>
+<section id="current-features">
+<h3>Current features<a class="headerlink" href="#current-features" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Preprocessing: <a class="reference external" href="https://github.com/neuroinformatics-unit/derotation">derotation</a> and contrast enhancement (see <code class="docutils literal notranslate"><span class="pre">photon_mosaic/preprocessing</span></code>).</p></li>
+<li><p>Registration &amp; source extraction using <a class="reference external" href="https://github.com/MouseLand/suite2p">Suite2p</a>.</p></li>
+<li><p>Cell detection / anatomical ROI extraction using <a class="reference external" href="https://github.com/MouseLand/cellpose">Cellpose (v3 or v4, including Cellpose-SAM)</a>.</p></li>
+</ul>
 </section>
-<section id="contributing">
-<h2>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h2>
-<p>We welcome issues, feature suggestions, and pull requests. Please refer to our <a class="reference external" href="https://photon-mosaic.neuroinformatics.dev/user_guide/index.html">contribution guidelines</a> in the documentation for more information.</p>
+<section id="planned-additions">
+<h3>Planned additions<a class="headerlink" href="#planned-additions" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Registration using <a class="reference external" href="https://github.com/flatironinstitute/NoRMCorre">NoRMCorre</a> for non-rigid motion correction.</p></li>
+<li><p>ROI matching using <a class="reference external" href="https://github.com/RichieHakim/ROICaT">ROICat</a> for inter-session / inter-plane ROI matching.</p></li>
+<li><p>Neuropil subtraction / decontamination: methods from the <a class="reference external" href="https://allensdk.readthedocs.io/en/latest/allensdk.brain_observatory.r_neuropil.html">AllenSDK</a> and <a class="reference external" href="https://github.com/znamlab/2p-preprocess">AST-model</a>.</p></li>
+<li><p>Spike deconvolution: <a class="reference external" href="https://github.com/j-friedrich/OASIS">OASIS</a> and <a class="reference external" href="https://github.com/HelmchenLabSoftware/Cascade">CASCADE</a>.</p></li>
+</ul>
+<p>See <a class="reference external" href="https://github.com/neuroinformatics-unit/photon-mosaic/issues">issues on GitHub</a> and the <a class="reference external" href="https://github.com/orgs/neuroinformatics-unit/projects/17">project board</a> for more details and participate in planning. Please refer to our <a class="reference external" href="https://photon-mosaic.neuroinformatics.dev/contributing.html">guidelines</a> to understand how to contribute.</p>
 <div class="toctree-wrapper compound">
 </div>
+</section>
 </section>
 </section>
 
@@ -408,8 +429,11 @@
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing">Contributing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#roadmap">Roadmap</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#current-features">Current features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#planned-additions">Planned additions</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

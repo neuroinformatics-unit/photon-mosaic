@@ -4,9 +4,10 @@
 .. automodule:: photon_mosaic.dataset_discovery
 
    
-   .. rubric:: Functions
+   .. rubric:: Classes
 
    .. autosummary::
    
-      discover_datasets
+      DatasetDiscoverer
+      DatasetInfo
    
