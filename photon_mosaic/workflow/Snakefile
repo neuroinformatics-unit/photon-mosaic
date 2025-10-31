@@ -18,13 +18,19 @@ from photon_mosaic import log_cuda_availability
 import logging
 
 # Configure logging based on config settings
-log_level = logging.DEBUG if config.get("logging", {}).get("snakemake_verbose", False) else logging.INFO
+log_level = (
+    logging.DEBUG
+    if config.get("logging", {}).get("snakemake_verbose", False)
+    else logging.INFO
+)
 logging.basicConfig(level=log_level)
 logger = logging.getLogger("snakemake.workflow")
+
 
 # CUDA availability check on workflow start
 onstart:
     log_cuda_availability()
+
 
 raw_data_base = Path(config["raw_data_base"]).resolve()
 processed_data_base = Path(config["processed_data_base"]).resolve()
@@ -49,7 +55,9 @@ discoverer = DatasetDiscoverer(
     exclude_datasets=config["dataset_discovery"].get("exclude_datasets"),
     exclude_sessions=config["dataset_discovery"].get("exclude_sessions"),
     tiff_patterns=config["dataset_discovery"].get("tiff_patterns"),
-    neuroblueprint_format=config["dataset_discovery"].get("neuroblueprint_format", False),
+    neuroblueprint_format=config["dataset_discovery"].get(
+        "neuroblueprint_format", False
+    ),
 )
 
 discoverer.discover()
@@ -66,7 +74,9 @@ preproc_targets = [
         / f"{output_pattern}{tiff_name}"
     )
     for i, dataset_name in enumerate(discoverer.transformed_datasets)
-    for session_idx, tiff_list in discoverer.tiff_files[discoverer.original_datasets[i]].items()
+    for session_idx, tiff_list in discoverer.tiff_files[
+        discoverer.original_datasets[i]
+    ].items()
     for tiff_name in tiff_list
 ]
 
@@ -83,17 +93,21 @@ suite2p_targets = [
         / fname
     )
     for i, dataset_name in enumerate(discoverer.transformed_datasets)
-    for session_idx, tiff_list in discoverer.tiff_files[discoverer.original_datasets[i]].items()
+    for session_idx, tiff_list in discoverer.tiff_files[
+        discoverer.original_datasets[i]
+    ].items()
     for fname in ["F.npy", "data.bin"]
     if tiff_list  # Only create targets for sessions that have files
 ]
 
 logger.info(f"Suite2p targets: {suite2p_targets}")
 
+
 include: "preprocessing.smk"
 include: "suite2p.smk"
+
 
 rule all:
     input:
         preproc_targets,
-        suite2p_targets
+        suite2p_targets,
