@@ -433,11 +433,14 @@ class TestMetadataFunctionality:
 
         # keepA tiff present; excluded subj's tiff should not be present
         all_tiffs = discoverer.tiff_files_flat
-        assert "img001.tif" in all_tiffs
-        assert "img002.tif" not in all_tiffs
+        # TIFF files now include relative paths from dataset folder
+        assert any("img001.tif" in tiff for tiff in all_tiffs)
+        assert not any("img002.tif" in tiff for tiff in all_tiffs)
 
         # mapping exists for keepA only
         assert len(discoverer.tiff_files) == 1
         mapping = discoverer.tiff_files[discoverer.original_datasets[0]]
         assert 1 in mapping
-        assert "img001.tif" in mapping[1]
+        # Check that img001.tif is in the mapping
+        # (with potential subdirectory path)
+        assert any("img001.tif" in tiff for tiff in mapping[1])
