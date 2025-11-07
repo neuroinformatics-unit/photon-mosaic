@@ -17,6 +17,7 @@ Output: Suite2p analysis results (F.npy, data.bin) in suite2p/plane0/ directory
 import re
 from photon_mosaic.snakemake_utils import cross_platform_path
 
+
 rule suite2p:
     input:
         tiffs=lambda wildcards: [
@@ -27,9 +28,11 @@ rule suite2p:
                 / "funcimg"
                 / f"{output_pattern}{tiff_name}"
             )
-            for tiff_name in discoverer.tiff_files[discoverer.original_datasets[discoverer.transformed_datasets.index(wildcards.subject_name)]][
-                int(wildcards.session_name.split("_")[0].replace("ses-", ""))
-            ]
+            for tiff_name in discoverer.tiff_files[
+                discoverer.original_datasets[
+                    discoverer.transformed_datasets.index(wildcards.subject_name)
+                ]
+            ][int(wildcards.session_name.split("_")[0].replace("ses-", ""))]
         ],
     output:
         F=cross_platform_path(
@@ -49,7 +52,7 @@ rule suite2p:
             / "suite2p"
             / "plane0"
             / "data.bin"
-        )
+        ),
     params:
         dataset_folder=lambda wildcards: cross_platform_path(
             Path(processed_data_base).resolve()
@@ -59,8 +62,15 @@ rule suite2p:
         ),
     wildcard_constraints:
         subject_name="|".join(discoverer.transformed_datasets),
-        session_name="|".join([discoverer.get_session_name(i, session_idx) for i in range(len(discoverer.transformed_datasets))
-                              for session_idx in discoverer.tiff_files[discoverer.original_datasets[i]].keys()]),
+        session_name="|".join(
+            [
+                discoverer.get_session_name(i, session_idx)
+                for i in range(len(discoverer.transformed_datasets))
+                for session_idx in discoverer.tiff_files[
+                    discoverer.original_datasets[i]
+                ].keys()
+            ]
+        ),
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
