@@ -29,12 +29,18 @@ slurm_config = config.get("slurm", {}) if config.get("use_slurm") else {}
 # Preprocessing rule
 rule preprocessing:
     input:
-        img=lambda wildcards: cross_platform_path(
-            raw_data_base
-            / discoverer.original_datasets[
-                discoverer.transformed_datasets.index(wildcards.subject_name)
+        img=lambda wildcards: [
+            cross_platform_path(
+                raw_data_base
+                / wildcards.subject_name
+                / wildcards.session_name
+                / "funcimg"
+                / tiff_name
+            )
+            for tiff_name in discoverer.tiff_files[discoverer.original_datasets[discoverer.transformed_datasets.index(wildcards.subject_name)]][
+                wildcards.session_name.split("_")[0].replace("ses-", "")
             ]
-        ),
+        ]
     output:
         processed=cross_platform_path(
             Path(processed_data_base).resolve()
