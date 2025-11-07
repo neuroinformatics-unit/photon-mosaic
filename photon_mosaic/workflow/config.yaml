@@ -192,3 +192,4 @@ slurm:
   # slurm_account: "account_name"  # SLURM account for resource tracking
   # constraint: "feature"  # Node feature requirements
   # mem_mb_per_cpu: 2000   # Memory per CPU (mutually exclusive with mem_mb)
+modules: ["cuda/12.4"]
