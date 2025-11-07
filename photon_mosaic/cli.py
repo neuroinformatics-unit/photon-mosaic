@@ -401,7 +401,7 @@ def configure_slurm_execution(cmd, config):
     logger.info("SLURM executor configured successfully")
 
     module_config = config.get("modules", [])
-    if len(module_config)>0:
+    if len(module_config) > 0:
         cmd.append("--use-envmodules")
 
     return cmd
