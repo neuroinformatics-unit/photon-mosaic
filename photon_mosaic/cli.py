@@ -368,10 +368,23 @@ def configure_slurm_execution(cmd, config):
     slurm_logdir = processed_data_base / "photon-mosaic" / "logs" / "slurm"
     ensure_dir(slurm_logdir, mode=0o755, parents=True, exist_ok=True)
 
+    # Use the dedicated --slurm-logdir flag to configure Snakemake's internal
+    # logs
+    cmd.extend(["--slurm-logdir", str(slurm_logdir)])
+
     logger.info(f"SLURM logs will be saved to: {slurm_logdir}")
 
     # Add SLURM-specific arguments
-    slurm_config = config.get("slurm", {})
+    slurm_config = config.get("slurm", {}).copy()
+
+    # Override slurm_extra to properly set SLURM stdout/stderr paths
+    # This ensures the actual sbatch output/error files go to the correct
+    # location
+    # %j = SLURM job ID, %x = job name (rule name)
+    slurm_config["slurm_extra"] = (
+        f"--output={slurm_logdir}/%j_%x.out --error={slurm_logdir}/%j_%x.err"
+    )
+
     log_subsection(logger, "SLURM Configuration")
     logger.info(f"Configuration loaded: {slurm_config}")
 
