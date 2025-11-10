@@ -363,6 +363,9 @@ def configure_slurm_execution(cmd, config):
     logger.info("SLURM execution enabled - configuring SLURM executor")
     cmd.extend(["--executor", "slurm"])
 
+    # Keep SLURM logs after successful job completion
+    cmd.append("--slurm-keep-successful-logs")
+
     # Configure SLURM log directory to persist logs
     processed_data_base = Path(config["processed_data_base"])
     slurm_logdir = processed_data_base / "photon-mosaic" / "logs" / "slurm"
