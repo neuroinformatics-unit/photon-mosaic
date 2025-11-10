@@ -74,7 +74,7 @@ rule suite2p:
     resources:
         **(slurm_config if config.get("use_slurm") else {}),
     envmodules:
-         config.get("modules") else []
+        config["modules"],
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
         from pathlib import Path
