@@ -182,9 +182,6 @@ class DatasetDiscoverer:
         # Get the relative TIFF paths for this session
         tiff_files = dataset.tiff_files.get(session_idx, [])
 
-        # Find the one matching the filename
-        from pathlib import Path
-
         for tiff_path in tiff_files:
             if Path(tiff_path).name == filename:
                 return tiff_path
