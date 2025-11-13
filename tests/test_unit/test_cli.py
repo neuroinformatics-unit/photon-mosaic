@@ -38,12 +38,19 @@ def test_automatic_unlock_on_interrupted_workflow(snake_test_env):
     print(f"Working directory: {workdir}")
 
     # Start the first process
+    # On Windows, we need to create a new process group to avoid
+    # signals affecting the parent process
+    creation_flags = 0
+    if platform.system() == "Windows":
+        creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
+
     with subprocess.Popen(
         cmd,
         cwd=workdir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        creationflags=creation_flags,
     ) as process:
         # Give it time to start and create locks
         # (Snakemake creates locks early in execution)
@@ -52,10 +59,13 @@ def test_automatic_unlock_on_interrupted_workflow(snake_test_env):
         # Interrupt the process to leave it in a locked state
         print("Interrupting process to create a locked state...")
 
-        # Use platform-appropriate signal
-        # On Windows, SIGINT is not supported; use CTRL_BREAK_EVENT instead
+        # On Windows, CTRL_BREAK_EVENT would affect the parent process too,
+        # so we use terminate() instead to cleanly stop the subprocess
+        # On Unix, we can use SIGINT to simulate Ctrl+C
         if platform.system() == "Windows":
-            process.send_signal(signal.CTRL_BREAK_EVENT)
+            # terminate() sends SIGTERM on Windows, which is cleaner
+            # than CTRL_BREAK_EVENT and doesn't affect parent
+            process.terminate()
         else:
             process.send_signal(signal.SIGINT)
 
