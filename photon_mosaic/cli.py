@@ -420,58 +420,51 @@ def execute_pipeline_with_retry(cmd, log_path):
     """
     logger = logging.getLogger(__name__)
 
+    logger.debug(f"Saving logs to: {log_path}")
+    logger.info(f"Launching snakemake with command: {' '.join(cmd)}")
+
+    # Run initial command
     with open(log_path, "w") as logfile:
-        logger.debug(f"Saving logs to: {log_path}")
-        logger.info(f"Launching snakemake with command: {' '.join(cmd)}")
         result = subprocess.run(cmd, stdout=logfile, stderr=logfile)
 
-        # If workflow is locked, automatically unlock and retry
-        if result.returncode != 0:
-            # Check if the error is related to locking by reading the log
-            with open(log_path, "r") as log_read:
-                log_content = log_read.read()
-                if (
-                    "locked" in log_content.lower()
-                    or "lock" in log_content.lower()
-                ):
-                    logger.warning(
-                        "Workflow appears to be locked. "
-                        "Attempting automatic unlock and retry..."
-                    )
+    # If successful, we're done
+    if result.returncode == 0:
+        return 0
 
-                    # Create unlock command
-                    unlock_cmd = cmd.copy()
-                    unlock_cmd.append("--unlock")
+    # Check if the error is due to locking
+    with open(log_path, "r") as log_read:
+        log_content = log_read.read()
 
-                    # Run unlock command
-                    with open(log_path, "a") as logfile_append:
-                        logfile_append.write("\n--- Auto-unlock attempt ---\n")
-                        unlock_result = subprocess.run(
-                            unlock_cmd,
-                            stdout=logfile_append,
-                            stderr=logfile_append,
-                        )
+    if "lock" not in log_content.lower():
+        # Not a lock error, return the original error code
+        return result.returncode
 
-                    # If unlock succeeded, retry the original command
-                    if unlock_result.returncode == 0:
-                        logger.info(
-                            "Automatic unlock successful. "
-                            "Retrying pipeline execution..."
-                        )
-                        with open(log_path, "a") as logfile_append:
-                            logfile_append.write(
-                                "\n--- Retry after unlock ---\n"
-                            )
-                            result = subprocess.run(
-                                cmd,
-                                stdout=logfile_append,
-                                stderr=logfile_append,
-                            )
-                    else:
-                        logger.error(
-                            "Automatic unlock failed. "
-                            "Please check the log file for details."
-                        )
+    # Handle lock error: unlock and retry
+    logger.warning(
+        "Workflow appears to be locked. "
+        "Attempting automatic unlock and retry..."
+    )
+
+    # Unlock
+    unlock_cmd = cmd + ["--unlock"]
+    with open(log_path, "a") as logfile:
+        logfile.write("\n--- Auto-unlock attempt ---\n")
+        unlock_result = subprocess.run(
+            unlock_cmd, stdout=logfile, stderr=logfile
+        )
+
+    if unlock_result.returncode != 0:
+        logger.error(
+            "Automatic unlock failed. "
+            "Please check the log file for details."
+        )
+        return unlock_result.returncode
+
+    # Retry original command
+    logger.info("Automatic unlock successful. Retrying pipeline execution...")
+    with open(log_path, "a") as logfile:
+        logfile.write("\n--- Retry after unlock ---\n")
+        result = subprocess.run(cmd, stdout=logfile, stderr=logfile)
 
     return result.returncode
 
