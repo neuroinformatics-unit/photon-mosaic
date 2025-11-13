@@ -34,6 +34,13 @@ rule preprocessing:
             / discoverer.original_datasets[
                 discoverer.transformed_datasets.index(wildcards.subject_name)
             ]
+            / discoverer.get_tiff_relative_path_for_subject_session_file(
+                wildcards.subject_name,
+                discoverer.extract_session_idx_from_session_name(
+                    wildcards.session_name
+                ),
+                wildcards.tiff,
+            )
         ),
     output:
         processed=cross_platform_path(
@@ -56,15 +63,11 @@ rule preprocessing:
             / wildcards.session_name
             / "funcimg"
         ),
-        ses_idx=lambda wildcards: int(
-            wildcards.session_name.split("_")[0].replace("ses-", "")
+        ses_idx=lambda wildcards: discoverer.extract_session_idx_from_session_name(
+            wildcards.session_name
         ),
     wildcard_constraints:
-        tiff=(
-            "|".join(sorted(discoverer.tiff_files_flat))
-            if discoverer.tiff_files_flat
-            else "dummy"
-        ),
+        tiff=("|".join(sorted([Path(f).name for f in discoverer.tiff_files_flat]))),
         subject_name="|".join(discoverer.transformed_datasets),
         session_name="|".join(
             [

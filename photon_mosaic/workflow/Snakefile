@@ -71,7 +71,7 @@ preproc_targets = [
         / dataset_name
         / discoverer.get_session_name(i, session_idx)
         / "funcimg"
-        / f"{output_pattern}{tiff_name}"
+        / f"{output_pattern}{Path(tiff_name).name}"
     )
     for i, dataset_name in enumerate(discoverer.transformed_datasets)
     for session_idx, tiff_list in discoverer.tiff_files[

@@ -26,13 +26,13 @@ rule suite2p:
                 / wildcards.subject_name
                 / wildcards.session_name
                 / "funcimg"
-                / f"{output_pattern}{tiff_name}"
+                / f"{output_pattern}{Path(tiff_name).name}"
             )
             for tiff_name in discoverer.tiff_files[
                 discoverer.original_datasets[
                     discoverer.transformed_datasets.index(wildcards.subject_name)
                 ]
-            ][int(wildcards.session_name.split("_")[0].replace("ses-", ""))]
+            ][discoverer.extract_session_idx_from_session_name(wildcards.session_name)]
         ],
     output:
         F=cross_platform_path(
