@@ -6,7 +6,6 @@ unlock and retry functionality.
 import platform
 import signal
 import subprocess
-import sys
 import time
 
 
@@ -27,9 +26,7 @@ def test_automatic_unlock_on_interrupted_workflow(snake_test_env):
 
     # Build the photon-mosaic command
     cmd = [
-        sys.executable,
-        "-m",
-        "photon_mosaic.cli",
+        "photon-mosaic",
         "--config",
         str(configfile),
         "--jobs",
