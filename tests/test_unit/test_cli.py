@@ -3,6 +3,7 @@ Unit tests for the CLI module, specifically testing the automatic
 unlock and retry functionality.
 """
 
+import platform
 import signal
 import subprocess
 import sys
@@ -53,13 +54,19 @@ def test_automatic_unlock_on_interrupted_workflow(snake_test_env):
 
         # Interrupt the process to leave it in a locked state
         print("Interrupting process to create a locked state...")
-        process.send_signal(signal.SIGINT)
+
+        # Use platform-appropriate signal
+        # On Windows, SIGINT is not supported; use CTRL_BREAK_EVENT instead
+        if platform.system() == "Windows":
+            process.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            process.send_signal(signal.SIGINT)
 
         # Wait for process to terminate
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            # Force kill if it doesn't respond to SIGINT
+            # Force kill if it doesn't respond to the interrupt signal
             process.kill()
             process.wait()
 
