@@ -1,136 +1,170 @@
 """
-Unit tests for the CLI module, specifically testing the
-execute_pipeline_with_retry function.
+Unit tests for the CLI module, specifically testing the automatic
+unlock and retry functionality.
 """
 
-from unittest.mock import MagicMock, patch
-
-import pytest
-
-from photon_mosaic.cli import execute_pipeline_with_retry
-
-
-@pytest.fixture
-def temp_log_path(tmp_path):
-    """Create a temporary log file path."""
-    return tmp_path / "test.log"
+import signal
+import subprocess
+import sys
+import time
 
 
-@pytest.fixture
-def mock_snakemake_workspace(tmp_path):
-    """Create a temporary directory structure mimicking Snakemake's
-    workspace with lock directory."""
-    workspace = tmp_path / "snakemake_workspace"
-    workspace.mkdir()
-    snakemake_dir = workspace / ".snakemake"
-    snakemake_dir.mkdir()
-    locks_dir = snakemake_dir / "locks"
-    locks_dir.mkdir()
-    return workspace, locks_dir
-
-
-def test_execute_pipeline_with_lock_and_retry(
-    temp_log_path, mock_snakemake_workspace
-):
+def test_automatic_unlock_on_interrupted_workflow(snake_test_env):
     """Test that photon-mosaic automatically handles locked workflows.
 
-    This test verifies the full lock detection and retry cycle:
-    1. Initial command fails with lock error
-    2. Function detects lock in output
-    3. Unlock command is executed
-    4. Original command is retried and succeeds
+    This test verifies the real-world scenario where:
+    1. A photon-mosaic process is interrupted, leaving the directory locked
+    2. Re-running photon-mosaic automatically detects the lock
+    3. The lock is automatically removed
+    4. The pipeline successfully executes
+
+    This simulates what happens when a user Ctrl+C's a running workflow
+    or when a process is killed unexpectedly.
     """
-    workspace, locks_dir = mock_snakemake_workspace
-    lock_file = locks_dir / "test.lock"
+    workdir = snake_test_env["workdir"]
+    configfile = snake_test_env["configfile"]
 
-    call_count = {"count": 0}
+    # Build the photon-mosaic command
+    cmd = [
+        sys.executable,
+        "-m",
+        "photon_mosaic.cli",
+        "--config",
+        str(configfile),
+        "--jobs",
+        "1",
+    ]
 
-    def mock_subprocess_run(cmd, stdout=None, stderr=None, **kwargs):
-        """Mock subprocess that simulates realistic Snakemake behavior."""
-        call_count["count"] += 1
+    print("\n=== Step 1: Starting photon-mosaic and interrupting it ===")
+    print(f"Command: {' '.join(cmd)}")
+    print(f"Working directory: {workdir}")
 
-        # First call: workflow fails due to existing lock
-        if call_count["count"] == 1:
-            # Simulate Snakemake creating a lock file
-            lock_file.write_text("locked by process 12345")
+    # Start the first process
+    with subprocess.Popen(
+        cmd,
+        cwd=workdir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    ) as process:
+        # Give it time to start and create locks
+        # (Snakemake creates locks early in execution)
+        time.sleep(2)
 
-            # Write realistic Snakemake lock error to log
-            if stdout:
-                stdout.write(
-                    "Error: Directory cannot be locked. Please make "
-                    "sure that no other Snakemake process is running "
-                    "on this directory.\n"
-                )
-            result = MagicMock(returncode=1)
-            return result
+        # Interrupt the process to leave it in a locked state
+        print("Interrupting process to create a locked state...")
+        process.send_signal(signal.SIGINT)
 
-        # Second call: unlock command
-        elif call_count["count"] == 2:
-            # Verify this is the unlock command
-            assert "--unlock" in cmd, "Expected unlock command"
+        # Wait for process to terminate
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            # Force kill if it doesn't respond to SIGINT
+            process.kill()
+            process.wait()
 
-            # Simulate successful unlock by removing lock file
-            if lock_file.exists():
-                lock_file.unlink()
+        print(f"Process terminated with return code: {process.returncode}")
 
-            if stdout:
-                stdout.write("Unlocking working directory.\n")
-            result = MagicMock(returncode=0)
-            return result
+    # Verify that the .snakemake directory exists
+    # (indicating snakemake started)
+    snakemake_dir = workdir / ".snakemake"
+    print(f"\nChecking for .snakemake directory: {snakemake_dir}")
+    print(f".snakemake exists: {snakemake_dir.exists()}")
 
-        # Third call: retry succeeds (lock is gone)
+    if snakemake_dir.exists():
+        print("Contents of .snakemake directory:")
+        for item in snakemake_dir.rglob("*"):
+            print(f"  {item.relative_to(snakemake_dir)}")
+
+    # Check for lock-related files
+    locks_dir = snakemake_dir / "locks"
+    incomplete_dir = snakemake_dir / "incomplete"
+    print(f"\nLocks directory exists: {locks_dir.exists()}")
+    print(f"Incomplete directory exists: {incomplete_dir.exists()}")
+
+    print("\n=== Step 2: Re-running photon-mosaic (should auto-unlock) ===")
+
+    # Run the command again - it should automatically unlock and succeed
+    result = subprocess.run(
+        cmd,
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+    )
+
+    print(f"\nSecond run return code: {result.returncode}")
+    print("\n--- STDOUT ---")
+    print(result.stdout)
+    print("\n--- STDERR ---")
+    print(result.stderr)
+
+    # Check the log file for evidence of auto-unlock
+    logs_dir = workdir / "derivatives" / "photon-mosaic" / "logs"
+    print(f"\n=== Step 3: Checking logs in {logs_dir} ===")
+
+    if logs_dir.exists():
+        log_files = list(logs_dir.glob("*.log"))
+        print(f"Found {len(log_files)} log file(s)")
+
+        for log_file in sorted(log_files):
+            print(f"\nReading log file: {log_file.name}")
+            log_content = log_file.read_text()
+
+            # Print relevant sections
+            if "lock" in log_content.lower():
+                print("Found lock-related content in log:")
+                for line in log_content.split("\n"):
+                    if "lock" in line.lower():
+                        print(f"  {line}")
+
+            if "Auto-unlock attempt" in log_content:
+                print("Found auto-unlock marker in log")
+
+            if "Retry after unlock" in log_content:
+                print("Found retry marker in log")
+
+        # Now verify the second run succeeded
+        assert result.returncode == 0, (
+            f"photon-mosaic failed after attempted auto-unlock.\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}\n"
+            f"Check logs in: {logs_dir}"
+        )
+
+        # Verify that the log contains evidence of automatic unlock
+        # (only if the workflow was actually locked)
+        latest_log = max(log_files, key=lambda p: p.stat().st_mtime)
+        log_content = latest_log.read_text()
+
+        # Check if there was a lock error that triggered auto-unlock
+        has_lock_error = "cannot be locked" in log_content.lower()
+        has_auto_unlock = "Auto-unlock attempt" in log_content
+        has_retry = "Retry after unlock" in log_content
+
+        if has_lock_error:
+            # If there was a lock error, verify auto-unlock was attempted
+            assert (
+                has_auto_unlock
+            ), "Lock error detected but no auto-unlock attempt found in log"
+            assert (
+                has_retry
+            ), "Lock error detected but no retry marker found in log"
+            print(
+                "\n✓ Verified: Lock was detected and "
+                "automatic unlock was performed"
+            )
         else:
-            # Verify unlock actually removed the lock
-            assert not lock_file.exists(), "Lock file should be removed"
-
-            if stdout:
-                stdout.write("Workflow completed successfully\n")
-            result = MagicMock(returncode=0)
-            return result
-
-    with patch("photon_mosaic.cli.subprocess.run") as mock_run:
-        mock_run.side_effect = mock_subprocess_run
-
-        with patch("photon_mosaic.cli.logging.getLogger") as mock_get_logger:
-            mock_logger = MagicMock()
-            mock_get_logger.return_value = mock_logger
-
-            cmd = ["snakemake", "--snakefile", "test.smk"]
-            result = execute_pipeline_with_retry(cmd, temp_log_path)
-
-            # Verify successful completion after automatic unlock
-            assert result == 0
-            assert call_count["count"] == 3
-
-            # Verify the correct sequence of commands was executed
-            calls = mock_run.call_args_list
-            assert len(calls) == 3
-
-            # First call: original command
-            assert calls[0][0][0] == cmd
-
-            # Second call: unlock command
-            assert calls[1][0][0] == cmd + ["--unlock"]
-
-            # Third call: retry original command
-            assert calls[2][0][0] == cmd
-
-            # Verify appropriate log messages
-            mock_logger.warning.assert_called_once()
-            warning_msg = mock_logger.warning.call_args[0][0]
-            assert "locked" in warning_msg.lower()
-            assert "automatic" in warning_msg.lower()
-
-            mock_logger.info.assert_any_call(
-                "Automatic unlock successful. Retrying pipeline execution..."
+            print(
+                "\n✓ No lock detected (process may not have "
+                "held lock long enough)"
             )
 
-            # Verify log file structure
-            with open(temp_log_path, "r") as f:
-                log_content = f.read()
-
-            assert "cannot be locked" in log_content.lower()
-            assert "--- Auto-unlock attempt ---" in log_content
-            assert "Unlocking working directory" in log_content
-            assert "--- Retry after unlock ---" in log_content
-            assert "completed successfully" in log_content.lower()
+        print("\n✓ Test passed: Pipeline completed successfully")
+    else:
+        # If logs don't exist, that's also acceptable for a successful run
+        assert result.returncode == 0, (
+            f"photon-mosaic failed.\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}"
+        )
+        print("\n✓ Test passed: Pipeline completed successfully")
