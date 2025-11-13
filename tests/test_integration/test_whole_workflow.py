@@ -1,6 +1,5 @@
 import re
 import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -247,9 +246,7 @@ def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
 def test_photon_mosaic_cli_dry_run(snake_test_env):
     """Test that photon-mosaic can do a dry run."""
     cmd = [
-        sys.executable,
-        "-m",
-        "photon_mosaic.cli",
+        "photon-mosaic",
         "--config",
         str(snake_test_env["configfile"]),
     ]
@@ -272,9 +269,7 @@ def test_photon_mosaic_cli_dry_run(snake_test_env):
 def test_photon_mosaic_cli(snake_test_env):
     """Test photon-mosaic pipeline."""
     cmd = [
-        sys.executable,
-        "-m",
-        "photon_mosaic.cli",
+        "photon-mosaic",
         "--config",
         str(snake_test_env["configfile"]),
     ]
