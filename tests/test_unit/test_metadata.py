@@ -197,6 +197,8 @@ class TestMetadataFunctionality:
             "sub-001_-value",  # Missing key before value
             "sub-mouse123_genotype-WT_age-P60",  # Alphanumeric ID not allowed
             "ses-baseline_condition-control",  # Alphanumeric ID not allowed
+            "ses-task001",  # Alphanumeric ID not allowed
+            "ses-001task",  # Alphanumeric ID not allowed
         ]
 
         for name in invalid_names:
