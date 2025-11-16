@@ -239,6 +239,7 @@ class DatasetDiscoverer:
     @staticmethod
     def _infer_metadata_keys_from_folder_names(
         folder_names: List[str],
+        accept_structural: bool = False,
     ) -> Dict[str, str]:
         """
         Automatically infer metadata keys and patterns from actual folder
@@ -265,7 +266,7 @@ class DatasetDiscoverer:
                     key, value = part.split("-", 1)
                     # Skip 'sub', 'ses', and 'session' as they are structural,
                     # not metadata
-                    if key not in ["sub", "ses", "session"]:
+                    if accept_structural or key not in ["sub", "ses", "session"]:
                         # Create a flexible regex pattern for this key
                         metadata_patterns[key] = f"{key}-([^_]+)"
 
@@ -299,7 +300,7 @@ class DatasetDiscoverer:
 
         # First part should be prefix-identifier
         first_part = parts[0]
-        if not re.match(rf"{expected_prefix}-[a-zA-Z0-9]+", first_part):
+        if not re.fullmatch(rf"{expected_prefix}-\d+", first_part):
             return False
 
         # Remaining parts should be key-value pairs
@@ -827,7 +828,8 @@ class DatasetDiscoverer:
                 # Infer metadata patterns from session folder names
                 inferred_metadata = (
                     self._infer_metadata_keys_from_folder_names(
-                        [s.name for s in custom_session_folders]
+                        [s.name for s in custom_session_folders],
+                        accept_structural=True
                     )
                 )
 
@@ -860,6 +862,10 @@ class DatasetDiscoverer:
                             session_meta = self._extract_metadata_from_name(
                                 session_folder.name, inferred_metadata
                             )
+
+                            # Replace structural metadata keys to id
+                            for k in ["sub-", "ses-", "session-"]:
+                                session_meta = session_meta.replace(k, "id-")
 
                             # If no metadata could be inferred from a custom
                             # session folder (e.g. plain alphanumeric names
