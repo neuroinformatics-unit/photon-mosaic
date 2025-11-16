@@ -266,7 +266,11 @@ class DatasetDiscoverer:
                     key, value = part.split("-", 1)
                     # Skip 'sub', 'ses', and 'session' as they are structural,
                     # not metadata
-                    if accept_structural or key not in ["sub", "ses", "session"]:
+                    if accept_structural or key not in [
+                        "sub",
+                        "ses",
+                        "session",
+                    ]:
                         # Create a flexible regex pattern for this key
                         metadata_patterns[key] = f"{key}-([^_]+)"
 
@@ -829,7 +833,7 @@ class DatasetDiscoverer:
                 inferred_metadata = (
                     self._infer_metadata_keys_from_folder_names(
                         [s.name for s in custom_session_folders],
-                        accept_structural=True
+                        accept_structural=True,
                     )
                 )
 
