@@ -246,11 +246,46 @@ def test_snakemake_with_contrast(snake_test_env, test_config_with_contrast):
 
 def test_photon_mosaic_cli_dry_run(snake_test_env):
     """Test that photon-mosaic can do a dry run."""
-    result = run_snakemake(
-        snake_test_env["workdir"], snake_test_env["configfile"], dry_run=True
+    cmd = [
+        "photon-mosaic",
+        "--config",
+        str(snake_test_env["configfile"]),
+    ]
+
+    result = subprocess.run(
+        cmd,
+        cwd=snake_test_env["workdir"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
+
     assert result.returncode == 0, (
-        f"photon-mosaic CLI dry-run failed:\nSTDOUT:\n{result.stdout}\n"
+        f"photon-mosaic CLI run failed:\nSTDOUT:\n{result.stdout}\n"
+        f"STDERR:\n{result.stderr}"
+    )
+
+
+def test_photon_mosaic_cli(snake_test_env):
+    """Test photon-mosaic pipeline."""
+    cmd = [
+        "photon-mosaic",
+        "--config",
+        str(snake_test_env["configfile"]),
+    ]
+
+    result = subprocess.run(
+        cmd,
+        cwd=snake_test_env["workdir"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+    assert result.returncode == 0, (
+        f"photon-mosaic CLI run failed:\nSTDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"
     )
 
