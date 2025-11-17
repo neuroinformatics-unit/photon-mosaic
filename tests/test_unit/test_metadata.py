@@ -162,12 +162,12 @@ class TestMetadataFunctionality:
 
     def test_neuroblueprint_format_validation(self):
         """Test NeuroBlueprint format validation."""
-        # Valid NeuroBlueprint subject names
+        # Valid NeuroBlueprint subject names (numeric IDs only)
         valid_subjects = [
             "sub-001",
             "sub-001_strain-C57BL6",
             "sub-001_strain-C57BL6_sex-M",
-            "sub-mouse123_genotype-WT_age-P60",
+            "sub-123_genotype-WT_age-P60",
         ]
 
         for name in valid_subjects:
@@ -175,12 +175,12 @@ class TestMetadataFunctionality:
                 name, "sub"
             ), f"{name} should be valid"
 
-        # Valid NeuroBlueprint session names
+        # Valid NeuroBlueprint session names (numeric IDs only)
         valid_sessions = [
             "ses-001",
             "ses-001_date-20250225",
             "ses-001_date-20250225_protocol-training",
-            "ses-baseline_condition-control_paradigm-open-field",
+            "ses-999_condition-control_paradigm-openfield",
         ]
 
         for name in valid_sessions:
@@ -195,6 +195,10 @@ class TestMetadataFunctionality:
             "sub-",  # No identifier
             "sub-001_invalid",  # Missing value after key
             "sub-001_-value",  # Missing key before value
+            "sub-mouse123_genotype-WT_age-P60",  # Alphanumeric ID not allowed
+            "ses-baseline_condition-control",  # Alphanumeric ID not allowed
+            "ses-task001",  # Alphanumeric ID not allowed
+            "ses-001task",  # Alphanumeric ID not allowed
         ]
 
         for name in invalid_names:
@@ -433,11 +437,14 @@ class TestMetadataFunctionality:
 
         # keepA tiff present; excluded subj's tiff should not be present
         all_tiffs = discoverer.tiff_files_flat
-        assert "img001.tif" in all_tiffs
-        assert "img002.tif" not in all_tiffs
+        # TIFF files now include relative paths from dataset folder
+        assert any("img001.tif" in tiff for tiff in all_tiffs)
+        assert not any("img002.tif" in tiff for tiff in all_tiffs)
 
         # mapping exists for keepA only
         assert len(discoverer.tiff_files) == 1
         mapping = discoverer.tiff_files[discoverer.original_datasets[0]]
         assert 1 in mapping
-        assert "img001.tif" in mapping[1]
+        # Check that img001.tif is in the mapping
+        # (with potential subdirectory path)
+        assert any("img001.tif" in tiff for tiff in mapping[1])

@@ -7,12 +7,19 @@ import importlib.resources as pkg_resources
 import logging
 import os
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import yaml
 
 from photon_mosaic import get_snakefile_path
+from photon_mosaic.logging_config import (
+    ensure_dir,
+    log_section_header,
+    log_subsection,
+    setup_logging,
+)
 
 
 def create_argument_parser():
@@ -68,6 +75,11 @@ def create_argument_parser():
         help="Log level",
     )
     parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored log output",
+    )
+    parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
@@ -106,7 +118,7 @@ def ensure_default_config(reset_config=False):
 
     if not default_config_path.exists() or reset_config:
         logger.debug("Creating default config file")
-        default_config_dir.mkdir(parents=True, exist_ok=True)
+        ensure_dir(default_config_dir, mode=0o755, parents=True, exist_ok=True)
         source_config_path = pkg_resources.files("photon_mosaic").joinpath(
             "workflow", "config.yaml"
         )
@@ -240,14 +252,9 @@ def setup_output_directories(processed_data_base):
 
     # Create directories with explicit permissions (rwxr-xr-x)
     # This ensures SLURM jobs can access these directories
-    output_dir.mkdir(parents=True, exist_ok=True)
-    os.chmod(output_dir, 0o755)
-
-    logs_dir.mkdir(exist_ok=True)
-    os.chmod(logs_dir, 0o755)
-
-    configs_dir.mkdir(exist_ok=True)
-    os.chmod(configs_dir, 0o755)
+    ensure_dir(output_dir, mode=0o755, parents=True, exist_ok=True)
+    ensure_dir(logs_dir, mode=0o755, parents=False, exist_ok=True)
+    ensure_dir(configs_dir, mode=0o755, parents=False, exist_ok=True)
 
     return output_dir, logs_dir, configs_dir
 
@@ -267,8 +274,6 @@ def save_timestamped_config(config, configs_dir):
     tuple[str, Path]
         Timestamp string and path to saved config file
     """
-    import os
-
     logger = logging.getLogger(__name__)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -354,12 +359,37 @@ def configure_slurm_execution(cmd, config):
         logger.info("SLURM execution disabled - running locally")
         return cmd
 
+    log_section_header(logger, "SLURM CONFIGURATION")
     logger.info("SLURM execution enabled - configuring SLURM executor")
     cmd.extend(["--executor", "slurm"])
 
+    # Keep SLURM logs after successful job completion
+    cmd.append("--slurm-keep-successful-logs")
+
+    # Configure SLURM log directory to persist logs
+    processed_data_base = Path(config["processed_data_base"])
+    slurm_logdir = processed_data_base / "photon-mosaic" / "logs" / "slurm"
+    ensure_dir(slurm_logdir, mode=0o755, parents=True, exist_ok=True)
+
+    # Use the dedicated --slurm-logdir flag to configure Snakemake's internal
+    # logs
+    cmd.extend(["--slurm-logdir", str(slurm_logdir)])
+
+    logger.info(f"SLURM logs will be saved to: {slurm_logdir}")
+
     # Add SLURM-specific arguments
-    slurm_config = config.get("slurm", {})
-    logger.info(f"SLURM configuration loaded: {slurm_config}")
+    slurm_config = config.get("slurm", {}).copy()
+
+    # Override slurm_extra to properly set SLURM stdout/stderr paths
+    # This ensures the actual sbatch output/error files go to the correct
+    # location
+    # %j = SLURM job ID, %x = job name (rule name)
+    slurm_config["slurm_extra"] = (
+        f"--output={slurm_logdir}/%j_%x.out --error={slurm_logdir}/%j_%x.err"
+    )
+
+    log_subsection(logger, "SLURM Configuration")
+    logger.info(f"Configuration loaded: {slurm_config}")
 
     # Resources that should NOT be passed via --default-resources
     # because they're already set at rule level and may cause conflicts
@@ -502,6 +532,8 @@ def main():
         Time to wait before checking if output files are ready.
     --log-level : str, default="INFO"
         Log level.
+    --no-color : flag, optional
+        Disable colored log output.
     --verbose, -v : flag, optional
         Enable verbose output (default is quiet mode).
     --reset-config : flag, optional
@@ -517,16 +549,18 @@ def main():
     3. Process all TIFF files found in the raw data directory
     4. Generate standardized outputs following NeuroBlueprint specification
     """
+    # Enable unbuffered output for immediate log visibility
+    os.environ["PYTHONUNBUFFERED"] = "1"
+
+    # Also configure stdout/stderr for line buffering
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+
     # Parse command line arguments
     parser = create_argument_parser()
     args = parser.parse_args()
 
-    # Set up logging
-    logging.basicConfig(level=args.log_level)
-    logger = logging.getLogger(__name__)
-    logger.debug("Starting photon-mosaic CLI")
-
-    # Load and process configuration
+    # Load configuration early to get paths for log setup
     config, _ = load_and_process_config(args)
 
     # Set up output directories
@@ -535,29 +569,73 @@ def main():
         processed_data_base
     )
 
+    # Create timestamped log file
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = logs_dir / f"photon_mosaic_{timestamp}.log"
+
+    # Set up improved logging system
+    logger = setup_logging(
+        log_level=args.log_level,
+        log_file=log_file,
+        use_colors=not args.no_color,
+    )
+
+    # Log pipeline startup with clear visual separation
+    log_section_header(logger, "PHOTON-MOSAIC PIPELINE")
+    logger.info(f"Log file: {log_file}")
+    logger.info(
+        f"Python unbuffered: {os.environ.get('PYTHONUNBUFFERED', 'not set')}"
+    )
+    logger.info(f"Timestamp: {timestamp}")
+
+    # Log configuration details
+    log_section_header(logger, "CONFIGURATION")
+    logger.info(f"Raw data base: {config['raw_data_base']}")
+    logger.info(f"Processed data base: {config['processed_data_base']}")
+    logger.info(f"Output directory: {output_dir}")
+    logger.info(f"SLURM enabled: {config.get('use_slurm', False)}")
+    if args.dry_run:
+        logger.info("DRY RUN MODE - No files will be modified")
+
     # Save timestamped config for reproducibility
+    log_section_header(logger, "SAVING CONFIGURATION")
     timestamp, config_path = save_timestamped_config(config, configs_dir)
+    logger.info(f"Config saved to: {config_path}")
 
     # Build snakemake command
+    log_section_header(logger, "BUILDING SNAKEMAKE COMMAND")
     cmd = build_snakemake_command(args, config_path)
+    logger.info(f"Base command: {' '.join(cmd[:5])}...")
 
     # Configure SLURM execution if enabled
     cmd = configure_slurm_execution(cmd, config)
 
     # Add extra arguments if provided
     if args.extra:
+        log_subsection(logger, "Additional Arguments")
+        logger.info(f"Extra arguments: {' '.join(args.extra)}")
         cmd.extend(args.extra)
 
     # Execute pipeline with automatic retry on lock errors
+    log_section_header(logger, "EXECUTING SNAKEMAKE PIPELINE")
     log_filename = f"snakemake_{timestamp}.log"
     log_path = logs_dir / log_filename
+    logger.info(f"Snakemake logs will be saved to: {log_path}")
+    logger.info(f"Full command: {' '.join(cmd)}")
+    logger.info("")
+    logger.info("Starting pipeline execution...")
+
     return_code = execute_pipeline_with_retry(cmd, log_path)
 
     # Report final status
+    log_section_header(logger, "PIPELINE EXECUTION COMPLETE")
     if return_code == 0:
-        logging.info("Snakemake pipeline completed successfully.")
+        logger.info("✓ Snakemake pipeline completed successfully")
+        logger.info(f"  Logs: {log_path}")
     else:
-        logging.info(
-            f"Snakemake pipeline failed with exit code {return_code}. "
-            f"Check the log file at {log_path} for details."
-        )
+        logger.error(f"✗ Pipeline failed with exit code {return_code}")
+        logger.error(f"  Check log file: {log_path}")
+
+    logger.info("")
+
+    return return_code

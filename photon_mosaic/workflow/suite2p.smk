@@ -26,13 +26,13 @@ rule suite2p:
                 / wildcards.subject_name
                 / wildcards.session_name
                 / "funcimg"
-                / f"{output_pattern}{tiff_name}"
+                / f"{output_pattern}{Path(tiff_name).name}"
             )
             for tiff_name in discoverer.tiff_files[
                 discoverer.original_datasets[
                     discoverer.transformed_datasets.index(wildcards.subject_name)
                 ]
-            ][int(wildcards.session_name.split("_")[0].replace("ses-", ""))]
+            ][discoverer.extract_session_idx_from_session_name(wildcards.session_name)]
         ],
     output:
         F=cross_platform_path(
@@ -75,7 +75,11 @@ rule suite2p:
         **(slurm_config if config.get("use_slurm") else {}),
     run:
         from photon_mosaic.rules.suite2p_run import run_suite2p
+        from photon_mosaic import log_cuda_availability
         from pathlib import Path
+
+        # Check CUDA availability for this job
+        log_cuda_availability()
 
         # Ensure all paths are properly resolved
         input_paths = [Path(tiff).resolve() for tiff in input.tiffs]
