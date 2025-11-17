@@ -299,7 +299,7 @@ class DatasetDiscoverer:
 
         # First part should be prefix-identifier
         first_part = parts[0]
-        if not re.match(rf"{expected_prefix}-[a-zA-Z0-9]+", first_part):
+        if not re.fullmatch(rf"{expected_prefix}-\d+", first_part):
             return False
 
         # Remaining parts should be key-value pairs
