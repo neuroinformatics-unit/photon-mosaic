@@ -83,25 +83,7 @@ def metadata_base_config():
     return config
 
 
-@pytest.fixture
-def map_of_tiffs():
-    """
-    Create a map of tiffs in test data using rglob -
-    for backward compatibility with unit tests that use static data.
-    For integration tests, use the map_of_tiffs from snake_test_env instead.
-    """
-
-    photon_mosaic_path = Path(__file__).parent / "data"
-    map_of_tiffs = {}
-    for dataset in photon_mosaic_path.glob("*"):
-        if dataset.is_dir():
-            # Get just the filenames, not the full paths
-            tiff_files = [f.name for f in dataset.rglob("*.tif")]
-            map_of_tiffs[dataset.name] = tiff_files
-    return map_of_tiffs
-
-
-def create_map_of_tiffs(raw_data_path: Path) -> dict:
+def _create_map_of_tiffs(raw_data_path: Path) -> dict:
     """
     Create a map of tiffs for a given raw data directory.
 
@@ -174,7 +156,7 @@ def snake_test_env(tmp_path, base_config, data_factory):
     print(f"Config file created at: {config_path}")
 
     # Generate map of tiffs from the dynamically created data
-    map_of_tiffs = create_map_of_tiffs(raw_data)
+    map_of_tiffs = _create_map_of_tiffs(raw_data)
     print(f"Generated map_of_tiffs: {map_of_tiffs}")
     print("=== End of test environment setup ===\n")
 
