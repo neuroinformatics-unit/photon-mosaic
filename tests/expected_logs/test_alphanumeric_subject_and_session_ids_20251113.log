@@ -1,0 +1,29 @@
+Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_alphanumeric_subject_and_session_ids
+Timestamp: 20251113_155651_416032
+
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_alphanumeric_subject_and_0
+derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_20251113_155632.yaml
+│   └── logs
+│       └── snakemake_20251113_155632.log
+└── sub-001_id-hippocampusA42
+    └── ses-001_id-novelEnv07
+        └── funcimg
+            ├── recording.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+└── hippocampusA42
+    └── novelEnv07
+        └── recording.tif
+

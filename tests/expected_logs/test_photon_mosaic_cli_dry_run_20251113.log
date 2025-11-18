@@ -1,0 +1,21 @@
+Test: tests/test_integration/test_whole_workflow.py::test_photon_mosaic_cli_dry_run
+Timestamp: 20251113_155135_001289
+
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_photon_mosaic_cli_dry_run0
+derivatives/
+
+raw_data/
+├── 001
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   └── type_2_02.tif
+├── 002
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   ├── type_2_01.tif
+│   └── type_2_02.tif
+└── 003
+    └── imaging
+        ├── type_1_01.tif
+        └── type_1_02.tif
+

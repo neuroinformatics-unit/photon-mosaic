@@ -1,0 +1,6 @@
+Test: tests/test_regression/test_file_structure_regression.py::test_file_structure_regression
+Timestamp: 20251113_155718_120405
+
+Root: /Users/laura/source/github/neuroinformatics-unit/photon-mosaic/tests/data
+master.tif
+

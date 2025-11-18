@@ -1,0 +1,11 @@
+Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_custom_metadata_extraction
+Timestamp: 20251113_155309_985024
+
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_custom_metadata_extractio0
+derivatives/
+
+raw_data/
+└── mouse-001_genotype-WT_age-P60_treatment-saline
+    └── session-001_condition-baseline_paradigm-open-field
+        └── recording.tif
+

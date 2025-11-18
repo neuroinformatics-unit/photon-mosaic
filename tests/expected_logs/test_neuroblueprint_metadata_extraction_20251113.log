@@ -1,0 +1,14 @@
+Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_neuroblueprint_metadata_extraction
+Timestamp: 20251113_155310_020435
+
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_neuroblueprint_metadata_e0
+derivatives/
+
+raw_data/
+├── sub-001_strain-C57BL6_sex-M
+│   └── ses-001_date-20250225_protocol-training
+│       └── recording.tif
+└── sub-002_strain-C57BL6_sex-F
+    └── ses-001_date-20250226_protocol-testing
+        └── recording.tif
+

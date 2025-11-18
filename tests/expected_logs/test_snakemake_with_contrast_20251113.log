@@ -1,0 +1,88 @@
+Test: tests/test_integration/test_whole_workflow.py::test_snakemake_with_contrast
+Timestamp: 20251113_155134_092073
+
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_snakemake_with_contrast0
+derivatives/
+├── sub-001_id-001
+│   ├── ses-001
+│   │   └── funcimg
+│   │       ├── enhanced_type_1_01.tif
+│   │       ├── enhanced_type_1_02.tif
+│   │       └── suite2p
+│   │           └── plane0
+│   │               ├── F.npy
+│   │               ├── Fneu.npy
+│   │               ├── data.bin
+│   │               ├── iscell.npy
+│   │               ├── ops.npy
+│   │               ├── spks.npy
+│   │               └── stat.npy
+│   └── ses-002
+│       └── funcimg
+│           ├── enhanced_type_2_02.tif
+│           └── suite2p
+│               └── plane0
+│                   ├── F.npy
+│                   ├── Fneu.npy
+│                   ├── data.bin
+│                   ├── iscell.npy
+│                   ├── ops.npy
+│                   ├── spks.npy
+│                   └── stat.npy
+├── sub-002_id-003
+│   └── ses-001_id-imaging
+│       └── funcimg
+│           ├── enhanced_type_1_01.tif
+│           ├── enhanced_type_1_02.tif
+│           └── suite2p
+│               └── plane0
+│                   ├── F.npy
+│                   ├── Fneu.npy
+│                   ├── data.bin
+│                   ├── iscell.npy
+│                   ├── ops.npy
+│                   ├── spks.npy
+│                   └── stat.npy
+└── sub-003_id-002
+    ├── ses-001
+    │   └── funcimg
+    │       ├── enhanced_type_1_01.tif
+    │       ├── enhanced_type_1_02.tif
+    │       └── suite2p
+    │           └── plane0
+    │               ├── F.npy
+    │               ├── Fneu.npy
+    │               ├── data.bin
+    │               ├── iscell.npy
+    │               ├── ops.npy
+    │               ├── spks.npy
+    │               └── stat.npy
+    └── ses-002
+        └── funcimg
+            ├── enhanced_type_2_01.tif
+            ├── enhanced_type_2_02.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+├── 001
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   └── type_2_02.tif
+├── 002
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   ├── type_2_01.tif
+│   └── type_2_02.tif
+└── 003
+    └── imaging
+        ├── type_1_01.tif
+        └── type_1_02.tif
+
