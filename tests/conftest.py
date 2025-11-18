@@ -5,6 +5,7 @@ This module provides common fixtures used across both unit and integration
 tests, following the DRY principle to avoid duplication.
 """
 
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +14,27 @@ import yaml
 
 from tests.test_data_factory import DataFactory
 from tests.tree_helpers import tree as tree_lines
+
+
+def run_photon_mosaic(workdir, configfile, timeout=None):
+    """Helper function to run photon-mosaic CLI with dry-run.
+
+    timeout: seconds to wait for the subprocess to complete. If None,
+    wait indefinitely (no timeout).
+    """
+    cmd = [
+        "photon-mosaic",
+        "--config",
+        str(configfile),
+        "--log-level",
+        "DEBUG",
+    ]
+
+    result = subprocess.run(
+        cmd, cwd=workdir, capture_output=True, text=True, timeout=timeout
+    )
+
+    return result
 
 
 @pytest.fixture
