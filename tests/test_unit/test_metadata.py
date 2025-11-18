@@ -7,33 +7,12 @@ for both custom metadata and NeuroBlueprint formats.
 
 import re
 import shutil
-import subprocess
 from pathlib import Path
 
 import yaml
 
 from photon_mosaic.dataset_discovery import DatasetDiscoverer
-
-
-def run_photon_mosaic(workdir, configfile, timeout=None):
-    """Helper function to run photon-mosaic CLI with dry-run.
-
-    timeout: seconds to wait for the subprocess to complete. If None,
-    wait indefinitely (no timeout).
-    """
-    cmd = [
-        "photon-mosaic",
-        "--config",
-        str(configfile),
-        "--log-level",
-        "DEBUG",
-    ]
-
-    result = subprocess.run(
-        cmd, cwd=workdir, capture_output=True, text=True, timeout=timeout
-    )
-
-    return result
+from tests.conftest import run_photon_mosaic
 
 
 class TestMetadataFunctionality:
