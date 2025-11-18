@@ -299,7 +299,7 @@ def build_snakemake_command(
     workflow_directory: Path,
 ) -> list[str]:
     """Build the base snakemake command with common arguments.
-    
+
     Will auto-unlock any locked snakemake steps.
 
     Parameters
