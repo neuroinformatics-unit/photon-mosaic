@@ -1,0 +1,12 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_neuroblueprint_metadata_extraction
+
+derivatives/
+
+raw_data/
+├── sub-001_strain-C57BL6_sex-M
+│   └── ses-001_date-20250225_protocol-training
+│       └── recording.tif
+└── sub-002_strain-C57BL6_sex-F
+    └── ses-001_date-20250226_protocol-testing
+        └── recording.tif
+

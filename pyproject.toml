@@ -42,6 +42,7 @@ photon-mosaic = "photon_mosaic.cli:main"
 dev = [
   "pytest",
   "pytest-cov",
+  "pytest-order",
   "coverage",
   "tox",
   "mypy",

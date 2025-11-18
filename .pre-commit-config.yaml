@@ -1,4 +1,4 @@
-exclude: 'conf.py'
+exclude: 'conf.py|tests/expected_logs/.*\.log|tests/logs/.*\.log'
 
 # Configuring https://pre-commit.ci/
 ci:

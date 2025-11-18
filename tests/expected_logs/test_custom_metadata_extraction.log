@@ -1,0 +1,9 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_custom_metadata_extraction
+
+derivatives/
+
+raw_data/
+└── mouse-001_genotype-WT_age-P60_treatment-saline
+    └── session-001_condition-baseline_paradigm-open-field
+        └── recording.tif
+

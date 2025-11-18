@@ -1,0 +1,10 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_simple_discovery_minimal
+
+raw_data/
+├── keepA
+│   └── session1
+│       └── img001.tif
+└── subj_test
+    └── session1
+        └── img002.tif
+

@@ -6,63 +6,6 @@ instead of using static test data directories. This approach:
 1. Uses a single sample TIFF file copied with different names
 2. Generates folder structures dynamically in pytest temp directories
 3. Allows flexible test scenarios without hardcoded folder names
-
-Generated folder structures:
-
-Basic dataset (create_basic_dataset):
-├── raw_data/
-│   ├── 001/
-│   │   ├── type_1_01.tif
-│   │   ├── type_1_02.tif
-│   │   └── type_2_02.tif
-│   ├── 002/
-│   │   ├── type_1_01.tif
-│   │   ├── type_1_02.tif
-│   │   ├── type_2_01.tif
-│   │   └── type_2_02.tif
-│   └── 003/
-│       └── imaging/
-│           ├── type_1_01.tif
-│           └── type_1_02.tif
-
-Custom metadata (create_custom_metadata_dataset):
-├── raw_data/
-│   └── mouse-001_genotype-WT_age-P60_treatment-saline/
-│       └── session-001_condition-baseline_paradigm-open-field/
-│           └── recording.tif
-
-NeuroBlueprint format (create_neuroblueprint_dataset):
-├── raw_data/
-│   ├── sub-001_strain-C57BL6_sex-M/
-│   │   └── ses-001_date-20250225_protocol-training/
-│   │       └── recording.tif
-│   └── sub-002_strain-C57BL6_sex-F/
-│       └── ses-001_date-20250226_protocol-testing/
-│           └── recording.tif
-
-Non-continuous NeuroBlueprint (create_noncontinuous_neuroblueprint_dataset):
-├── raw_data/
-│   ├── sub-005_strain-BALBC_sex-M/
-│   │   ├── ses-001_date-20250221_protocol-test/
-│   │   │   └── recording.tif
-│   │   ├── ses-003_date-20250223_protocol-test/
-│   │   │   └── recording.tif
-│   │   └── ses-007_date-20250227_protocol-test/
-│   │       └── recording.tif
-│   ├── sub-010_strain-BALBC_sex-F/
-│   │   ├── ses-002_date-20250222_protocol-test/
-│   │   │   └── recording.tif
-│   │   └── ses-005_date-20250225_protocol-test/
-│   │       └── recording.tif
-│   └── sub-025_strain-BALBC_sex-M/
-│       ├── ses-001_date-20250221_protocol-test/
-│       │   └── recording.tif
-│       ├── ses-004_date-20250224_protocol-test/
-│       │   └── recording.tif
-│       ├── ses-008_date-20250228_protocol-test/
-│       │   └── recording.tif
-│       └── ses-009_date-20250229_protocol-test/
-│           └── recording.tif
 """
 
 import shutil

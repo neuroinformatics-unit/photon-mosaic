@@ -1,0 +1,19 @@
+Test: tests<PATH>::test_snakemake_dry_run
+
+derivatives/
+
+raw_data/
+├── 001
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   └── type_2_02.tif
+├── 002
+│   ├── type_1_01.tif
+│   ├── type_1_02.tif
+│   ├── type_2_01.tif
+│   └── type_2_02.tif
+└── 003
+    └── imaging
+        ├── type_1_01.tif
+        └── type_1_02.tif
+

@@ -1,0 +1,4 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_metadata_inference
+
+master.tif
+
