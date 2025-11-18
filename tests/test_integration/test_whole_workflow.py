@@ -301,7 +301,6 @@ def test_incremental_processing(snake_test_env):
     result = run_snakemake(
         snake_test_env["workdir"], snake_test_env["configfile"]
     )
-
     assert result.returncode == 0, (
         f"Initial Snakemake execution failed:\nSTDOUT:\n{result.stdout}\n"
         f"STDERR:\n{result.stderr}"
