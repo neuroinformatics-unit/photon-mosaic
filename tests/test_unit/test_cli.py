@@ -21,6 +21,7 @@ def test_unlock_argument_is_appended_when_lock_exists(
     # Create a fake lock file to simulate a locked workflow
     lock_file = locks_dir / "0.preprocessing.lock"
     lock_file.write_text("locked")
+    # We do not need to clean up as the test environment is temporary
 
     # Build the command with lock present
     cmd_with_lock = build_snakemake_command(cli_args, configfile, workdir)
