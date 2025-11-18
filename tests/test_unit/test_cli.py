@@ -43,28 +43,16 @@ def test_unlock_argument_is_appended(snake_test_env):
     # Build the command with lock present
     cmd_with_lock = build_snakemake_command(args, configfile, workdir)
 
-    print(f"Command with lock: {' '.join(cmd_with_lock)}")
-
     # Verify --unlock is in the command
     assert (
         "--unlock" in cmd_with_lock
     ), "Expected --unlock flag when lock files are present"
 
-    print("✓ --unlock flag found in command")
-
     # Now remove the lock file and verify --unlock is NOT added
     lock_file.unlink()
-
     cmd_without_lock = build_snakemake_command(args, configfile, workdir)
-
-    print(f"Command without lock: {' '.join(cmd_without_lock)}")
 
     # Verify --unlock is NOT in the command
     assert (
         "--unlock" not in cmd_without_lock
     ), "Did not expect --unlock flag when no lock files are present"
-
-    print("✓ --unlock flag not present when no locks exist")
-    print(
-        "\n✓ Test passed: --unlock correctly appended based on lock presence"
-    )
