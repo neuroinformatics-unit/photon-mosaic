@@ -1,6 +1,12 @@
-Test: tests<PATH>::test_snakemake_execution
+Test: tests<PATH>::test_photon_mosaic_cli
 
 derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_TIMESTAMP.yaml
+│   └── logs
+│       ├── photon_mosaic_TIMESTAMP.log
+│       └── snakemake_TIMESTAMP.log
 ├── sub-001_id-001
 │   ├── ses-001
 │   │   └── funcimg

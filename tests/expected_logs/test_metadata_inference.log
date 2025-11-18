@@ -1,6 +1,4 @@
-Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_metadata_inference
-Timestamp: 20251113_193511_824954
+Test: tests<PATH>::TestMetadataFunctionality::test_metadata_inference
 
-Root: /Users/laura/source/github/neuroinformatics-unit/photon-mosaic/tests/data
 master.tif
 

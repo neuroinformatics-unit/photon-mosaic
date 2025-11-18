@@ -1,7 +1,5 @@
-Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_custom_metadata_extraction
-Timestamp: 20251113_193511_774167
+Test: tests<PATH>::TestMetadataFunctionality::test_custom_metadata_extraction
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_custom_metadata_extractio0
 derivatives/
 
 raw_data/

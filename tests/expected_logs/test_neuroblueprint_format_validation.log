@@ -1,6 +1,4 @@
-Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_neuroblueprint_format_validation
-Timestamp: 20251113_193511_826348
+Test: tests<PATH>::TestMetadataFunctionality::test_neuroblueprint_format_validation
 
-Root: /Users/laura/source/github/neuroinformatics-unit/photon-mosaic/tests/data
 master.tif
 
