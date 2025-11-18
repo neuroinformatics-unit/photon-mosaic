@@ -7,7 +7,6 @@ generation behavior.
 """
 
 import re
-import shutil
 from pathlib import Path
 
 import pytest
@@ -33,9 +32,6 @@ def test_file_structure_regression():
     # Get all current log files
     current_logs = list(logs_dir.glob("*.log"))
 
-    if not current_logs:
-        pytest.skip("No log files found to compare")
-
     # Group logs by test name (remove timestamp suffix)
     test_logs = {}
     for log_file in current_logs:
@@ -50,20 +46,37 @@ def test_file_structure_regression():
     newly_created = []
 
     def normalize_log_content(log_path):
-        """Read log and remove timestamp lines for comparison."""
+        """
+        Read log and normalize for comparison.
+
+        Removes:
+        - Timestamp lines (vary between runs)
+        - Root path lines (vary between systems/runs)
+        - Timestamps in filenames (YYYYMMDD_HHMMSS format)
+        - Full absolute paths (replace with relative paths)
+        """
         with open(log_path, "r") as f:
             lines = f.readlines()
-        # Skip lines that start with "Timestamp:" or "Root:" (paths differ)
-        # Also replace timestamps in filenames (YYYYMMDD_HHMMSS format)
+
         normalized = []
         timestamp_pattern = re.compile(r"_\d{8}_\d{6}")
+        # Pattern to match absolute paths (both Unix and Windows style)
+        abs_path_pattern = re.compile(r"(/[^\s:]+|[A-Z]:\\[^\s:]+)")
+
         for line in lines:
-            if not line.startswith("Timestamp:") and not line.startswith(
-                "Root:"
-            ):
-                # Replace timestamp patterns in filenames with placeholder
-                normalized_line = timestamp_pattern.sub("_TIMESTAMP", line)
-                normalized.append(normalized_line)
+            # Skip timestamp and root path lines entirely
+            if line.startswith("Timestamp:") or line.startswith("Root:"):
+                continue
+
+            # Replace timestamp patterns in filenames with placeholder
+            normalized_line = timestamp_pattern.sub("_TIMESTAMP", line)
+
+            # Replace absolute paths with placeholder
+            # This handles paths in any context (not just Root: lines)
+            normalized_line = abs_path_pattern.sub("<PATH>", normalized_line)
+
+            normalized.append(normalized_line)
+
         return "".join(normalized)
 
     for test_name, log_files in test_logs.items():
@@ -72,8 +85,10 @@ def test_file_structure_regression():
         expected_log = expected_logs_dir / f"{test_name}.log"
 
         if not expected_log.exists():
-            # First run - copy the log file
-            shutil.copy2(latest_log, expected_log)
+            # First run - save normalized version as expected log
+            normalized_content = normalize_log_content(latest_log)
+            with open(expected_log, "w") as f:
+                f.write(normalized_content)
             newly_created.append(test_name)
         else:
             # Compare file structure (ignore timestamps and root paths)
@@ -81,12 +96,6 @@ def test_file_structure_regression():
             expected_content = normalize_log_content(expected_log)
             if current_content != expected_content:
                 mismatches.append(test_name)
-
-    # Report results
-    if newly_created:
-        print(f"\n✓ Created {len(newly_created)} new expected log(s):")
-        for name in newly_created:
-            print(f"  - {name}")
 
     if mismatches:
         error_msg = (
@@ -100,8 +109,3 @@ def test_file_structure_regression():
         error_msg += "  pytest\n"
 
         pytest.fail(error_msg)
-
-    if not newly_created and not mismatches:
-        print(
-            f"\n✓ All {len(test_logs)} file structure(s) match expected logs"
-        )
