@@ -83,7 +83,7 @@ def metadata_base_config():
     return config
 
 
-def _create_map_of_tiffs(raw_data_path: Path) -> dict:
+def create_map_of_tiffs(raw_data_path: Path) -> dict:
     """
     Create a map of tiffs for a given raw data directory.
 
@@ -156,7 +156,7 @@ def snake_test_env(tmp_path, base_config, data_factory):
     print(f"Config file created at: {config_path}")
 
     # Generate map of tiffs from the dynamically created data
-    map_of_tiffs = _create_map_of_tiffs(raw_data)
+    map_of_tiffs = create_map_of_tiffs(raw_data)
     print(f"Generated map_of_tiffs: {map_of_tiffs}")
     print("=== End of test environment setup ===\n")
 
