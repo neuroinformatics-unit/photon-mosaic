@@ -1,13 +1,13 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_noncontinuous_ids_preservation
-Timestamp: 20251113_155632_490783
+Timestamp: 20251113_193902_707419
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_noncontinuous_ids_preserv0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_noncontinuous_ids_preserv0
 derivatives/
 ├── photon-mosaic
 │   ├── configs
-│   │   └── config_20251113_155405.yaml
+│   │   └── config_20251113_193612.yaml
 │   └── logs
-│       └── snakemake_20251113_155405.log
+│       └── snakemake_20251113_193612.log
 ├── sub-005_strain-BALBC_sex-M
 │   ├── ses-001_date-20250221_protocol-test
 │   │   └── funcimg

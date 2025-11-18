@@ -1,5 +1,5 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_metadata_inference
-Timestamp: 20251113_155310_022104
+Timestamp: 20251113_193511_824954
 
 Root: /Users/laura/source/github/neuroinformatics-unit/photon-mosaic/tests/data
 master.tif

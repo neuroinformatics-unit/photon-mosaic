@@ -1,7 +1,7 @@
 Test: tests/test_integration/test_whole_workflow.py::test_snakemake_dry_run
-Timestamp: 20251113_154830_317463
+Timestamp: 20251113_192914_110723
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_snakemake_dry_run0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_snakemake_dry_run0
 derivatives/
 
 raw_data/

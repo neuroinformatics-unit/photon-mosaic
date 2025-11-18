@@ -1,7 +1,7 @@
 Test: tests/test_integration/test_whole_workflow.py::test_snakemake_with_contrast
-Timestamp: 20251113_155134_092073
+Timestamp: 20251113_193316_943433
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_snakemake_with_contrast0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_snakemake_with_contrast0
 derivatives/
 ├── sub-001_id-001
 │   ├── ses-001

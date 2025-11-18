@@ -1,13 +1,13 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_alphanumeric_subject_and_session_ids
-Timestamp: 20251113_155651_416032
+Timestamp: 20251113_193923_044705
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_alphanumeric_subject_and_0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_alphanumeric_subject_and_0
 derivatives/
 ├── photon-mosaic
 │   ├── configs
-│   │   └── config_20251113_155632.yaml
+│   │   └── config_20251113_193902.yaml
 │   └── logs
-│       └── snakemake_20251113_155632.log
+│       └── snakemake_20251113_193902.log
 └── sub-001_id-hippocampusA42
     └── ses-001_id-novelEnv07
         └── funcimg

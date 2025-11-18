@@ -1,13 +1,13 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_photon_mosaic_cli_neuroblueprint_metadata
-Timestamp: 20251113_155405_629208
+Timestamp: 20251113_193612_350466
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_photon_mosaic_cli_neurobl0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_photon_mosaic_cli_neurobl0
 derivatives/
 ├── photon-mosaic
 │   ├── configs
-│   │   └── config_20251113_155328.yaml
+│   │   └── config_20251113_193532.yaml
 │   └── logs
-│       └── snakemake_20251113_155328.log
+│       └── snakemake_20251113_193532.log
 ├── sub-001_strain-C57BL6_sex-M
 │   └── ses-001_date-20250225_protocol-training
 │       └── funcimg

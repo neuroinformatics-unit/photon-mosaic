@@ -1,7 +1,7 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_simple_discovery_minimal
-Timestamp: 20251113_155651_420934
+Timestamp: 20251113_193923_052594
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_simple_discovery_minimal0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_simple_discovery_minimal0
 raw_data/
 ├── keepA
 │   └── session1

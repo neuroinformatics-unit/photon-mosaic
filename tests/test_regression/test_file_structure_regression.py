@@ -6,6 +6,7 @@ against saved expected logs to catch unexpected changes in file structure
 generation behavior.
 """
 
+import re
 import shutil
 from pathlib import Path
 
@@ -53,12 +54,16 @@ def test_file_structure_regression():
         with open(log_path, "r") as f:
             lines = f.readlines()
         # Skip lines that start with "Timestamp:" or "Root:" (paths differ)
+        # Also replace timestamps in filenames (YYYYMMDD_HHMMSS format)
         normalized = []
+        timestamp_pattern = re.compile(r"_\d{8}_\d{6}")
         for line in lines:
             if not line.startswith("Timestamp:") and not line.startswith(
                 "Root:"
             ):
-                normalized.append(line)
+                # Replace timestamp patterns in filenames with placeholder
+                normalized_line = timestamp_pattern.sub("_TIMESTAMP", line)
+                normalized.append(normalized_line)
         return "".join(normalized)
 
     for test_name, log_files in test_logs.items():

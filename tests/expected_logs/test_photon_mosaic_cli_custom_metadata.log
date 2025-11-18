@@ -1,13 +1,13 @@
 Test: tests/test_unit/test_metadata.py::TestMetadataFunctionality::test_photon_mosaic_cli_custom_metadata
-Timestamp: 20251113_155328_600747
+Timestamp: 20251113_193532_210088
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_photon_mosaic_cli_custom_0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_photon_mosaic_cli_custom_0
 derivatives/
 ├── photon-mosaic
 │   ├── configs
-│   │   └── config_20251113_155310.yaml
+│   │   └── config_20251113_193511.yaml
 │   └── logs
-│       └── snakemake_20251113_155310.log
+│       └── snakemake_20251113_193511.log
 └── sub-001_mouse-001_genotype-WT_age-P60_treatment-saline
     └── ses-001_condition-baseline_paradigm-open-field
         └── funcimg

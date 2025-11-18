@@ -1,7 +1,7 @@
 Test: tests/test_integration/test_whole_workflow.py::test_incremental_processing
-Timestamp: 20251113_155309_949507
+Timestamp: 20251113_193511_734086
 
-Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-13/test_incremental_processing0
+Root: /private/var/folders/hm/mgs34wkj7f5bvs511jq7ccw00000gn/T/pytest-of-laura/pytest-21/test_incremental_processing0
 derivatives/
 ├── sub-001_id-001
 │   ├── ses-001
