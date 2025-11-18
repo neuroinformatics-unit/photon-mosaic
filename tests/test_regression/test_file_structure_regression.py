@@ -6,7 +6,6 @@ against saved expected logs to catch unexpected changes in file structure
 generation behavior.
 """
 
-import filecmp
 import shutil
 from pathlib import Path
 
@@ -40,13 +39,27 @@ def test_file_structure_regression():
     test_logs = {}
     for log_file in current_logs:
         # Extract test name (everything before the timestamp)
-        test_name = "_".join(log_file.stem.split("_")[:-2])
+        # Timestamp format is YYYYMMDD_HHMMSS_microseconds (3 parts)
+        test_name = "_".join(log_file.stem.split("_")[:-3])
         if test_name not in test_logs:
             test_logs[test_name] = []
         test_logs[test_name].append(log_file)
 
     mismatches = []
     newly_created = []
+
+    def normalize_log_content(log_path):
+        """Read log and remove timestamp lines for comparison."""
+        with open(log_path, "r") as f:
+            lines = f.readlines()
+        # Skip lines that start with "Timestamp:" or "Root:" (paths differ)
+        normalized = []
+        for line in lines:
+            if not line.startswith("Timestamp:") and not line.startswith(
+                "Root:"
+            ):
+                normalized.append(line)
+        return "".join(normalized)
 
     for test_name, log_files in test_logs.items():
         # Use the most recent log for this test
@@ -58,8 +71,10 @@ def test_file_structure_regression():
             shutil.copy2(latest_log, expected_log)
             newly_created.append(test_name)
         else:
-            # Compare files
-            if not filecmp.cmp(latest_log, expected_log, shallow=False):
+            # Compare file structure (ignore timestamps and root paths)
+            current_content = normalize_log_content(latest_log)
+            expected_content = normalize_log_content(expected_log)
+            if current_content != expected_content:
                 mismatches.append(test_name)
 
     # Report results
