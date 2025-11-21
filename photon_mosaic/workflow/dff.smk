@@ -29,15 +29,6 @@ rule dff:
             / "plane0"
             / "F.npy"
         ),
-        Fneu=cross_platform_path(
-            Path(processed_data_base).resolve()
-            / "{subject_name}"
-            / "{session_name}"
-            / "funcimg"
-            / "suite2p"
-            / "plane0"
-            / "Fneu.npy"
-        ),
     output:
         dFF=cross_platform_path(
             Path(processed_data_base).resolve()
@@ -48,13 +39,6 @@ rule dff:
             / "plane0"
             / "dFF.npy"
         ),
-    # params:
-    #     dataset_folder=lambda wildcards: cross_platform_path(
-    #         Path(processed_data_base).resolve()
-    #         / wildcards.subject_name
-    #         / wildcards.session_name
-    #         / "funcimg"
-    #     ),
     wildcard_constraints:
         subject_name="|".join(discoverer.transformed_datasets),
         session_name="|".join(
