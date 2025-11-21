@@ -58,7 +58,7 @@ rule dff:
 
         # Ensure all paths are properly resolved
         input_path_F = Path(input.F).resolve()
-        input_path_Fneu = Path(input.Fneu).resolve()
+        input_path_Fneu = Path(input.F).parent.resolve() / "Fneu.npy"
         output_path = Path(output.dFF).resolve()
 
         calculate_dFF(
