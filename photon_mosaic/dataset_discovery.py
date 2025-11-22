@@ -7,6 +7,7 @@ All filtering and transformations are handled through regex substitutions.
 """
 
 import logging
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -837,8 +838,17 @@ class DatasetDiscoverer:
                     )
                 )
 
+                session_folders_sorted = sorted(
+                    custom_session_folders,
+                    key=lambda p: (
+                        p.stat().st_ctime
+                        if isinstance(p, Path)
+                        else os.path.getctime(str(p))
+                    ),
+                )
+
                 # Process each session folder
-                for session_folder in sorted(custom_session_folders):
+                for session_folder in session_folders_sorted:
                     # Extract session ID from folder name (look for
                     # session-XXX pattern)
                     session_id_match = re.search(
