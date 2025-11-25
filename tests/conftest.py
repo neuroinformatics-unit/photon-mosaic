@@ -5,6 +5,7 @@ This module provides common fixtures used across both unit and integration
 tests, following the DRY principle to avoid duplication.
 """
 
+import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -81,6 +82,24 @@ def metadata_base_config():
     # Set default values for metadata testing
     config["dataset_discovery"]["tiff_patterns"] = ["*.tif"]
     return config
+
+
+@pytest.fixture
+def cli_args(snake_test_env):
+    """
+    Create a standard argparse.Namespace for CLI testing.
+    """
+    configfile = snake_test_env["configfile"]
+
+    return argparse.Namespace(
+        config=str(configfile),
+        jobs="1",
+        dry_run=False,
+        forcerun=None,
+        rerun_incomplete=False,
+        latency_wait=10,
+        verbose=False,
+    )
 
 
 def create_map_of_tiffs(raw_data_path: Path) -> dict:
