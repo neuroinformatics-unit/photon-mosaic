@@ -1,0 +1,28 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_alphanumeric_subject_and_session_ids
+
+derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_TIMESTAMP.yaml
+│   └── logs
+│       ├── photon_mosaic_TIMESTAMP.log
+│       └── snakemake_TIMESTAMP.log
+└── sub-001_id-hippocampusA42
+    └── ses-001_id-novelEnv07
+        └── funcimg
+            ├── recording.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+└── hippocampusA42
+    └── novelEnv07
+        └── recording.tif
+

@@ -1,0 +1,28 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_photon_mosaic_cli_custom_metadata
+
+derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_TIMESTAMP.yaml
+│   └── logs
+│       ├── photon_mosaic_TIMESTAMP.log
+│       └── snakemake_TIMESTAMP.log
+└── sub-001_mouse-001_genotype-WT_age-P60_treatment-saline
+    └── ses-001_condition-baseline_paradigm-open-field
+        └── funcimg
+            ├── recording.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+└── mouse-001_genotype-WT_age-P60_treatment-saline
+    └── session-001_condition-baseline_paradigm-open-field
+        └── recording.tif
+

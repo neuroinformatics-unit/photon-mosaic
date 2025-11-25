@@ -44,14 +44,17 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+tests/logs/
 
 # Translations
 *.mo
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
+
+# Test logs (but not expected logs for regression tests)
+tests/logs/*.log
 
 # Flask instance folder
 instance/

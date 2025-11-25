@@ -1,0 +1,144 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_noncontinuous_ids_preservation
+
+derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_TIMESTAMP.yaml
+│   └── logs
+│       ├── photon_mosaic_TIMESTAMP.log
+│       └── snakemake_TIMESTAMP.log
+├── sub-005_strain-BALBC_sex-M
+│   ├── ses-001_date-20250221_protocol-test
+│   │   └── funcimg
+│   │       ├── recording.tif
+│   │       └── suite2p
+│   │           └── plane0
+│   │               ├── F.npy
+│   │               ├── Fneu.npy
+│   │               ├── data.bin
+│   │               ├── iscell.npy
+│   │               ├── ops.npy
+│   │               ├── spks.npy
+│   │               └── stat.npy
+│   ├── ses-003_date-20250223_protocol-test
+│   │   └── funcimg
+│   │       ├── recording.tif
+│   │       └── suite2p
+│   │           └── plane0
+│   │               ├── F.npy
+│   │               ├── Fneu.npy
+│   │               ├── data.bin
+│   │               ├── iscell.npy
+│   │               ├── ops.npy
+│   │               ├── spks.npy
+│   │               └── stat.npy
+│   └── ses-007_date-20250227_protocol-test
+│       └── funcimg
+│           ├── recording.tif
+│           └── suite2p
+│               └── plane0
+│                   ├── F.npy
+│                   ├── Fneu.npy
+│                   ├── data.bin
+│                   ├── iscell.npy
+│                   ├── ops.npy
+│                   ├── spks.npy
+│                   └── stat.npy
+├── sub-010_strain-BALBC_sex-F
+│   ├── ses-002_date-20250222_protocol-test
+│   │   └── funcimg
+│   │       ├── recording.tif
+│   │       └── suite2p
+│   │           └── plane0
+│   │               ├── F.npy
+│   │               ├── Fneu.npy
+│   │               ├── data.bin
+│   │               ├── iscell.npy
+│   │               ├── ops.npy
+│   │               ├── spks.npy
+│   │               └── stat.npy
+│   └── ses-005_date-20250225_protocol-test
+│       └── funcimg
+│           ├── recording.tif
+│           └── suite2p
+│               └── plane0
+│                   ├── F.npy
+│                   ├── Fneu.npy
+│                   ├── data.bin
+│                   ├── iscell.npy
+│                   ├── ops.npy
+│                   ├── spks.npy
+│                   └── stat.npy
+└── sub-025_strain-BALBC_sex-M
+    ├── ses-001_date-20250221_protocol-test
+    │   └── funcimg
+    │       ├── recording.tif
+    │       └── suite2p
+    │           └── plane0
+    │               ├── F.npy
+    │               ├── Fneu.npy
+    │               ├── data.bin
+    │               ├── iscell.npy
+    │               ├── ops.npy
+    │               ├── spks.npy
+    │               └── stat.npy
+    ├── ses-004_date-20250224_protocol-test
+    │   └── funcimg
+    │       ├── recording.tif
+    │       └── suite2p
+    │           └── plane0
+    │               ├── F.npy
+    │               ├── Fneu.npy
+    │               ├── data.bin
+    │               ├── iscell.npy
+    │               ├── ops.npy
+    │               ├── spks.npy
+    │               └── stat.npy
+    ├── ses-008_date-20250228_protocol-test
+    │   └── funcimg
+    │       ├── recording.tif
+    │       └── suite2p
+    │           └── plane0
+    │               ├── F.npy
+    │               ├── Fneu.npy
+    │               ├── data.bin
+    │               ├── iscell.npy
+    │               ├── ops.npy
+    │               ├── spks.npy
+    │               └── stat.npy
+    └── ses-009_date-20250220_protocol-test
+        └── funcimg
+            ├── recording.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+├── sub-005_strain-BALBC_sex-M
+│   ├── ses-001_date-20250221_protocol-test
+│   │   └── recording.tif
+│   ├── ses-003_date-20250223_protocol-test
+│   │   └── recording.tif
+│   └── ses-007_date-20250227_protocol-test
+│       └── recording.tif
+├── sub-010_strain-BALBC_sex-F
+│   ├── ses-002_date-20250222_protocol-test
+│   │   └── recording.tif
+│   └── ses-005_date-20250225_protocol-test
+│       └── recording.tif
+└── sub-025_strain-BALBC_sex-M
+    ├── ses-001_date-20250221_protocol-test
+    │   └── recording.tif
+    ├── ses-004_date-20250224_protocol-test
+    │   └── recording.tif
+    ├── ses-008_date-20250228_protocol-test
+    │   └── recording.tif
+    └── ses-009_date-20250220_protocol-test
+        └── recording.tif
+

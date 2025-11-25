@@ -1,0 +1,44 @@
+Test: tests<PATH>::TestMetadataFunctionality::test_photon_mosaic_cli_neuroblueprint_metadata
+
+derivatives/
+├── photon-mosaic
+│   ├── configs
+│   │   └── config_TIMESTAMP.yaml
+│   └── logs
+│       ├── photon_mosaic_TIMESTAMP.log
+│       └── snakemake_TIMESTAMP.log
+├── sub-001_strain-C57BL6_sex-M
+│   └── ses-001_date-20250225_protocol-training
+│       └── funcimg
+│           ├── recording.tif
+│           └── suite2p
+│               └── plane0
+│                   ├── F.npy
+│                   ├── Fneu.npy
+│                   ├── data.bin
+│                   ├── iscell.npy
+│                   ├── ops.npy
+│                   ├── spks.npy
+│                   └── stat.npy
+└── sub-002_strain-C57BL6_sex-F
+    └── ses-001_date-20250226_protocol-testing
+        └── funcimg
+            ├── recording.tif
+            └── suite2p
+                └── plane0
+                    ├── F.npy
+                    ├── Fneu.npy
+                    ├── data.bin
+                    ├── iscell.npy
+                    ├── ops.npy
+                    ├── spks.npy
+                    └── stat.npy
+
+raw_data/
+├── sub-001_strain-C57BL6_sex-M
+│   └── ses-001_date-20250225_protocol-training
+│       └── recording.tif
+└── sub-002_strain-C57BL6_sex-F
+    └── ses-001_date-20250226_protocol-testing
+        └── recording.tif
+
