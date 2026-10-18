@@ -89,11 +89,10 @@ rule suite2p:
         )
 
         if config["suite2p_ops"].get("split_multitiff", False):
-            n_tiffs = len(input.tiffs)
-            if n_tiffs > 1:
+            if len(input.tiffs) > 1:
                 dset_dir = output_path.parent / "dset_separated"
-                for i in range(n_tiffs):
+                for tiff in input.tiffs:
                     for prefix in ("F", "Fneu", "spks", "stat", "iscell", "ops"):
-                        expected = dset_dir / f"{prefix}_dset{i}.npy"
+                        expected = dset_dir / f"{prefix}_{Path(tiff).stem}.npy"
                         if not expected.exists():
                             raise ValueError(f"Missing expected split file: {expected}")
