@@ -14,6 +14,10 @@ import yaml
 
 from photon_mosaic_pipeline import get_snakefile_path
 from photon_mosaic_pipeline.logging_config import ensure_dir
+from photon_mosaic_pipeline.paths_selection import (
+    _RAWDATA,
+    find_raw_data_paths,
+)
 
 
 def create_argument_parser():
@@ -36,6 +40,16 @@ def create_argument_parser():
         "--project_path",
         default=None,
         help="Override project_path in config file",
+    )
+    parser.add_argument(
+        "--multi-session-path",
+        nargs="+",
+        default=None,
+        help=(
+            "Process several sessions as one. A single folder uses all "
+            "session folders inside it; several values are used as the "
+            "session folders themselves."
+        ),
     )
     parser.add_argument(
         "--jobs", default="1", help="Number of parallel jobs to run"
@@ -194,6 +208,66 @@ def update_default_config(config_path, project_path):
                 f.write(f"project_path: {project_path}\n")
             else:
                 f.write(line)
+
+
+def link_multi_session(session_args, config):
+    """Symlink TIFFs from several sessions into one merged session.
+
+    Parameters
+    ----------
+    session_args : list[str]
+        A single folder containing session folders, or several session
+        folders.
+    config : dict
+        Configuration dictionary, used for dataset discovery filters.
+
+    Returns
+    -------
+    Path
+        Root of a new project containing
+        ``rawdata/<subject>/ses-merged/funcimg/`` with the linked TIFFs.
+    """
+    logger = logging.getLogger(__name__)
+
+    sessions = [Path(p).resolve() for p in session_args]
+    if len(sessions) == 1:
+        sessions = sorted(p for p in sessions[0].iterdir() if p.is_dir())
+
+    # Session folders live at <project>/rawdata/<subject>/<session>
+    original_project = sessions[0].parents[2]
+    discovery = config["dataset_discovery"]
+    tiffs = find_raw_data_paths(
+        original_project,
+        tiff_patterns=discovery.get("tiff_patterns", ["*.tif"]),
+        exclude_datasets=discovery.get("exclude_datasets"),
+        exclude_sessions=discovery.get("exclude_sessions"),
+    )
+    tiffs = [t for t in tiffs if t.parents[1] in sessions]
+    if not tiffs:
+        raise FileNotFoundError(f"No TIFFs found in sessions: {sessions}")
+
+    merged_project = (
+        original_project
+        / "multisession"
+        / "__".join(s.name for s in sessions)
+    )
+    funcimg = (
+        merged_project
+        / _RAWDATA
+        / sessions[0].parent.name
+        / "ses-merged"
+        / "funcimg"
+    )
+    funcimg.mkdir(parents=True, exist_ok=True)
+
+    # Prefix with session name to avoid clashes and keep sessions in order
+    for tiff in tiffs:
+        link = funcimg / f"{tiff.parents[1].name}_{tiff.name}"
+        if not link.is_symlink():
+            link.symlink_to(tiff)
+    logger.info(f"Linked {len(tiffs)} TIFF(s) into {funcimg}")
+
+    return merged_project
 
 
 def setup_output_directories(project_path):
@@ -545,6 +619,13 @@ def main():
 
     # Load and process configuration
     config, _ = load_and_process_config(args)
+
+    if args.multi_session_path:
+        config["project_path"] = str(
+            link_multi_session(args.multi_session_path, config)
+        )
+        # Links are already filtered and renamed, so take them all
+        config["dataset_discovery"] = {"tiff_patterns": ["*"]}
 
     # Set up output directories
     project_path = Path(config["project_path"])

@@ -51,7 +51,7 @@ def find_raw_data_paths(
     raw_data_paths: list[Path] = []
     for pattern in tiff_patterns:
         raw_data_paths.extend(
-            project_path.rglob(f"{_RAWDATA}/sub-*/ses-*/funcimg/{pattern}")
+            project_path.glob(f"{_RAWDATA}/sub-*/ses-*/funcimg/{pattern}")
         )
     raw_data_paths = sorted(set(raw_data_paths))
 
