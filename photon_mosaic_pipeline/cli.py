@@ -44,10 +44,12 @@ def create_argument_parser():
         nargs="+",
         default=None,
         help=(
-            "Process several sessions as one. A single folder uses all "
-            "session folders inside it; several values are used as the "
-            "session folders themselves. Only folders ending in -t<N> are "
-            "used, concatenated in order of N."
+            "Process several sessions as one. A single folder uses the "
+            "session folders in its rawdata/ (or inside it, if it has no "
+            "rawdata/); several values are used as the session folders "
+            "themselves. Only folders ending in -t<N> are used, "
+            "concatenated in order of N. Output goes to "
+            "<main-folder>/preprocessed/, where <main-folder> holds rawdata/."
         ),
     )
     parser.add_argument(
@@ -297,45 +299,95 @@ def subject_folder_name(name):
     return "sub-" + re.sub(r"[^A-Za-z0-9]", "", name)
 
 
+def find_session_folders(session_args):
+    """Candidate session folders from the ``--multi-session-path`` values.
+
+    Parameters
+    ----------
+    session_args : list[str]
+        A single main folder (its ``rawdata/`` is searched if present,
+        else the folder itself), or several session folders.
+
+    Returns
+    -------
+    list[Path]
+        Several values are returned as given. For a single folder, its
+        subfolders are returned, plus the subfolders of any that lack a
+        ``-t<N>`` suffix, so sessions may sit inside subject folders.
+    """
+    paths = [Path(p).resolve() for p in session_args]
+    if len(paths) > 1:
+        return paths
+
+    root = paths[0]
+    if (root / _RAWDATA).is_dir():
+        root = root / _RAWDATA
+    folders = []
+    for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+        folders.append(folder)
+        if not _SESSION_ORDER.search(folder.name):
+            folders.extend(p for p in folder.iterdir() if p.is_dir())
+    return folders
+
+
+def main_folder(session):
+    """Folder holding ``rawdata/`` for a session, where output goes.
+
+    Parameters
+    ----------
+    session : Path
+        A session folder, at ``<main>/rawdata/<session>`` or
+        ``<main>/rawdata/<subject>/<session>``.
+
+    Returns
+    -------
+    Path
+        ``<main>``, or the session's grandparent if no ``rawdata`` folder
+        is found above it.
+    """
+    for folder in session.parents[:2]:
+        if folder.name == _RAWDATA:
+            return folder.parent
+    return session.parents[1]
+
+
 def link_multi_session(session_args, config):
     """Symlink TIFFs from several sessions into one merged session.
 
     Parameters
     ----------
     session_args : list[str]
-        A single folder containing session folders, or several session
-        folders.
+        A single main folder, or several session folders; see
+        ``find_session_folders``.
     config : dict
         Configuration dictionary, used for ``dataset_discovery.tiff_patterns``.
 
     Returns
     -------
     Path
-        Root of a new project containing
-        ``rawdata/<subject>/ses-merged/funcimg/`` with the linked TIFFs.
+        Root of a new project at ``<main>/preprocessed/<merged name>``,
+        containing ``rawdata/<subject>/ses-merged/funcimg/`` with the
+        linked TIFFs.
     """
     logger = logging.getLogger(__name__)
 
-    sessions = [Path(p).resolve() for p in session_args]
-    if len(sessions) == 1:
-        sessions = [p for p in sessions[0].iterdir() if p.is_dir()]
-    session_order = order_sessions(sessions)
+    session_order = order_sessions(find_session_folders(session_args))
     sessions = list(session_order)
 
-    # Session folders usually live at <project>/rawdata/<subject>/<session>;
-    # otherwise put the output next to the folder holding the sessions.
-    # Glob them directly: their names (e.g. date-...-t0) need not pass
+    # Glob sessions directly: their names (e.g. date-...-t0) need not pass
     # NeuroBlueprint validation, only the merged project does.
-    original_project = sessions[0].parents[1]
-    if original_project.name == _RAWDATA:
-        original_project = original_project.parent
+    main = main_folder(sessions[0])
     subjects = {s.parent for s in sessions}
     if len(subjects) > 1:
         raise ValueError(
             f"Sessions span several subjects {sorted(subjects)}; "
             "merge one subject at a time."
         )
-    subject = subject_folder_name(subjects.pop().name)
+    # Sessions directly in rawdata/ have no subject folder; use <main>'s name
+    parent = subjects.pop()
+    subject = subject_folder_name(
+        main.name if parent.name == _RAWDATA else parent.name
+    )
     tiff_patterns = config["dataset_discovery"].get("tiff_patterns", ["*.tif"])
     tiffs = sorted(
         {
@@ -348,12 +400,7 @@ def link_multi_session(session_args, config):
     if not tiffs:
         raise FileNotFoundError(f"No TIFFs found in sessions: {sessions}")
 
-    merged_project = (
-        original_project
-        / "multisession"
-        / subject
-        / merged_session_name(session_order)
-    )
+    merged_project = main / "preprocessed" / merged_session_name(session_order)
     funcimg = merged_project / _RAWDATA / subject / "ses-merged" / "funcimg"
     funcimg.mkdir(parents=True, exist_ok=True)
 
