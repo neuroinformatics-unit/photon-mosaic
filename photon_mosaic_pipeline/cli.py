@@ -6,6 +6,7 @@ import argparse
 import importlib.resources as pkg_resources
 import logging
 import os
+import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -14,10 +15,7 @@ import yaml
 
 from photon_mosaic_pipeline import get_snakefile_path
 from photon_mosaic_pipeline.logging_config import ensure_dir
-from photon_mosaic_pipeline.paths_selection import (
-    _RAWDATA,
-    find_raw_data_paths,
-)
+from photon_mosaic_pipeline.paths_selection import _RAWDATA
 
 
 def create_argument_parser():
@@ -48,7 +46,8 @@ def create_argument_parser():
         help=(
             "Process several sessions as one. A single folder uses all "
             "session folders inside it; several values are used as the "
-            "session folders themselves."
+            "session folders themselves. Only folders ending in -t<N> are "
+            "used, concatenated in order of N."
         ),
     )
     parser.add_argument(
@@ -210,6 +209,65 @@ def update_default_config(config_path, project_path):
                 f.write(line)
 
 
+_SESSION_ORDER = re.compile(r"-t(\d+)$")
+
+
+def order_sessions(folders):
+    """Keep session folders ending in ``-t<N>`` and order them by N.
+
+    Parameters
+    ----------
+    folders : list[Path]
+        Candidate session folders. Ones without a ``-t<N>`` suffix are
+        skipped.
+
+    Returns
+    -------
+    dict[Path, int]
+        Session folder -> N, in ascending order of N.
+    """
+    logger = logging.getLogger(__name__)
+
+    order = {}
+    for folder in folders:
+        match = _SESSION_ORDER.search(folder.name)
+        if match is None:
+            logger.info(f"Skipping folder without -t<N> suffix: {folder}")
+            continue
+        order[folder] = int(match.group(1))
+
+    if not order:
+        raise FileNotFoundError(
+            f"No session folders ending in -t<N> among: {folders}"
+        )
+    if len(set(order.values())) != len(order):
+        raise ValueError(f"Duplicate -t<N> indices in sessions: {order}")
+
+    return dict(sorted(order.items(), key=lambda item: item[1]))
+
+
+def merged_session_name(session_order):
+    """Short folder name for a set of ordered sessions.
+
+    Parameters
+    ----------
+    session_order : dict[Path, int]
+        Session folder -> t-index, as returned by ``order_sessions``.
+
+    Returns
+    -------
+    str
+        ``<base>_t<first>-t<last>`` for consecutive indices, otherwise
+        every index is listed (``<base>_t0+t1+t5``). ``<base>`` is the
+        session name up to its first underscore (e.g. ``ses-2LM001``).
+    """
+    bases = "__".join(sorted({s.name.split("_")[0] for s in session_order}))
+    indices = list(session_order.values())
+    if indices == list(range(indices[0], indices[-1] + 1)):
+        return f"{bases}_t{indices[0]}-t{indices[-1]}"
+    return f"{bases}_" + "+".join(f"t{i}" for i in indices)
+
+
 def link_multi_session(session_args, config):
     """Symlink TIFFs from several sessions into one merged session.
 
@@ -219,7 +277,7 @@ def link_multi_session(session_args, config):
         A single folder containing session folders, or several session
         folders.
     config : dict
-        Configuration dictionary, used for dataset discovery filters.
+        Configuration dictionary, used for ``dataset_discovery.tiff_patterns``.
 
     Returns
     -------
@@ -231,38 +289,49 @@ def link_multi_session(session_args, config):
 
     sessions = [Path(p).resolve() for p in session_args]
     if len(sessions) == 1:
-        sessions = sorted(p for p in sessions[0].iterdir() if p.is_dir())
+        sessions = [p for p in sessions[0].iterdir() if p.is_dir()]
+    session_order = order_sessions(sessions)
+    sessions = list(session_order)
 
-    # Session folders live at <project>/rawdata/<subject>/<session>
+    # Session folders live at <project>/rawdata/<subject>/<session>.
+    # Glob them directly: their names (e.g. date-...-t0) need not pass
+    # NeuroBlueprint validation, only the merged project does.
     original_project = sessions[0].parents[2]
-    discovery = config["dataset_discovery"]
-    tiffs = find_raw_data_paths(
-        original_project,
-        tiff_patterns=discovery.get("tiff_patterns", ["*.tif"]),
-        exclude_datasets=discovery.get("exclude_datasets"),
-        exclude_sessions=discovery.get("exclude_sessions"),
+    subjects = {s.parent.name for s in sessions}
+    if len(subjects) > 1:
+        raise ValueError(
+            f"Sessions span several subjects {sorted(subjects)}; "
+            "merge one subject at a time."
+        )
+    subject = subjects.pop()
+    tiff_patterns = config["dataset_discovery"].get("tiff_patterns", ["*.tif"])
+    tiffs = sorted(
+        {
+            tiff
+            for session in sessions
+            for pattern in tiff_patterns
+            for tiff in (session / "funcimg").glob(pattern)
+        }
     )
-    tiffs = [t for t in tiffs if t.parents[1] in sessions]
     if not tiffs:
         raise FileNotFoundError(f"No TIFFs found in sessions: {sessions}")
 
     merged_project = (
         original_project
         / "multisession"
-        / "__".join(s.name for s in sessions)
+        / subject
+        / merged_session_name(session_order)
     )
-    funcimg = (
-        merged_project
-        / _RAWDATA
-        / sessions[0].parent.name
-        / "ses-merged"
-        / "funcimg"
-    )
+    funcimg = merged_project / _RAWDATA / subject / "ses-merged" / "funcimg"
     funcimg.mkdir(parents=True, exist_ok=True)
 
-    # Prefix with session name to avoid clashes and keep sessions in order
+    # Prefix with t-index (suite2p natsorts files, so this sets the
+    # concatenation order) and session name to avoid clashes
     for tiff in tiffs:
-        link = funcimg / f"{tiff.parents[1].name}_{tiff.name}"
+        session = tiff.parents[1]
+        link = (
+            funcimg / f"t{session_order[session]}_{session.name}_{tiff.name}"
+        )
         if not link.is_symlink():
             link.symlink_to(tiff)
     logger.info(f"Linked {len(tiffs)} TIFF(s) into {funcimg}")
@@ -441,8 +510,7 @@ def configure_slurm_execution(cmd, config):
     # location
     # %j = SLURM job ID, %x = job name (rule name)
     slurm_config["slurm_extra"] = (
-        f"--output={slurm_logdir}/%j_%x.out "
-        f"--error={slurm_logdir}/%j_%x.err"
+        f"--output={slurm_logdir}/%j_%x.out --error={slurm_logdir}/%j_%x.err"
     )
 
     logger.info(f"Configuration loaded: {slurm_config}")
