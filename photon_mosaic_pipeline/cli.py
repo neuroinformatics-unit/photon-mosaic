@@ -258,14 +258,43 @@ def merged_session_name(session_order):
     -------
     str
         ``<base>_t<first>-t<last>`` for consecutive indices, otherwise
-        every index is listed (``<base>_t0+t1+t5``). ``<base>`` is the
-        session name up to its first underscore (e.g. ``ses-2LM001``).
+        every index is listed (``<base>_t0_t1_t5``). ``<base>`` is the
+        session name without its ``-t<N>`` suffix, up to its first
+        underscore (e.g. ``ses-2LM001``). Only letters, digits, ``-`` and
+        ``_`` are used, as datashuttle requires for project names.
     """
-    bases = "__".join(sorted({s.name.split("_")[0] for s in session_order}))
+    bases = "__".join(
+        sorted(
+            {
+                _SESSION_ORDER.sub("", s.name).split("_")[0]
+                for s in session_order
+            }
+        )
+    )
     indices = list(session_order.values())
     if indices == list(range(indices[0], indices[-1] + 1)):
         return f"{bases}_t{indices[0]}-t{indices[-1]}"
-    return f"{bases}_" + "+".join(f"t{i}" for i in indices)
+    return f"{bases}_" + "_".join(f"t{i}" for i in indices)
+
+
+def subject_folder_name(name):
+    """NeuroBlueprint-valid subject folder name for a session's parent.
+
+    Parameters
+    ----------
+    name : str
+        Name of the folder holding the session folders.
+
+    Returns
+    -------
+    str
+        ``name`` if it is already a ``sub-`` folder, otherwise ``sub-``
+        followed by its letters and digits (``tests-multi-session`` ->
+        ``sub-testsmultisession``).
+    """
+    if name.startswith("sub-"):
+        return name
+    return "sub-" + re.sub(r"[^A-Za-z0-9]", "", name)
 
 
 def link_multi_session(session_args, config):
@@ -293,17 +322,20 @@ def link_multi_session(session_args, config):
     session_order = order_sessions(sessions)
     sessions = list(session_order)
 
-    # Session folders live at <project>/rawdata/<subject>/<session>.
+    # Session folders usually live at <project>/rawdata/<subject>/<session>;
+    # otherwise put the output next to the folder holding the sessions.
     # Glob them directly: their names (e.g. date-...-t0) need not pass
     # NeuroBlueprint validation, only the merged project does.
-    original_project = sessions[0].parents[2]
-    subjects = {s.parent.name for s in sessions}
+    original_project = sessions[0].parents[1]
+    if original_project.name == _RAWDATA:
+        original_project = original_project.parent
+    subjects = {s.parent for s in sessions}
     if len(subjects) > 1:
         raise ValueError(
             f"Sessions span several subjects {sorted(subjects)}; "
             "merge one subject at a time."
         )
-    subject = subjects.pop()
+    subject = subject_folder_name(subjects.pop().name)
     tiff_patterns = config["dataset_discovery"].get("tiff_patterns", ["*.tif"])
     tiffs = sorted(
         {
