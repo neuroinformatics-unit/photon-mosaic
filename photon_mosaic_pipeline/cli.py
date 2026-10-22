@@ -15,7 +15,11 @@ import yaml
 
 from photon_mosaic_pipeline import get_snakefile_path
 from photon_mosaic_pipeline.logging_config import ensure_dir
-from photon_mosaic_pipeline.paths_selection import _RAWDATA
+from photon_mosaic_pipeline.paths_selection import (
+    _DERIVATIVES,
+    _RAWDATA,
+    get_derivatives_path,
+)
 
 
 def create_argument_parser():
@@ -47,9 +51,11 @@ def create_argument_parser():
             "Process several sessions as one. A single folder uses the "
             "session folders in its rawdata/ (or inside it, if it has no "
             "rawdata/); several values are used as the session folders "
-            "themselves. Only folders ending in -t<N> are used, "
-            "concatenated in order of N. Output goes to "
-            "<main-folder>/preprocessed/, where <main-folder> holds rawdata/."
+            "themselves. Folders ending in -t<N> are concatenated in order "
+            "of N; if there are none, folders named ses-<NNN>_... are "
+            "concatenated in order of NNN. Output goes to "
+            "<main-folder>/derivatives/<subject>/<merged session>/, where "
+            "<main-folder> holds rawdata/."
         ),
     )
     parser.add_argument(
@@ -211,45 +217,60 @@ def update_default_config(config_path, project_path):
                 f.write(line)
 
 
-_SESSION_ORDER = re.compile(r"-t(\d+)$")
+# Session order comes from a "-t<N>" suffix (ses-2LM001_date-...-t0) or,
+# failing that, a numeric session label (ses-001_date-...)
+_T_SUFFIX = re.compile(r"-t(\d+)$")
+_SES_NUMBER = re.compile(r"^ses-(\d+)(?:_|$)")
+
+
+def _is_session(name):
+    return bool(_T_SUFFIX.search(name) or _SES_NUMBER.match(name))
 
 
 def order_sessions(folders):
-    """Keep session folders ending in ``-t<N>`` and order them by N.
+    """Keep session folders and order them by their session number.
 
     Parameters
     ----------
     folders : list[Path]
-        Candidate session folders. Ones without a ``-t<N>`` suffix are
-        skipped.
+        Candidate session folders. If any ends in ``-t<N>``, only those
+        are kept and ordered by N; otherwise folders named
+        ``ses-<NNN>_...`` (NNN all digits) are ordered by NNN. Other
+        folders are skipped.
 
     Returns
     -------
     dict[Path, int]
-        Session folder -> N, in ascending order of N.
+        Session folder -> session number, in ascending order.
     """
     logger = logging.getLogger(__name__)
 
+    if any(_T_SUFFIX.search(f.name) for f in folders):
+        pattern, label = _T_SUFFIX.search, "-t<N> suffix"
+    else:
+        pattern, label = _SES_NUMBER.match, "ses-<NNN> name"
+
     order = {}
     for folder in folders:
-        match = _SESSION_ORDER.search(folder.name)
+        match = pattern(folder.name)
         if match is None:
-            logger.info(f"Skipping folder without -t<N> suffix: {folder}")
+            logger.info(f"Skipping folder without {label}: {folder}")
             continue
         order[folder] = int(match.group(1))
 
     if not order:
         raise FileNotFoundError(
-            f"No session folders ending in -t<N> among: {folders}"
+            f"No session folders ending in -t<N> or named ses-<NNN> among: "
+            f"{folders}"
         )
     if len(set(order.values())) != len(order):
-        raise ValueError(f"Duplicate -t<N> indices in sessions: {order}")
+        raise ValueError(f"Duplicate session numbers in sessions: {order}")
 
     return dict(sorted(order.items(), key=lambda item: item[1]))
 
 
 def merged_session_name(session_order):
-    """Short folder name for a set of ordered sessions.
+    """NeuroBlueprint session name for a set of ordered sessions.
 
     Parameters
     ----------
@@ -259,24 +280,31 @@ def merged_session_name(session_order):
     Returns
     -------
     str
-        ``<base>_t<first>-t<last>`` for consecutive indices, otherwise
-        every index is listed (``<base>_t0_t1_t5``). ``<base>`` is the
-        session name without its ``-t<N>`` suffix, up to its first
-        underscore (e.g. ``ses-2LM001``). Only letters, digits, ``-`` and
-        ``_`` are used, as datashuttle requires for project names.
+        For ``-t<N>`` sessions, ``<base>_merge-t<first>to<last>`` for
+        consecutive indices, otherwise every index is listed
+        (``<base>_merge-t0t1t5``). ``<base>`` is the first session's name
+        without its ``-t<N>`` suffix, up to its first underscore (e.g.
+        ``ses-2LM001``). For ``ses-<NNN>`` sessions, ``ses-001to003`` or
+        ``ses-001and003and010``, keeping each label's zero padding.
     """
-    bases = "__".join(
-        sorted(
-            {
-                _SESSION_ORDER.sub("", s.name).split("_")[0]
-                for s in session_order
-            }
-        )
-    )
+    first = next(iter(session_order))
     indices = list(session_order.values())
-    if indices == list(range(indices[0], indices[-1] + 1)):
-        return f"{bases}_t{indices[0]}-t{indices[-1]}"
-    return f"{bases}_" + "_".join(f"t{i}" for i in indices)
+    consecutive = indices == list(range(indices[0], indices[-1] + 1))
+
+    if not _T_SUFFIX.search(first.name):
+        labels = [_SES_NUMBER.match(s.name).group(1) for s in session_order]
+        if consecutive:
+            return f"ses-{labels[0]}to{labels[-1]}"
+        return "ses-" + "and".join(labels)
+
+    base = _T_SUFFIX.sub("", first.name).split("_")[0]
+    if not base.startswith("ses-"):
+        base = "ses-" + re.sub(r"[^A-Za-z0-9]", "", base)
+    if consecutive:
+        tag = f"t{indices[0]}to{indices[-1]}"
+    else:
+        tag = "".join(f"t{i}" for i in indices)
+    return f"{base}_merge-{tag}"
 
 
 def subject_folder_name(name):
@@ -312,8 +340,8 @@ def find_session_folders(session_args):
     -------
     list[Path]
         Several values are returned as given. For a single folder, its
-        subfolders are returned, plus the subfolders of any that lack a
-        ``-t<N>`` suffix, so sessions may sit inside subject folders.
+        subfolders are returned, plus the subfolders of any that aren't
+        sessions themselves, so sessions may sit inside subject folders.
     """
     paths = [Path(p).resolve() for p in session_args]
     if len(paths) > 1:
@@ -325,7 +353,7 @@ def find_session_folders(session_args):
     folders = []
     for folder in sorted(p for p in root.iterdir() if p.is_dir()):
         folders.append(folder)
-        if not _SESSION_ORDER.search(folder.name):
+        if not _is_session(folder.name):
             folders.extend(p for p in folder.iterdir() if p.is_dir())
     return folders
 
@@ -364,10 +392,11 @@ def link_multi_session(session_args, config):
 
     Returns
     -------
-    Path
-        Root of a new project at ``<main>/preprocessed/<merged name>``,
-        containing ``rawdata/<subject>/ses-merged/funcimg/`` with the
-        linked TIFFs.
+    tuple[Path, Path]
+        Root of a staging project holding
+        ``rawdata/<subject>/<merged session>/funcimg/`` with the linked
+        TIFFs, and ``<main>/derivatives``, where outputs go (so they land
+        in ``<main>/derivatives/<subject>/<merged session>/``).
     """
     logger = logging.getLogger(__name__)
 
@@ -400,8 +429,16 @@ def link_multi_session(session_args, config):
     if not tiffs:
         raise FileNotFoundError(f"No TIFFs found in sessions: {sessions}")
 
-    merged_project = main / "preprocessed" / merged_session_name(session_order)
-    funcimg = merged_project / _RAWDATA / subject / "ses-merged" / "funcimg"
+    # Links are staged under derivatives/ so rawdata/ is left untouched
+    session_name = merged_session_name(session_order)
+    derivatives = main / _DERIVATIVES
+    staging = (
+        derivatives
+        / "photon-mosaic-pipeline"
+        / "multisession"
+        / f"{subject}_{session_name}"
+    )
+    funcimg = staging / _RAWDATA / subject / session_name / "funcimg"
     funcimg.mkdir(parents=True, exist_ok=True)
 
     # Prefix with t-index (suite2p natsorts files, so this sets the
@@ -415,16 +452,16 @@ def link_multi_session(session_args, config):
             link.symlink_to(tiff)
     logger.info(f"Linked {len(tiffs)} TIFF(s) into {funcimg}")
 
-    return merged_project
+    return staging, derivatives
 
 
-def setup_output_directories(project_path):
+def setup_output_directories(derivatives_path):
     """Create necessary output directories for the pipeline.
 
     Parameters
     ----------
-    project_path : Path
-        Project path
+    derivatives_path : Path
+        Folder the pipeline writes its outputs to
 
     Returns
     -------
@@ -433,7 +470,7 @@ def setup_output_directories(project_path):
     """
     logger = logging.getLogger(__name__)
 
-    output_dir = project_path / "derivatives" / "photon-mosaic-pipeline"
+    output_dir = derivatives_path / "photon-mosaic-pipeline"
     logger.debug(f"Creating output directory: {output_dir}")
 
     logs_dir = output_dir / "logs"
@@ -565,10 +602,8 @@ def configure_slurm_execution(cmd, config):
     cmd.append("--slurm-keep-successful-logs")
 
     # Configure SLURM log directory to persist logs
-    project_path = Path(config["project_path"]).resolve()
     slurm_logdir = (
-        project_path
-        / "derivatives"
+        get_derivatives_path(config)
         / "photon-mosaic-pipeline"
         / "logs"
         / "slurm"
@@ -768,15 +803,18 @@ def main():
     config, _ = load_and_process_config(args)
 
     if args.multi_session_path:
-        config["project_path"] = str(
-            link_multi_session(args.multi_session_path, config)
+        staging, derivatives = link_multi_session(
+            args.multi_session_path, config
         )
+        config["project_path"] = str(staging)
+        config["derivatives_path"] = str(derivatives)
         # Links are already filtered and renamed, so take them all
         config["dataset_discovery"] = {"tiff_patterns": ["*"]}
 
     # Set up output directories
-    project_path = Path(config["project_path"])
-    output_dir, logs_dir, configs_dir = setup_output_directories(project_path)
+    output_dir, logs_dir, configs_dir = setup_output_directories(
+        get_derivatives_path(config)
+    )
 
     # Save timestamped config for reproducibility
     timestamp, config_path = save_timestamped_config(config, configs_dir)

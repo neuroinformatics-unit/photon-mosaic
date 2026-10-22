@@ -17,14 +17,12 @@ Output: Neuropil-corrected traces (Fc.npy) in neuropil/plane0/ directory
 from pathlib import Path
 
 from photon_mosaic_pipeline.snakemake_utils import cross_platform_path
-from photon_mosaic_pipeline.paths_selection import _DERIVATIVES
 
 
 rule neuropil:
     input:
         F=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"
@@ -33,8 +31,7 @@ rule neuropil:
             / "F.npy"
         ),
         Fneu=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"
@@ -44,8 +41,7 @@ rule neuropil:
         ),
     output:
         Fc=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"

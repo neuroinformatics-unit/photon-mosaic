@@ -16,14 +16,12 @@ Output: dF/F results (dFF.npy, F0.npy) in dff/plane0/ directory
 
 import re
 from photon_mosaic_pipeline.snakemake_utils import cross_platform_path
-from photon_mosaic_pipeline.paths_selection import _DERIVATIVES
 
 
 rule dff:
     input:
         Fc=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"
@@ -33,8 +31,7 @@ rule dff:
         ),
     output:
         dFF=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"

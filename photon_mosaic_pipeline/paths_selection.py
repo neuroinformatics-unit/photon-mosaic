@@ -82,9 +82,30 @@ def find_raw_data_paths(
     return raw_data_paths
 
 
+def get_derivatives_path(config: dict) -> Path:
+    """Folder the pipeline writes its outputs to.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary. ``derivatives_path`` is used if set,
+        otherwise ``<project_path>/derivatives``.
+
+    Returns
+    -------
+    Path
+        Resolved derivatives folder.
+    """
+    derivatives_path = config.get("derivatives_path") or (
+        Path(config["project_path"]) / _DERIVATIVES
+    )
+    return Path(derivatives_path).resolve()
+
+
 def adapt_paths_to_output_pattern(
     all_selected_tiff_paths: list[Path],
     output_pattern: str,
+    derivatives_path: Path | None = None,
 ) -> list[str]:
     """Convert raw TIFF paths to their expected preprocessed output paths.
 
@@ -97,6 +118,9 @@ def adapt_paths_to_output_pattern(
         Raw TIFF paths, expected to contain a rawdata component.
     output_pattern : str
         String to prepend to the output filename (e.g. ``motion_corrected_``).
+    derivatives_path : Path | None
+        Derivatives folder to write to. Defaults to a ``derivatives``
+        folder next to each path's ``rawdata``.
 
     Returns
     -------
@@ -119,9 +143,11 @@ def adapt_paths_to_output_pattern(
             )
 
         new_filename = f"{output_pattern}{file_path.name}"
+        derivatives = derivatives_path or (
+            Path(*parts[:rawdata_idx]) / _DERIVATIVES
+        )
         output_path = (
-            Path(*parts[:rawdata_idx])
-            / _DERIVATIVES
+            Path(derivatives)
             / Path(*parts[rawdata_idx + 1 : -1])
             / new_filename
         )

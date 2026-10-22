@@ -15,7 +15,7 @@ Output: Preprocessed TIFF files organized by subject/session
 from pathlib import Path
 from photon_mosaic_pipeline.rules.preprocessing import run_preprocessing
 from photon_mosaic_pipeline.snakemake_utils import cross_platform_path
-from photon_mosaic_pipeline.paths_selection import _RAWDATA, _DERIVATIVES
+from photon_mosaic_pipeline.paths_selection import _RAWDATA
 import re
 import logging
 import os
@@ -49,8 +49,7 @@ rule preprocessing:
         img=_get_raw_tiff_for_wildcards,
     output:
         processed=cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / "{subject_name}"
             / "{session_name}"
             / "funcimg"
@@ -65,8 +64,7 @@ rule preprocessing:
             / "funcimg"
         ),
         output_folder=lambda wildcards: cross_platform_path(
-            project_path
-            / _DERIVATIVES
+            derivatives_path
             / wildcards.subject_name
             / wildcards.session_name
             / "funcimg"
