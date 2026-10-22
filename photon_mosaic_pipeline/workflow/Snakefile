@@ -24,7 +24,6 @@ from photon_mosaic_pipeline.paths_selection import (
     set_up_dff_targets,
     get_derivatives_path,
     _RAWDATA,
-    _DERIVATIVES,
 )
 import logging
 

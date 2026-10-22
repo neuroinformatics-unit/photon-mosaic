@@ -178,7 +178,8 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
     Suite2p's own converter handles most keys. ``anatomical_only`` and
     ``diameter`` need translating here: the converter ignores
     ``anatomical_only`` (silently falling back to sparsery detection) and
-    suite2p>=1.0 has no auto diameter (``diameter: 0``).
+    suite2p>=1.0 has no auto diameter (``diameter: 0``). It also works
+    around a suite2p 1.1.0 key mismatch that breaks chan2 Cellpose.
 
     Parameters
     ----------
@@ -222,19 +223,16 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
                 f"suite2p>=1.0; use one of "
                 f"{sorted(_ANATOMICAL_ONLY_TO_CELLPOSE_IMG)}"
             )
-        detection = settings["detection"]
-        detection["algorithm"] = "cellpose"
-        detection["cellpose_settings"]["img"] = (
-            _ANATOMICAL_ONLY_TO_CELLPOSE_IMG[anatomical_only]
-        )
+        settings["detection"]["algorithm"] = "cellpose"
+        cellpose_settings["img"] = _ANATOMICAL_ONLY_TO_CELLPOSE_IMG[
+            anatomical_only
+        ]
         if "pretrained_model" in unused:
-            detection["cellpose_settings"]["cellpose_model"] = unused.pop(
+            cellpose_settings["cellpose_model"] = unused.pop(
                 "pretrained_model"
             )
         if "spatial_hp_cp" in unused:
-            detection["cellpose_settings"]["highpass_spatial"] = unused.pop(
-                "spatial_hp_cp"
-            )
+            cellpose_settings["highpass_spatial"] = unused.pop("spatial_hp_cp")
 
     if not diameter:
         diameter = _CELLPOSE_NATIVE_DIAMETER

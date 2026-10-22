@@ -223,8 +223,16 @@ _T_SUFFIX = re.compile(r"-t(\d+)$")
 _SES_NUMBER = re.compile(r"^ses-(\d+)(?:_|$)")
 
 
+# Folder the pipeline keeps its own logs, configs and staging in
+_PIPELINE_DIR = "photon-mosaic-pipeline"
+
+
 def _is_session(name):
     return bool(_T_SUFFIX.search(name) or _SES_NUMBER.match(name))
+
+
+def _alphanumeric(name):
+    return re.sub(r"[^A-Za-z0-9]", "", name)
 
 
 def order_sessions(folders):
@@ -299,7 +307,7 @@ def merged_session_name(session_order):
 
     base = _T_SUFFIX.sub("", first.name).split("_")[0]
     if not base.startswith("ses-"):
-        base = "ses-" + re.sub(r"[^A-Za-z0-9]", "", base)
+        base = "ses-" + _alphanumeric(base)
     if consecutive:
         tag = f"t{indices[0]}to{indices[-1]}"
     else:
@@ -324,7 +332,7 @@ def subject_folder_name(name):
     """
     if name.startswith("sub-"):
         return name
-    return "sub-" + re.sub(r"[^A-Za-z0-9]", "", name)
+    return "sub-" + _alphanumeric(name)
 
 
 def find_session_folders(session_args):
@@ -403,8 +411,6 @@ def link_multi_session(session_args, config):
     session_order = order_sessions(find_session_folders(session_args))
     sessions = list(session_order)
 
-    # Glob sessions directly: their names (e.g. date-...-t0) need not pass
-    # NeuroBlueprint validation, only the merged project does.
     main = main_folder(sessions[0])
     subjects = {s.parent for s in sessions}
     if len(subjects) > 1:
@@ -417,6 +423,8 @@ def link_multi_session(session_args, config):
     subject = subject_folder_name(
         main.name if parent.name == _RAWDATA else parent.name
     )
+    # Glob sessions directly: their names (e.g. date-...-t0) need not pass
+    # NeuroBlueprint validation, only the merged project does.
     tiff_patterns = config["dataset_discovery"].get("tiff_patterns", ["*.tif"])
     tiffs = sorted(
         {
@@ -434,7 +442,7 @@ def link_multi_session(session_args, config):
     derivatives = main / _DERIVATIVES
     staging = (
         derivatives
-        / "photon-mosaic-pipeline"
+        / _PIPELINE_DIR
         / "multisession"
         / f"{subject}_{session_name}"
     )
@@ -470,7 +478,7 @@ def setup_output_directories(derivatives_path):
     """
     logger = logging.getLogger(__name__)
 
-    output_dir = derivatives_path / "photon-mosaic-pipeline"
+    output_dir = derivatives_path / _PIPELINE_DIR
     logger.debug(f"Creating output directory: {output_dir}")
 
     logs_dir = output_dir / "logs"
@@ -603,10 +611,7 @@ def configure_slurm_execution(cmd, config):
 
     # Configure SLURM log directory to persist logs
     slurm_logdir = (
-        get_derivatives_path(config)
-        / "photon-mosaic-pipeline"
-        / "logs"
-        / "slurm"
+        get_derivatives_path(config) / _PIPELINE_DIR / "logs" / "slurm"
     )
     ensure_dir(slurm_logdir, mode=0o755, parents=True, exist_ok=True)
 
