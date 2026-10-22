@@ -5,11 +5,13 @@ Snakemake rule for running Suite2P.
 import logging
 import os
 import traceback
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
 from suite2p import default_db, default_settings, run_s2p
 from suite2p.default_ops import default_ops
+from suite2p.detection import anatomical
 from suite2p.parameters import convert_settings_orig
 
 from photon_mosaic_pipeline.rules.split_suite2p_output import (
@@ -94,6 +96,13 @@ def run_suite2p(
     _force_cellpose_cpu_if_requested()
 
     user_ops_dict = dict(user_ops_dict) if user_ops_dict else {}
+
+    # suite2p 1.1.0 calls Cellpose without a model (functional and chan2
+    # detection), so it always uses "cpsam"; pin the configured one instead
+    anatomical.roi_detect = partial(
+        anatomical.roi_detect,
+        pretrained_model=user_ops_dict.get("pretrained_model", "cpsam"),
+    )
 
     # suite2p native behavior
     split_multitiff = user_ops_dict.pop("split_multitiff", False)
@@ -199,6 +208,12 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
     for key, default in default_db().items():
         if default is None and db[key] in ([], ""):
             db[key] = None
+
+    # suite2p 1.1.0's chan2 Cellpose reads "chan2_params", not the
+    # "params_chan2" setting; without it, it silently falls back to
+    # intensity-based red cell detection
+    cellpose_settings = settings["detection"]["cellpose_settings"]
+    cellpose_settings["chan2_params"] = cellpose_settings["params_chan2"]
 
     if anatomical_only:
         if anatomical_only not in _ANATOMICAL_ONLY_TO_CELLPOSE_IMG:

@@ -144,7 +144,7 @@ suite2p_ops:
   cellprob_threshold: 0.0  # Cellpose detection threshold
   flow_threshold: 0.4  # Cellpose-SAM flow threshold
   spatial_hp_cp: 0  # Window for Cellpose high-pass
-  pretrained_model: 'cpsam'  # Cellpose-SAM model
+  pretrained_model: 'cpsam_v2'  # Cellpose model (functional detection and chan2)
 
   # Neuropil extraction settings
   soma_crop: true  # Crop dendrites for stats
