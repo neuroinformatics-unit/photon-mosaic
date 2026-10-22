@@ -26,6 +26,10 @@ _ANATOMICAL_ONLY_TO_CELLPOSE_IMG = {
     4: "max_proj",
 }
 
+# suite2p>=1.0 options with no old-style ``ops`` key, still accepted in
+# ``suite2p_ops`` (suite2p's converter maps them).
+_SUITE2P_1_OPTIONS = {"cellpose_chan2"}
+
 # Cellpose-SAM's native cell diameter; using it means no image rescaling,
 # which matches the old ``diameter: 0`` (auto) behaviour.
 _CELLPOSE_NATIVE_DIAMETER = 30.0
@@ -145,7 +149,7 @@ def get_edited_options(
     # Override with user-provided subset of keys
     if user_ops_dict:
         for key, val in user_ops_dict.items():
-            if key not in ops:
+            if key not in ops and key not in _SUITE2P_1_OPTIONS:
                 raise ValueError(f"Invalid Suite2p option: {key}")
             ops[key] = val
 
