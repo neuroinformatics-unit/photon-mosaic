@@ -117,8 +117,14 @@ def run_suite2p(
     -------
     None
         The function runs Suite2P and saves results to the specified paths.
-        If an error occurs, it logs the error to an error.txt file in the
+        If Suite2P fails, it logs the error to an error.txt file in the
         dataset folder.
+
+    Raises
+    ------
+    ValueError
+        If ``user_ops_dict`` contains an invalid or unsupported option;
+        config errors are raised before Suite2P starts, not logged.
     """
     save_folder = Path(stat_path).parents[1]
 
@@ -210,10 +216,10 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
     Suite2p's own converter handles most keys. ``anatomical_only`` and
     ``diameter`` need translating here: the converter ignores
     ``anatomical_only`` (silently falling back to sparsery detection) and
-    suite2p>=1.0 has no auto diameter (``diameter: 0``). ``batch_size`` and
-    ``block_size`` are fixed up because several settings share those names.
-    It also works around a suite2p 1.1.0 key mismatch that breaks chan2
-    Cellpose.
+    suite2p>=1.0 has no auto diameter (``diameter: 0``). ``batch_size`` is
+    copied to registration and extraction, which share the name but the
+    converter skips. It also works around a suite2p 1.1.0 key mismatch that
+    breaks chan2 Cellpose.
 
     Parameters
     ----------
@@ -245,20 +251,21 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
             db[key] = None
 
     # Old ``batch_size`` set registration and extraction batches; the
-    # converter only puts it in ``db`` (registration stays at 100). Old
-    # ``block_size`` was registration-only, but the converter also copies it
-    # into the unrelated ``detection.block_size``.
+    # converter only puts it in ``db`` (registration stays at 100)
     settings["registration"]["batch_size"] = db["batch_size"]
     settings["extraction"]["batch_size"] = db["batch_size"]
-    settings["detection"]["block_size"] = default_settings()["detection"][
-        "block_size"
-    ]
 
     # suite2p 1.1.0's chan2 Cellpose reads "chan2_params", not the
     # "params_chan2" setting; without it, it silently falls back to
     # intensity-based red cell detection
     cellpose_settings = settings["detection"]["cellpose_settings"]
     cellpose_settings["chan2_params"] = cellpose_settings["params_chan2"]
+
+    # Mapped even without ``anatomical_only``: chan2 Cellpose uses them too
+    if "pretrained_model" in unused:
+        cellpose_settings["cellpose_model"] = unused.pop("pretrained_model")
+    if "spatial_hp_cp" in unused:
+        cellpose_settings["highpass_spatial"] = unused.pop("spatial_hp_cp")
 
     if anatomical_only:
         if anatomical_only not in _ANATOMICAL_ONLY_TO_CELLPOSE_IMG:
@@ -271,20 +278,11 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
         cellpose_settings["img"] = _ANATOMICAL_ONLY_TO_CELLPOSE_IMG[
             anatomical_only
         ]
-        if "pretrained_model" in unused:
-            cellpose_settings["cellpose_model"] = unused.pop(
-                "pretrained_model"
-            )
-        if "spatial_hp_cp" in unused:
-            cellpose_settings["highpass_spatial"] = unused.pop("spatial_hp_cp")
 
-    if not diameter:
-        diameter = _CELLPOSE_NATIVE_DIAMETER
-    settings["diameter"] = (
-        list(diameter)
-        if isinstance(diameter, (list, tuple))
-        else [diameter] * 2
-    )
+    # A 0 entry (scalar or in a [y, x] pair) means "auto"
+    if not isinstance(diameter, (list, tuple)):
+        diameter = [diameter] * 2
+    settings["diameter"] = [d or _CELLPOSE_NATIVE_DIAMETER for d in diameter]
 
     # User options are validated in ``get_edited_options``, so anything left
     # here is an unused old ``default_ops`` entry
