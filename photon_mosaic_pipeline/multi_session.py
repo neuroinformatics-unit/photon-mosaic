@@ -179,6 +179,51 @@ def main_folder(session):
     return session.parents[1]
 
 
+def _subject_name(session):
+    """Name a session's subject folder is derived from: its parent, or
+    ``<main>`` for sessions directly in ``rawdata/``."""
+    if session.parent.name == _RAWDATA:
+        return main_folder(session).name
+    return session.parent.name
+
+
+def drop_excluded(folders, exclude_datasets=None, exclude_sessions=None):
+    """Remove folders matching the ``dataset_discovery`` exclude patterns.
+
+    Parameters
+    ----------
+    folders : list[Path]
+        Candidate session folders.
+    exclude_datasets : list[str] | None
+        Regex patterns fully matched against each folder's subject name
+        (see ``_subject_name``), as in ``find_raw_data_paths``.
+    exclude_sessions : list[str] | None
+        Regex patterns fully matched against each session folder name.
+
+    Returns
+    -------
+    list[Path]
+        ``folders`` without the excluded ones, in the same order.
+    """
+    logger = logging.getLogger(__name__)
+
+    def excluded(folder):
+        return any(
+            re.fullmatch(pat, _subject_name(folder))
+            for pat in exclude_datasets or []
+        ) or any(
+            re.fullmatch(pat, folder.name) for pat in exclude_sessions or []
+        )
+
+    kept = []
+    for folder in folders:
+        if excluded(folder):
+            logger.info(f"Excluding folder by config pattern: {folder}")
+        else:
+            kept.append(folder)
+    return kept
+
+
 def link_multi_session(session_args, config):
     """Symlink TIFFs from several sessions into one merged session.
 
@@ -188,7 +233,8 @@ def link_multi_session(session_args, config):
         A single main folder, or several session folders; see
         ``find_session_folders``.
     config : dict
-        Configuration dictionary, used for ``dataset_discovery.tiff_patterns``.
+        Configuration dictionary, used for ``dataset_discovery``'s
+        ``tiff_patterns``, ``exclude_datasets`` and ``exclude_sessions``.
 
     Returns
     -------
@@ -200,7 +246,13 @@ def link_multi_session(session_args, config):
     """
     logger = logging.getLogger(__name__)
 
-    session_order = order_sessions(find_session_folders(session_args))
+    discovery = config["dataset_discovery"]
+    folders = drop_excluded(
+        find_session_folders(session_args),
+        discovery.get("exclude_datasets"),
+        discovery.get("exclude_sessions"),
+    )
+    session_order = order_sessions(folders)
     sessions = list(session_order)
 
     main = main_folder(sessions[0])
@@ -210,14 +262,10 @@ def link_multi_session(session_args, config):
             f"Sessions span several subjects {sorted(subjects)}; "
             "merge one subject at a time."
         )
-    # Sessions directly in rawdata/ have no subject folder; use <main>'s name
-    parent = subjects.pop()
-    subject = subject_folder_name(
-        main.name if parent.name == _RAWDATA else parent.name
-    )
+    subject = subject_folder_name(_subject_name(sessions[0]))
     # Glob sessions directly: their names (e.g. date-...-t0) need not pass
     # NeuroBlueprint validation, only the merged project does.
-    tiff_patterns = config["dataset_discovery"].get("tiff_patterns", ["*.tif"])
+    tiff_patterns = discovery.get("tiff_patterns", ["*.tif"])
     tiffs = sorted(
         {
             tiff
