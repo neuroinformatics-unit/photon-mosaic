@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 _RAWDATA = "rawdata"
 _DERIVATIVES = "derivatives"
+# Folder the pipeline keeps its own logs, configs and staging in
+_PIPELINE_DIR = "photon-mosaic-pipeline"
 _SUITE2P_FILES = ["F.npy", "Fneu.npy", "data.bin"]
 _NEUROPIL_FILES = ["Fc.npy"]
 _DFF_FILES = ["dFF.npy"]
