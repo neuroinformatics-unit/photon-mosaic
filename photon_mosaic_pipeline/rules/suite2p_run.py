@@ -28,9 +28,38 @@ _ANATOMICAL_ONLY_TO_CELLPOSE_IMG = {
     4: "max_proj",
 }
 
-# suite2p>=1.0 options with no old-style ``ops`` key, still accepted in
-# ``suite2p_ops`` (suite2p's converter maps them).
-_SUITE2P_1_OPTIONS = {"cellpose_chan2"}
+# Old-style keys that suite2p's converter doesn't map by name but are
+# translated in ``convert_ops_to_db_and_settings`` (or by the converter's
+# own special cases, for ``roidetect`` / ``spikedetect``).
+_TRANSLATED_OPTIONS = {
+    "anatomical_only",
+    "diameter",
+    "pretrained_model",
+    "spatial_hp_cp",
+    "roidetect",
+    "spikedetect",
+}
+
+
+def _settings_leaf_keys(settings: dict) -> set:
+    """Names of all non-dict values in a nested suite2p settings dict, which
+    is what suite2p's converter matches flat keys against."""
+    keys = set()
+    for key, val in settings.items():
+        if isinstance(val, dict) and val:
+            keys |= _settings_leaf_keys(val)
+        else:
+            keys.add(key)
+    return keys
+
+
+# Keys accepted in ``suite2p_ops``: anything suite2p>=1.0 will actually use.
+# Anything else would be silently dropped by the converter, so it's rejected.
+_VALID_OPTIONS = (
+    set(default_db())
+    | _settings_leaf_keys(default_settings())
+    | _TRANSLATED_OPTIONS
+)
 
 # Cellpose-SAM's native cell diameter; using it means no image rescaling,
 # which matches the old ``diameter: 0`` (auto) behaviour.
@@ -158,8 +187,11 @@ def get_edited_options(
     # Override with user-provided subset of keys
     if user_ops_dict:
         for key, val in user_ops_dict.items():
-            if key not in ops and key not in _SUITE2P_1_OPTIONS:
-                raise ValueError(f"Invalid Suite2p option: {key}")
+            if key not in _VALID_OPTIONS:
+                raise ValueError(
+                    f"Invalid Suite2p option: {key} (not used by "
+                    f"suite2p>=1.0; check for a renamed setting)"
+                )
             ops[key] = val
 
     # Add required runtime paths
@@ -178,8 +210,10 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
     Suite2p's own converter handles most keys. ``anatomical_only`` and
     ``diameter`` need translating here: the converter ignores
     ``anatomical_only`` (silently falling back to sparsery detection) and
-    suite2p>=1.0 has no auto diameter (``diameter: 0``). It also works
-    around a suite2p 1.1.0 key mismatch that breaks chan2 Cellpose.
+    suite2p>=1.0 has no auto diameter (``diameter: 0``). ``batch_size`` and
+    ``block_size`` are fixed up because several settings share those names.
+    It also works around a suite2p 1.1.0 key mismatch that breaks chan2
+    Cellpose.
 
     Parameters
     ----------
@@ -209,6 +243,16 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
     for key, default in default_db().items():
         if default is None and db[key] in ([], ""):
             db[key] = None
+
+    # Old ``batch_size`` set registration and extraction batches; the
+    # converter only puts it in ``db`` (registration stays at 100). Old
+    # ``block_size`` was registration-only, but the converter also copies it
+    # into the unrelated ``detection.block_size``.
+    settings["registration"]["batch_size"] = db["batch_size"]
+    settings["extraction"]["batch_size"] = db["batch_size"]
+    settings["detection"]["block_size"] = default_settings()["detection"][
+        "block_size"
+    ]
 
     # suite2p 1.1.0's chan2 Cellpose reads "chan2_params", not the
     # "params_chan2" setting; without it, it silently falls back to
@@ -242,8 +286,10 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
         else [diameter] * 2
     )
 
+    # User options are validated in ``get_edited_options``, so anything left
+    # here is an unused old ``default_ops`` entry
     if unused:
-        logger.warning(
+        logger.debug(
             "Ignoring options with no suite2p>=1.0 equivalent: "
             f"{sorted(unused)}"
         )

@@ -68,14 +68,10 @@ suite2p_ops:
   look_one_level_down: false  # Look in subfolders for tiffs
   fast_disk: []  # Location for temporary binary file
   delete_bin: false  # Delete binary file after registration
-  mesoscan: false  # For scanimage mesoscope recordings
-  bruker: false  # For single page BRUKER tiffs
   bruker_bidirectional: false  # For bidirectional BRUKER recordings
 
   # File handling settings
-  h5py: []  # Path to h5py input file
   h5py_key: 'data'  # Key for h5py data array
-  nwb_file: ''  # Path to NWB input file
   nwb_driver: ''  # Driver for NWB file
   nwb_series: ''  # TwoPhotonSeries name in NWB
   save_path0: ''  # Path for pipeline results
@@ -93,7 +89,6 @@ suite2p_ops:
   tau: 1.0  # Sensor timescale for deconvolution (1.0 for GCaMP6m)
   fs: 45.0  # Sampling rate per plane
   force_sktiff: false  # Use scikit-image for tiffs
-  frames_include: -1  # Number of frames to process (-1 for all)
   multiplane_parallel: false  # Run pipeline on server
   ignore_flyback: []  # Planes to ignore as flyback
 
@@ -104,7 +99,7 @@ suite2p_ops:
   nimg_init: 1000  # Frames for reference image
   batch_size: 500  # Frames per registration batch
   maxregshift: 0.1  # Max shift as fraction of frame size
-  align_by_chan: 2  # Channel for alignment (1-based)
+  align_by_chan2: true  # Align by the non-functional channel (chan2)
   reg_tif: false  # Write registered binary to tiff
   reg_tif_chan2: false  # Write channel 2 to tiff
   subpixel: 10  # Subpixel registration precision
@@ -112,15 +107,10 @@ suite2p_ops:
   smooth_sigma: 3  # Spatial smoothing for registration
   th_badframes: 1.0  # Threshold for excluding frames
   norm_frames: true  # Normalize frames for shifts
-  force_refImg: false  # Use stored refImg
-  pad_fft: false  # Pad image during FFT
   nonrigid: false  # Perform non-rigid registration
   block_size: [128, 128]  # Block size for non-rigid (pixels)
   snr_thresh: 1.2  # Phase correlation threshold
   maxregshiftNR: 5  # Max block shift (pixels)
-  1Preg: false  # High-pass filtering for 1P
-  spatial_hp_reg: 42  # Window for spatial high-pass
-  pre_smooth: 0  # Gaussian smoothing before high-pass
   spatial_taper: 3.45  # Edge pixels to ignore
   # Not supported by suite2p>=1.0 (were suite2p-NIU only):
   # refImg_min_percentile: 1  # Min percentile for reference image
@@ -129,15 +119,14 @@ suite2p_ops:
   # ROI detection settings
   roidetect: true  # Run ROI detection
   spikedetect: true  # Run spike detection
-  sparse_mode: true  # Use sparse mode detection
   spatial_scale: 0  # Optimal scale in pixels (0 for auto)
   connected: true  # Require connected ROIs
-  nbinned: 5000  # Max binned frames for detection
+  nbins: 5000  # Max binned frames for detection
   max_iterations: 20  # Max detection iterations
   threshold_scaling: 1.0  # ROI detection threshold
   max_overlap: 0.75  # Max ROI overlap fraction
-  high_pass: 100  # Running mean window
-  spatial_hp_detect: 25  # Window for spatial high-pass
+  highpass_time: 100  # Running mean window for temporal high-pass
+  highpass_neuropil: 25  # Window for spatial high-pass (sparsery)
   denoise: false  # Denoise before detection
   anatomical_only: 4  # Use Cellpose if > 0; 0 uses sparsery detection
   diameter: 0  # Cell diameter in pixels (0 = Cellpose-SAM native size, 30)
@@ -157,7 +146,7 @@ suite2p_ops:
   # Classification settings
   use_builtin_classifier: false  # Use built-in classifier
   classifier_path: null  # Path to classifier file
-  chan2_thres: 0.25  # Threshold for channel 2 detection
+  chan2_threshold: 0.25  # Threshold for channel 2 detection
   cellpose_chan2: true  # Cellpose on chan2 mean image; overlapping ROIs marked as red cells
 
   # Baseline settings
@@ -165,7 +154,7 @@ suite2p_ops:
   win_baseline: 60.0  # Window for maximin filter (s)
   sig_baseline: 10.0  # Gaussian filter width (s)
   prctile_baseline: 8.0  # Percentile for constant baseline
-  neucoeff: 0.7  # Neuropil coefficient
+  neuropil_coefficient: 0.7  # Neuropil coefficient
 
 # ============================================================================
 # Neuropil Correction Configuration
