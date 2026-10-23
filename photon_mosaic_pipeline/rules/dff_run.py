@@ -34,9 +34,10 @@ def _save_split_dFF(
 
         dff_i, f0_i = dFF(np.load(fc_file), n_components=n_components)
 
-        np.save(out_dset_dir / f"dFF_{name}.npy", dff_i)
+        dff_file = out_dset_dir / f"dFF_{name}.npy"
+        np.save(dff_file, dff_i)
         np.save(out_dset_dir / f"F0_{name}.npy", f0_i)
-        logger.info(f"Saved dF/F traces to {out_dset_dir / f'dFF_{name}.npy'}")
+        logger.info(f"Saved dF/F traces to {dff_file}")
 
 
 def calculate_dFF(
