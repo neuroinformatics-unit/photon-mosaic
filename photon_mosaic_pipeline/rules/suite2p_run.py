@@ -2,6 +2,7 @@
 Snakemake rule for running Suite2P.
 """
 
+import contextlib
 import logging
 import os
 import traceback
@@ -9,6 +10,7 @@ from functools import partial
 from pathlib import Path
 from typing import Optional
 
+import suite2p.detection
 from suite2p import default_db, default_settings, run_s2p
 from suite2p.default_ops import default_ops
 from suite2p.detection import anatomical
@@ -66,6 +68,113 @@ _VALID_OPTIONS = (
 _CELLPOSE_NATIVE_DIAMETER = 30.0
 
 
+def _cellpose_diameter(diameter) -> list:
+    """Turn a scalar or [y, x] diameter into a [y, x] list, replacing 0
+    ("auto") with Cellpose-SAM's native size."""
+    if not isinstance(diameter, (list, tuple)):
+        diameter = [diameter] * 2
+    return [d or _CELLPOSE_NATIVE_DIAMETER for d in diameter]
+
+
+def _select_rois_on_image(image, select_rois, cellpose_diameter):
+    """Wrap suite2p's ``anatomical.select_rois`` so Cellpose segments
+    ``image`` instead of the functional-channel images suite2p passes in.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to segment, already cropped to suite2p's detection window.
+    select_rois : callable
+        suite2p's original ``anatomical.select_rois``.
+    cellpose_diameter : list
+        The [y, x] cell diameter given to Cellpose.
+
+    Returns
+    -------
+    callable
+        A drop-in replacement for ``anatomical.select_rois``.
+    """
+
+    def select_rois_on_image(mean_img, max_proj, settings, **kwargs):
+        kwargs["diameter"] = cellpose_diameter
+        return select_rois(
+            image, max_proj, {**settings, "img": "meanImg"}, **kwargs
+        )
+
+    return select_rois_on_image
+
+
+def _detect_on_chan2_mean(detection_wrapper, cellpose_diameter):
+    """Wrap suite2p's ``detection_wrapper`` so Cellpose finds ROIs in the
+    registered chan2 (non-functional) mean image.
+
+    Extraction, deconvolution and classification still run on the functional
+    channel, using these ROIs.
+
+    Parameters
+    ----------
+    detection_wrapper : callable
+        suite2p's original ``detection.detection_wrapper``.
+    cellpose_diameter : list
+        The [y, x] cell diameter given to Cellpose.
+
+    Returns
+    -------
+    callable
+        A drop-in replacement for ``detection.detection_wrapper``.
+
+    Raises
+    ------
+    ValueError
+        If there is no chan2 mean image (single-channel data).
+    """
+
+    def detect_on_chan2_mean(
+        f_reg, *args, meanImg_chan2=None, yrange=None, xrange=None, **kwargs
+    ):
+        if meanImg_chan2 is None:
+            raise ValueError(
+                "detect_on_chan2_mean needs two-channel data (nchannels: 2)"
+            )
+        _, Ly, Lx = f_reg.shape
+        y0, y1 = yrange if yrange is not None else (0, Ly)
+        x0, x1 = xrange if xrange is not None else (0, Lx)
+        # suite2p detects in the cropped window and shifts ROIs back after
+        chan2_crop = meanImg_chan2[int(y0) : int(y1), int(x0) : int(x1)]
+
+        select_rois = suite2p.detection.anatomical.select_rois
+        suite2p.detection.anatomical.select_rois = _select_rois_on_image(
+            chan2_crop, select_rois, cellpose_diameter
+        )
+        try:
+            return detection_wrapper(
+                f_reg,
+                *args,
+                meanImg_chan2=meanImg_chan2,
+                yrange=yrange,
+                xrange=xrange,
+                **kwargs,
+            )
+        finally:
+            suite2p.detection.anatomical.select_rois = select_rois
+
+    return detect_on_chan2_mean
+
+
+@contextlib.contextmanager
+def _chan2_mean_detection(cellpose_diameter):
+    """Within this context, suite2p's ROI detection segments the chan2 mean
+    image with Cellpose (see ``_detect_on_chan2_mean``)."""
+    detection_wrapper = suite2p.detection.detection_wrapper
+    suite2p.detection.detection_wrapper = _detect_on_chan2_mean(
+        detection_wrapper, cellpose_diameter
+    )
+    try:
+        yield
+    finally:
+        suite2p.detection.detection_wrapper = detection_wrapper
+
+
 def _force_cellpose_cpu_if_requested():
     """Force Cellpose onto CPU when ``PHOTON_MOSAIC_FORCE_CPU=1``.
 
@@ -103,6 +212,10 @@ def run_suite2p(
     that may occur during the process and logs them in an error
     file.
 
+    With ``detect_on_chan2_mean: true`` in ``user_ops_dict``, ROIs are found
+    by Cellpose in the registered chan2 mean image instead of the functional
+    channel, at the ``chan2_mean_diameter`` cell size.
+
     Parameters
     ----------
     stat_path : str
@@ -139,8 +252,10 @@ def run_suite2p(
         pretrained_model=user_ops_dict.get("pretrained_model", "cpsam"),
     )
 
-    # suite2p native behavior
+    # Pipeline options, handled here rather than by suite2p
     split_multitiff = user_ops_dict.pop("split_multitiff", False)
+    detect_on_chan2_mean = user_ops_dict.pop("detect_on_chan2_mean", False)
+    chan2_mean_diameter = user_ops_dict.pop("chan2_mean_diameter", 0)
 
     ops = get_edited_options(
         input_path=dataset_folder,
@@ -148,8 +263,21 @@ def run_suite2p(
         user_ops_dict=user_ops_dict,
     )
     db, settings = convert_ops_to_db_and_settings(ops)
+
+    detection = contextlib.nullcontext()
+    if detect_on_chan2_mean:
+        if db["nchannels"] < 2:
+            raise ValueError(
+                "detect_on_chan2_mean needs two-channel data (nchannels: 2)"
+            )
+        settings["detection"]["algorithm"] = "cellpose"
+        detection = _chan2_mean_detection(
+            _cellpose_diameter(chan2_mean_diameter)
+        )
+
     try:
-        run_s2p(db=db, settings=settings)
+        with detection:
+            run_s2p(db=db, settings=settings)
         if split_multitiff:
             split_suite2p_output(save_folder)
     except Exception as e:
@@ -280,9 +408,7 @@ def convert_ops_to_db_and_settings(ops: dict) -> tuple[dict, dict]:
         ]
 
     # A 0 entry (scalar or in a [y, x] pair) means "auto"
-    if not isinstance(diameter, (list, tuple)):
-        diameter = [diameter] * 2
-    settings["diameter"] = [d or _CELLPOSE_NATIVE_DIAMETER for d in diameter]
+    settings["diameter"] = _cellpose_diameter(diameter)
 
     # User options are validated in ``get_edited_options``, so anything left
     # here is an unused old ``default_ops`` entry
