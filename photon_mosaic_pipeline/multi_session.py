@@ -243,11 +243,17 @@ def link_multi_session(session_args, config):
 
     # Prefix with t-index (suite2p natsorts files, so this sets the
     # concatenation order) and session name to avoid clashes
+    links = {}
     for tiff in tiffs:
         session = tiff.parents[1]
-        link = (
-            funcimg / f"t{session_order[session]}_{session.name}_{tiff.name}"
-        )
+        name = f"t{session_order[session]}_{session.name}_{tiff.name}"
+        links[funcimg / name] = tiff
+    # Drop links from earlier runs to TIFFs since removed or no longer
+    # matched; existing links are kept so snakemake doesn't see them as new
+    for old_link in funcimg.iterdir():
+        if old_link.is_symlink() and old_link not in links:
+            old_link.unlink()
+    for link, tiff in links.items():
         if not link.is_symlink():
             link.symlink_to(tiff)
     logger.info(f"Linked {len(tiffs)} TIFF(s) into {funcimg}")
